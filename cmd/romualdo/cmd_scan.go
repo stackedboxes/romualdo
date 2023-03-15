@@ -9,12 +9,15 @@ package main
 
 import (
 	"fmt"
-	"os"
+
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+var scanCmd = &cobra.Command{
+	Use:   "scan",
+	Short: "Scan the source code and print the tokens",
+	Long:  `Scan the source code and print the tokens. This is only useful for testing when developing Romualdo itself.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Scan command not implemented!") // TODO!
+	},
 }

@@ -9,12 +9,15 @@ package main
 
 import (
 	"fmt"
-	"os"
+
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+var printASTCmd = &cobra.Command{
+	Use:   "print-ast",
+	Short: "Parse the source code, print the AST",
+	Long:  `Parse the source code, print the AST. AST stands for "Abstract Syntax Tree", and if you want to see it, that's your command.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Print AST command not implemented!") // TODO!
+	},
 }

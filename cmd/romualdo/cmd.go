@@ -8,13 +8,17 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+var rootCmd = &cobra.Command{
+	Use:   "romualdo",
+	Short: "Romualdo is a programming language for Interactive Storytelling",
+	Long: `A programming language designed for creating Interactive Storytelling
+experiences. Whatever this means. And only for a certain definition
+of Interactive Storytelling.`,
+}
+
+func init() {
+	rootCmd.AddCommand(scanCmd, printASTCmd)
 }
