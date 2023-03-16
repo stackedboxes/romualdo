@@ -197,7 +197,7 @@ func (s *Scanner) textModeToken() *Token {
 		s.advance()
 		s.line += 1
 		s.tokenLine += 1
-		s.skipHorizontalWhitespace()
+		spacePrefix = s.skipHorizontalWhitespace()
 	}
 
 	if ok, errToken := s.isSpacePrefixValid(spacePrefix); !ok {
