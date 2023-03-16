@@ -86,9 +86,9 @@ func (s *Scanner) Token() *Token {
 
 	switch s.mode {
 	case ScannerModeCode:
-		return s.textModeToken()
-	case ScannerModeText:
 		return s.codeModeToken()
+	case ScannerModeText:
+		return s.textModeToken()
 	default:
 		panic("Can't happen")
 	}
