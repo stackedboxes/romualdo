@@ -9,15 +9,48 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/stackedboxes/romualdo/pkg/frontend"
 )
 
 var scanCmd = &cobra.Command{
-	Use:   "scan",
+	Use:   "scan <path>",
 	Short: "Scan the source code and print the tokens",
-	Long:  `Scan the source code and print the tokens. This is only useful for testing when developing Romualdo itself.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Scan command not implemented!") // TODO!
+	Long: `Scan the source code and print the tokens.
+This is only useful for testing when developing Romualdo itself.`,
+	Args: cobra.ExactArgs(1),
+
+	// For the purposes of the testing, the scanner will run in code mode except
+	// between pairs of \passage and \end backslashed keywords (where it will
+	// run in text mode).
+	RunE: func(cmd *cobra.Command, args []string) error {
+		path := args[0]
+		source, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		scanner := frontend.NewScanner(string(source))
+		fmt.Printf("== File: %v\n", path)
+		for {
+			tok := scanner.Token()
+			fmt.Printf("-- Token %.6v %v\n", tok.Line, tok.Kind)
+			fmt.Printf("%v\n", tok.Lexeme)
+
+			switch tok.Kind {
+			case frontend.TokenKindEOF, frontend.TokenKindError:
+				return nil
+			case frontend.TokenKindPassage:
+				if tok.IsBackslashed() {
+					scanner.SetMode(frontend.ScannerModeText)
+				}
+			case frontend.TokenKindEnd:
+				if tok.IsBackslashed() {
+					scanner.SetMode(frontend.ScannerModeCode)
+				}
+			}
+		}
 	},
 }
