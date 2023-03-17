@@ -14,6 +14,10 @@ import (
 	"unicode/utf8"
 )
 
+// TODO: We should probably make the types here non-exported and have one
+// exported function that gets called from scanCmd. Similar to what we have with
+// the parser.
+
 // ScannerMode represents the possible modes the scanner can work in.
 type ScannerMode int
 

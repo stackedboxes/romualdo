@@ -32,3 +32,19 @@ passage thePassage(): void
     end
 end
 ```
+
+## Passages x Functions
+
+In principle, both should be allowed to do the same things. It's just that the
+syntax accepted by each one is different, favoring either text or code.
+
+## Principles
+
+Rough and kinda conflicting, but these are some principles I am trying to
+follow. These are more about implementation than design.
+
+* **Maintainability over performance.** At least within reasonable limits. I am
+  creating this because I want to use it, not because I want to maintain it.
+* **User friendliness over best practices.** I don't mind having two almost
+  identical functions if they can provide better error messages (compared with
+  merging them into a single function). "User" in this case means "me".
