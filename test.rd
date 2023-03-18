@@ -2,9 +2,9 @@ function aaa(): void
     \# whatever
 end
 
-\passage
+\passage bbb(): void
 	this is some passage
-	written in multiple lines
+	written in multiple lines \# \aaa <--- this causes a bad
 \end
 
-foo
+\# foo
