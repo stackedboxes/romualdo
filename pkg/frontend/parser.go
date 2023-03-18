@@ -101,13 +101,13 @@ func (p *parser) match(kind TokenKind) bool {
 // consume consumes the current token (and advances the parser), assuming it is
 // of a given kind. If it is not of this kind, reports this is an error with a
 // given error message.
-func (p *parser) consume(kind TokenKind, message string) {
+func (p *parser) consume(kind TokenKind, format string, a ...any) {
 	if p.currentToken.Kind == kind {
 		p.advance()
 		return
 	}
 
-	p.errorAtCurrent(message)
+	p.errorAtCurrent(format, a...)
 }
 
 //
@@ -136,9 +136,7 @@ func (p *parser) functionDecl() *ast.ProcDecl {
 	p.consume(TokenKindIdentifier, "Expected the function name.")
 	proc.Name = p.previousToken.Lexeme
 
-	p.consume(
-		TokenKindLeftParen,
-		fmt.Sprintf("Expected '(' after the function name %q.", proc.Name))
+	p.consume(TokenKindLeftParen, "Expected '(' after the function name %q.", proc.Name)
 	proc.Parameters = p.parseParameterList()
 	p.consume(TokenKindColon, "Expected ':' after parameter list.")
 
@@ -159,9 +157,7 @@ func (p *parser) passageDecl() *ast.ProcDecl {
 	p.consume(TokenKindIdentifier, "Expected the passage name.")
 	proc.Name = p.previousToken.Lexeme
 
-	p.consume(
-		TokenKindLeftParen,
-		fmt.Sprintf("Expected '(' after the passage name %q.", proc.Name))
+	p.consume(TokenKindLeftParen, "Expected '(' after the passage name %q.", proc.Name)
 	proc.Parameters = p.parseParameterList()
 	p.consume(TokenKindColon, "Expected ':' after parameter list.")
 
@@ -205,9 +201,7 @@ func (p *parser) blockNoConsume() *ast.Block {
 		if p.scanner.mode == ScannerModeText {
 			closingKeyword = "\\end"
 		}
-		p.errorAtCurrent(
-			fmt.Sprintf("Expected %q to end the block started at line %v.",
-				closingKeyword, blockLine))
+		p.errorAtCurrent("Expected %q to end the block started at line %v.", closingKeyword, blockLine)
 		return nil
 	}
 	return block
@@ -303,17 +297,17 @@ func (p *parser) parseParameterList() []ast.Parameter {
 // TODO: Those error reporting funcs should accept formatting, right?
 
 // errorAtCurrent reports an error at the current (c.currentToken) token.
-func (p *parser) errorAtCurrent(message string) {
-	p.errorAt(p.currentToken, message)
+func (p *parser) errorAtCurrent(format string, a ...any) {
+	p.errorAt(p.currentToken, format, a...)
 }
 
 // error reports an error at the token we just consumed (c.previousToken).
-func (p *parser) errorAtPrevious(message string) {
-	p.errorAt(p.previousToken, message)
+func (p *parser) errorAtPrevious(format string, a ...any) {
+	p.errorAt(p.previousToken, format, a...)
 }
 
 // errorAt reports an error at a given token, with a given error message.
-func (p *parser) errorAt(tok *Token, message string) {
+func (p *parser) errorAt(tok *Token, format string, a ...any) {
 	if p.panicMode {
 		return
 	}
@@ -331,6 +325,6 @@ func (p *parser) errorAt(tok *Token, message string) {
 		fmt.Fprintf(os.Stderr, " at %q", romutil.FormatTextForDisplay(tok.Lexeme))
 	}
 
-	fmt.Fprintf(os.Stderr, ": %v\n", message)
+	fmt.Fprintf(os.Stderr, ": %v\n", fmt.Sprintf(format, a...))
 	p.hadError = true
 }
