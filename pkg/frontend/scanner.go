@@ -335,7 +335,7 @@ func (s *Scanner) backslashedToken() *Token {
 	if tok.Kind == TokenKindIdentifier {
 		// There's no such thing as a "backslashed identifier", only backslashed
 		// keywords. Ergo, this must be an error.
-		return s.errorToken("Unknown keyword: %q", tok.Lexeme)
+		return s.errorToken("Unknown keyword: %q", tok.Lexeme[1:])
 	}
 	return tok
 }

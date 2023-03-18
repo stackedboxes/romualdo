@@ -4,7 +4,7 @@ end
 
 \passage bbb(): void
 	this is some passage
-	written in multiple lines \# \aaa <--- this causes a bad
+	written in multiple lines \aaa
 \end
 
 \# foo
