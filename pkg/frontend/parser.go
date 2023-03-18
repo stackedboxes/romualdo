@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"github.com/stackedboxes/romualdo/pkg/ast"
+	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
 // parser is a parser for the Romualdo language. It converts source code into an
@@ -323,11 +324,11 @@ func (p *parser) errorAt(tok *Token, message string) {
 
 	switch tok.Kind {
 	case TokenKindEOF:
-		fmt.Fprintf(os.Stderr, " at end")
+		fmt.Fprintf(os.Stderr, " at end of file")
 	case TokenKindError:
 		// Nothing.
 	default:
-		fmt.Fprintf(os.Stderr, " at %q", tok.Lexeme)
+		fmt.Fprintf(os.Stderr, " at %q", romutil.FormatTextForDisplay(tok.Lexeme))
 	}
 
 	fmt.Fprintf(os.Stderr, ": %v\n", message)

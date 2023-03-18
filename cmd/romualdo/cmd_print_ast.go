@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stackedboxes/romualdo/pkg/ast"
 	"github.com/stackedboxes/romualdo/pkg/frontend"
+	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
 var printASTCmd = &cobra.Command{
@@ -64,7 +65,7 @@ func (ap *ASTPrinter) Enter(node ast.Node) {
 	case *ast.Block:
 		ap.builder.WriteString("Block\n")
 	case *ast.Text:
-		ap.builder.WriteString(fmt.Sprintf("Text [%v]\n", n.Text))
+		ap.builder.WriteString(fmt.Sprintf("Text [%v]\n", romutil.FormatTextForDisplay(n.Text)))
 	default:
 		panic(fmt.Sprintf("Unexpected node type: %T", n))
 	}

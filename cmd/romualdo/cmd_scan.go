@@ -13,6 +13,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/stackedboxes/romualdo/pkg/frontend"
+	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
 var scanCmd = &cobra.Command{
@@ -37,7 +38,7 @@ This is only useful for testing when developing Romualdo itself.`,
 		for {
 			tok := scanner.Token()
 			fmt.Printf("-- Token %.6v %v\n", tok.Line, tok.Kind)
-			fmt.Printf("%v\n", tok.Lexeme)
+			fmt.Printf("%v\n", romutil.FormatTextForDisplay(tok.Lexeme))
 
 			switch tok.Kind {
 			case frontend.TokenKindEOF, frontend.TokenKindError:
