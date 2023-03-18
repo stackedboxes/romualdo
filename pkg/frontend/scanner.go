@@ -24,7 +24,7 @@ type ScannerMode int
 const (
 	// ScannerModeCode means that the scanner is treating the input as source
 	// code, i.e., like a traditional programming language.
-	ScannerModeCode = iota
+	ScannerModeCode ScannerMode = iota
 
 	// ScannerModeText means that the scanner is treating the input as text
 	// meant to be sent to the host; programming keywords generally need to be
