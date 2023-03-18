@@ -1,5 +1,3 @@
 # TODO
 
-Some immediate improvements:
-
-* Add package docs
+So empty. As if there wasn't a lot to do!
