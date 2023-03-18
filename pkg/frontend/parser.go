@@ -208,17 +208,21 @@ func (p *parser) blockNoConsume() *ast.Block {
 	return block
 }
 
-// statement parses a statement.
+// statement parses a statement. The current token is expected to be the first
+// token of the statement.
 func (p *parser) statement() ast.Node {
+	p.advance()
+
 	// For now, we know only about Text statements.
-	if p.match(TokenKindText) {
-		text := &ast.Text{
+	switch p.previousToken.Kind {
+	case TokenKindText:
+		return &ast.Text{
 			Text: p.previousToken.Lexeme,
 		}
-		return text
+	default:
+		p.errorAtPrevious("Expected statement.")
+		return nil
 	}
-
-	return nil
 }
 
 //
