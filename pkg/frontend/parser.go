@@ -135,7 +135,9 @@ func (p *parser) functionDecl() *ast.ProcDecl {
 	p.consume(TokenKindIdentifier, "Expected the function name.")
 	proc.Name = p.previousToken.Lexeme
 
-	p.consume(TokenKindLeftParen, "Expected '(' after the function name.")
+	p.consume(
+		TokenKindLeftParen,
+		fmt.Sprintf("Expected '(' after the function name %q.", proc.Name))
 	proc.Parameters = p.parseParameterList()
 	p.consume(TokenKindColon, "Expected ':' after parameter list.")
 
@@ -156,7 +158,9 @@ func (p *parser) passageDecl() *ast.ProcDecl {
 	p.consume(TokenKindIdentifier, "Expected the passage name.")
 	proc.Name = p.previousToken.Lexeme
 
-	p.consume(TokenKindLeftParen, "Expected '(' after the passage name.")
+	p.consume(
+		TokenKindLeftParen,
+		fmt.Sprintf("Expected '(' after the passage name %q.", proc.Name))
 	proc.Parameters = p.parseParameterList()
 	p.consume(TokenKindColon, "Expected ':' after parameter list.")
 
