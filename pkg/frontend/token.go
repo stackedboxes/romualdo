@@ -7,6 +7,8 @@
 
 package frontend
 
+import "fmt"
+
 // TokenKind represents the type of a token. I would call this tokenType if
 // "type" wasn't a reserved word in Go. So, there we have it: "TokenKind".
 type TokenKind int
@@ -41,8 +43,7 @@ const (
 	TokenKindCount
 )
 
-// String converts a tokenKind to its string representation. Returns an empty
-// string if an invalid kind value is passed.
+// String converts a tokenKind to its string representation.
 func (kind TokenKind) String() string {
 	switch kind {
 	case TokenKindLeftParen:
@@ -79,8 +80,9 @@ func (kind TokenKind) String() string {
 		return "TokenKindError"
 	case TokenKindEOF:
 		return "TokenKindEOF"
+	default:
+		return fmt.Sprintf("<Unknown TokenType: %v>", int(kind))
 	}
-	return ""
 }
 
 // A Token is a token -- you know, one of these thingies the scanner generates

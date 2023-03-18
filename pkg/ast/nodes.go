@@ -7,6 +7,8 @@
 
 package ast
 
+import "fmt"
+
 // BaseNode contains the functionality common to all AST nodes.
 type BaseNode struct {
 	// LineNumber stores the line number from where this node comes.
@@ -139,3 +141,14 @@ const (
 	ProcKindFunction ProcKind = iota
 	ProcKindPassage
 )
+
+func (kind ProcKind) String() string {
+	switch kind {
+	case ProcKindFunction:
+		return "Function"
+	case ProcKindPassage:
+		return "Passage"
+	default:
+		return fmt.Sprintf("<Unknown ProcKind: %v>", int(kind))
+	}
+}

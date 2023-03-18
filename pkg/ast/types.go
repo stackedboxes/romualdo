@@ -7,6 +7,8 @@
 
 package ast
 
+import "fmt"
+
 // A TypeTag identifies a type as seen by the Romualdo Language (that is,
 // ignoring the specificities of user-defined types).
 type TypeTag int
@@ -35,3 +37,24 @@ const (
 	// TypeString identifies a string type.
 	TypeString
 )
+
+func (tag TypeTag) String() string {
+	switch tag {
+	case TypeInvalid:
+		return "TypeInvalid"
+	case TypeVoid:
+		return "TypeVoid"
+	case TypeInt:
+		return "TypeInt"
+	case TypeFloat:
+		return "TypeFloat"
+	case TypeBNum:
+		return "TypeBNum"
+	case TypeBool:
+		return "TypeBool"
+	case TypeString:
+		return "TypeString"
+	default:
+		return fmt.Sprintf("<Unknown TypeTag: %v>", int(tag))
+	}
+}
