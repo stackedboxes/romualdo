@@ -15,6 +15,8 @@ import (
 func main() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
+
+		// TODO: We should have proper exit statuses with documented meanings.
 		os.Exit(1)
 	}
 }

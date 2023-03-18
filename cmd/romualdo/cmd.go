@@ -12,8 +12,9 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "romualdo",
-	Short: "Romualdo is a programming language for Interactive Storytelling",
+	Use:          "romualdo",
+	SilenceUsage: true,
+	Short:        "Romualdo is a programming language for Interactive Storytelling",
 	Long: `A programming language designed for creating Interactive Storytelling
 experiences. Whatever this means. And only for a certain definition
 of Interactive Storytelling.`,
