@@ -32,14 +32,14 @@ and if you want to see it, that's your command.`,
 			return err
 		}
 
-		root := frontend.Parse(string(source))
-		if root == nil {
-			return errors.New("Compilation error.")
+		ast := frontend.Parse(string(source))
+		if ast == nil {
+			return errors.New("Parsing error.")
 		}
 
 		ap := &ASTPrinter{}
-		root.Walk(ap)
-		fmt.Println(ap)
+		ast.Walk(ap)
+		fmt.Println(ap) // TODO: It's a bit odd to use ASTPrinter.String().
 
 		return nil
 	},

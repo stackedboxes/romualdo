@@ -2,9 +2,9 @@ function aaa(): void
     \# whatever
 end
 
-\passage bbb(): void
+\passage main(): void
 	this is some passage
-	written in multiple lines \aaa
+	written in multiple lines \# \aaa
 \end
 
 \# foo

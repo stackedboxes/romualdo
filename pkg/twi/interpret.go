@@ -5,21 +5,19 @@
 * Licensed under the MIT license (see LICENSE.txt for details)                 *
 \******************************************************************************/
 
-package main
+package twi
 
-import (
-	"github.com/spf13/cobra"
-)
+import "github.com/stackedboxes/romualdo/pkg/ast"
 
-var rootCmd = &cobra.Command{
-	Use:          "romualdo",
-	SilenceUsage: true,
-	Short:        "Romualdo is a programming language for Interactive Storytelling",
-	Long: `A programming language designed for creating Interactive Storytelling
-experiences. Whatever this means. And only for a certain definition
-of Interactive Storytelling.`,
-}
+// Interpret interprets the storyworld whose AST is passed as argument.
+//
+// TODO: This will change a lot. For example, currently there is no provision
+// for interactivity.
+func Interpret(ast ast.Node, procedures map[string]*ast.ProcDecl) error {
+	i := interpreter{
+		ast:        ast,
+		procedures: procedures,
+	}
 
-func init() {
-	rootCmd.AddCommand(scanCmd, printASTCmd, walkCmd)
+	return i.run()
 }
