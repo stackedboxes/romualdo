@@ -31,9 +31,11 @@ func (g *GlobalsSymbolVisitor) Procedures() map[string]*ast.ProcDecl {
 }
 
 func (g *GlobalsSymbolVisitor) Enter(node ast.Node) {
+	defer func() { g.level++ }()
 	switch n := node.(type) {
 	case *ast.ProcDecl:
-		if g.level != 0 {
+		// Level 0 is the File itself; globals are at level 1
+		if g.level != 1 {
 			return
 		}
 		// TODO: Check for duplicates here? Or somewhere else? Or both?
@@ -41,8 +43,6 @@ func (g *GlobalsSymbolVisitor) Enter(node ast.Node) {
 	default:
 		// Nothing
 	}
-
-	g.level++
 }
 
 func (g *GlobalsSymbolVisitor) Leave(ast.Node) {
