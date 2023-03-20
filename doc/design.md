@@ -13,7 +13,9 @@ For this iteration, the main changes are:
   constructs are still possible, but keywords must be prefixed by a backslash
   (`\`).
 
-## Passages
+## Ongoing design
+
+### Passages
 
 Tentative example:
 
@@ -33,10 +35,229 @@ passage thePassage(): void
 end
 ```
 
+### Text: Statement or literal? What about functions?
+
+TODO!
+
+In functions, we can use
+
+```romualdo
+function f(): void
+    say
+        And here we are in Text mode!
+    end
+
+    say This is text-mode, too! \end
+end
+```
+
+Almost makes me want to not have distinction between functions and passages at
+all! One less indentation level is nice, though.
+
+~~What about this: a text literal has an implicit `say` statement.~~ (Not
+true... in an explicit `say` the text literal doesn't have an implicit `say`.)
+
+Can't it be both? Like, a text literal is also a statement that causes the text
+to be "said". Clumsy!
+
+TODO: Should I rename "text" to something else? Something that implies "saying"
+or "output". Like "discourse" or "uttering". "Speech"? "Lecture" would be nice,
+too, because it is slightly derogatory, thus remembering the author to not
+overdo!
+
+The thing is: a text literal exists only in text mode. Text isn't really a type.
+
+What about this: we have things called "lectures". A Lecture is automatically
+output. The two ways to produce a Lecture are (1) `say` statements, (2)
+`passage`s. A Lecture has characteristics of both statements and literals, but
+we don't try to fit the concept into the traditional programming languages
+lingo.
+
+### Text interpolation
+
+TODO!
+
+```romualdo
+Here's some text saying that one plus one equals {1 + 1}. Or: an
+expression between curly braces is evaluated, converted to a string and
+interpolated into the text.
+
+And this {{domeSomethingForTheSideEffects()}} just some text, right? Or:
+arbitrary code between double curly braces is evaluated and the result is
+discarded. In this odd example, there would be two spaces between "this" and
+"just". Normally, I'd expect double curlies to not be used inline real text.
+```
+
+Mnemonic: more curlies don't allow the value to escape!
+
+A good question is: what if someone calls a procedure between curlies, and this
+procedure tries to show text?
+
+### Listening to user input
+
+TODO: Think about a longer-term solution.
+
+For the short term, at least, we can do this:
+
+```romualdo
+var result: int
+result = listen ["alternative 1", "alternative 2", "alternative 3"]
+```
+
+That is, `listen` takes an array of strings (the choices offered to the Player)
+and returns an integer (the index of the Player choice).
+
+### Output filters and checkers
+
+TODO!
+
+If I ever change the output to be something more generic (e.g. a `map`, like in
+the previous Romualdo iteration) I can introduce the concept of output filters.
+(I actually toyed with this idea before.)
+
+A filter is a procedure (typically a function) that takes the full Lecture
+contents (as a string) and transforms it to a `map`.
+
+The default filter would simply take the whole Lecture and put into, say, a
+`lecture` field of the output `map`.
+
+Maybe we could even allow to set more than one filter. Like, one to
+automatically add the world state to every response, and one to do the actual
+conversion. Something like that.
+
+And what about filter-like **checkers**? My Lecture may contain specially
+formatted commands that the host may interpret. Like `@@Image: foo` or
+something. A checker could check if these commands are correct.
+
+Can we do this a compile-time? Not fully, because of interpolated contents in
+Lectures. But to some extent maybe? Let's say we replace all interpolated bits
+with a hardcoded string (or just leave the curly-expressions as they are) before
+running the compile-time checker. I think a well-designed checker along with a
+well-designed Lecture format (and not being too creative with interpolations)
+could work well-enough to catch pretty much all relevant errors at compile-time.
+
 ## Passages x Functions
 
 In principle, both should be allowed to do the same things. It's just that the
 syntax accepted by each one is different, favoring either text or code.
+
+### Modules (Packages?)
+
+Scratch all that comes below after the horizontal line. It's probably a better
+idea to require something like:
+
+```romualdo
+import "foo/bar" as myBar
+import "foo/bar"                     \# imports as bar by default
+import "/foo/bar"                    \# absolute path (from Storyworld root)
+import "../bar"                      \# importing from parent module
+import "/module with spaces" as mws  \# bad, but not right; `as` alias needed in this case
+```
+
+TODO: Do I even need the concept of fully-qualified names, then? Perhaps only
+for error messages and the like? Well, the binaries and interpreter will need a
+FQN to avoid ambiguities.
+
+TODO: FQNs could use a slash, too. `/main` is the entry point.
+`/passages/chapter_1/happy_transition` could be a Procedure called
+`happy_transition` at the `/passages/chapter_1/` Package.
+
+TODO: Should I forbid modules with spaces in their names? Probably! In which
+case, the import syntax wouldn't need to get a quoted string.
+
+TODO: Module or package? Package seems to be more like what Go, Python and Java
+would use for what I have here. (The Lua book says: "The `package` library
+provides basic facilities for loading modules in Lua.")
+
+----
+
+A Storyworld is made of **Modules**. Each Module resides in a directory, and the
+**Main Module** is at the root directory of your Storyworld. All other Modules
+are in fact **Submodules** of the main one. The name of the Main Module is
+`main`. The name of a Submodule is the name of the subdirectory where it
+resides, but no Module other than the Main Module other module can be called
+`main`, regardless of the nesting depth.
+
+Submodules can nest deep as you want, that is to say, you can have a Submodule
+of a Submodule, of a Submodule, etc. You can use periods to join Module names
+and thus build complete Module paths, like
+`main.submodule1.submodule2.submodule3`.
+
+**TODO:** Above: define "module paths". Or call it qualified name or something
+like that. FWIW, I use the term "Fully Qualified Name" below.
+
+If the first component of a Module path is `main`, we know that it is an
+absolute path. Otherwise, it is interpreted as relative from the current Module.
+
+**TODO:** Support relative "up-paths", like the `..` in file systems? With which
+syntax?
+
+Each Module can be implemented in a single or in multiple files. Splitting a
+Module into multiple files is just a matter of convenience: it makes no
+difference from the perspective of the language.
+
+### Subroutine versioning
+
+TODO!
+
+```romualdo
+function foo@2(): void
+  \# ...
+end
+```
+
+Version `@1` is the default and can be omitted. Hmm, or the latest is the
+default and one must mark the older one with the right version? Nope, this would
+be confusing. So, @1 is the default and can be omitted -- but it is also fine to
+later on add the @1 that was initially omitted (so that the code looks
+consistent).
+
+**An almost good idea:** All versions must match the version of the Storyworld.
+This is great because it makes it much simpler to understand, say, that function
+v3 was introduced at the same time as globals v3. The problem is: what about
+external Packages, or reuse of Packages? Copy and paste and some manual editing
+of versions would work, but is bad. Hey... maybe limit this rule to Packages? We
+lose some benefits, but maybe keep the most important.
+
+### Meta blocks
+
+For top-level procedures, needed because they act as static vars. So, I need a
+syntax for that; and one that works with Passages, too.
+
+```romualdo
+function f(): void
+    meta
+        var v: bool = true
+    end
+end
+
+function f@2(): void
+    meta
+        var v: bool = false
+    end
+    return f@1()  \# Call a specific version. For cases like this, in which
+                  \# only the meta changed.
+end
+
+passage p(): void
+    \meta
+        var execCount: int = 0
+    \end
+    {{ execCount += 1 }}
+    And here finally there is some Lecture.
+end
+```
+
+So, the meta isn't versioned, only the Procedure is.
+
+At global-level, I used to say meta would be the way to set the Storyworld
+version. But... do I need this? Why?
+
+I really need the version only in exported bytecode (and even then, only for
+debugging and informational purposes, AFAICT). Actually, better to generate a
+version only when using some special compiler flag or command. Otherwise, for
+day-to-day work, generate binaries with, say, negative versions, indicating they
+are WIP.
 
 ## Principles
 
