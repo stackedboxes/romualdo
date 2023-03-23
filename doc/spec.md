@@ -25,6 +25,14 @@ we don't say "Romualdo programs" or "Romualdo apps"; we say "Romualdo
 
 The result of running a Storyworld is a **Story**.
 
+### Host Language
+
+The Romualdo tools are designed so that a Storyworld can be run as part of a
+program written in another programming language (as long as we have a Romualdo
+Virtual Machine available for that language).
+
+The language that "hosts" a Romualdo Storyworld is called the **Host Language**.
+
 ### Packages
 
 A Storyworld is composed of one or more Romualdo source files (usually more than
@@ -57,14 +65,12 @@ The execution of a Storyworld starts from a Procedure called `main` located at
 the Root Package (in other words, the entry point of a Storyworld has a Fully
 Qualified name of `/main`).
 
-## Commented Grammar
+## Source file
 
 As we saw above, a Storyworld is composed of a set of Romualdo source files that
 happen to be organized in a hierarchy of Packages. Romualdo can parse each each
 of these files independently, so the Romualdo source file is the top-level rule
 of our grammar.
-
-### Source file
 
 A source file is simply a sequence of Package imports followed by a sequence of
 declarations:
@@ -75,7 +81,7 @@ sourceFile = packageImport* declaration* EOF ;
 
 All Romualdo source files must be encoded in UTF-8.
 
-### Package imports
+## Package imports
 
 We use package imports to make symbols declared in other Packages available to
 the current source file.
@@ -113,7 +119,7 @@ import ../
 You should think twice before using `..` , though. It quickly gets confusing,
 especially if you decide to reorganize your Package hierarchy.
 
-#### The `std` Package
+### The `std` Package
 
 A special, magic case of Package imports is importing the Romualdo standard
 library. It is imported simply as `std`. This is not relative nor absolute; it's
@@ -123,7 +129,7 @@ magic!
 import std
 ```
 
-#### Accessing symbols from imported Packages
+### Accessing symbols from imported Packages
 
 By default, imported symbols are available as `package_name.Symbol_name`:
 
@@ -148,7 +154,7 @@ import my_poorly_named_packages/passage as myPassage
 name = ur.GetRandomName()
 ```
 
-#### Package import Errors
+### Package import Errors
 
 Let's see some possible errors when importing Packages.
 
@@ -166,7 +172,7 @@ import /my_package/..  \# Error! Cannot import the Root Package.
 import /               \# Error! The grammar itself forbids this case.
 ```
 
-#### What is imported?
+### What is imported?
 
 Only symbols whose names start with an uppercase letter are imported. By
 "uppercase letter", we specifically mean Unicode code points assigned to the
@@ -174,7 +180,61 @@ Only symbols whose names start with an uppercase letter are imported. By
 
 All other symbols are visible only within the Package they are declared.
 
-### Declarations
+## Types
+
+Romualdo is strongly-typed. There are one or two corners where typing gets a bit
+unsafe, but generally types are very precise and clear.
+
+```ebnf
+type = "void"
+     | "bool"
+     | "int"
+     | "float"
+     | "bnum"
+     | "string"
+     | "[" "]" type
+     | "map"
+     | procedureType
+     | qualifiedIdentifier ;
+
+procedureType = ( "function" | "passage" ) "(" [ typeList ] ")" ":" type ;
+
+typeList = type ( "," type )* ;
+
+qualifiedIdentifier = IDENTIFIER [ "." IDENTIFIER ] ;
+```
+
+The supported types are:
+
+* `void`: A non-type. Used when a type is formally required, but is not really
+  needed (like the return value of a function that doesn't return anything).
+* `bool`: Booleans, true or false, no surprise here, right?
+* `int`: A signed integer number, no less than 32 bits. You shouldn't really
+  count on the size (no pun intended).
+* `float`: A floating-point number, most likely a IEEE 754 binary64 (double
+  precision) number (but, again, you should not count on that).
+* `bnum`: Chris Crawford's bounded numbers, which I hope will be nice for doing
+  story things like character models (that's what `bnum`s were designed for,
+  anyway).
+* `string`: A string of characters, meant to hold UTF-8-encoded text.
+* Array: A sequence of zero or more elements of the same type. `[]int` is an
+  array of `int`s, `[]string` is an array of `string`s, and so on.
+* `map`: An associative array mapping string keys to values of any other type.
+  While all keys must be strings, the values can be of any, possibly mixed
+  types. The fact that a `map` value can be of any type is the reason for the
+  existence of type-unsafe corners of the language. It's also handy for
+  communication with the Host Language, as many modern programming languages
+  have types that are a superset of what a Romualdo `map` is.
+* Procedures: Procedures taking a certain set of parameters and returning a
+  certain type.
+* User-defined types: that's why we have that `qualifiedIdentifier` in the list
+  of types. It is "qualified" instead of a regular `IDENTIFIER` because it may
+  contain an imported Package name.
+
+TODO: Point to the (yet-to-be written) section in which we explain how we deal
+with the `map` type unsafeness.
+
+## Declarations
 
 ```ebnf
 declaration = globalsBlock
@@ -182,7 +242,7 @@ declaration = globalsBlock
             | passageDecl ;
 ```
 
-#### Globals
+### Globals
 
 Global variables must be declared in a `globals` block.
 
@@ -222,7 +282,6 @@ globals@3
     EndGame: string = "sure!"          \# Error! Changed the type
                                        \# Error! Didn't redeclare all globals
 end
-
 ```
 
 *Note:* We don't allow removing or changing types of globals from one version to
@@ -230,13 +289,47 @@ another because this could potentially break ongoing Stories. And we require all
 variables to be redeclared to avoid having globals confusingly scattered over
 different `globals` blocks.
 
-#### Procedures
+### Procedures
+
+Procedures are where things happen. Romualdo supports two types of procedures:
+Functions and Passages. They are completely equivalent in terms of capabilities,
+but each of them supports a different syntax, which is more appropriate for
+certain things.
+
+**Functions** are geared towards traditional programming. They are the obvious
+choice for the cases in which you are implementing the brains of your
+Storyworld. For example, maybe you want to have some sort of simulation to
+generate certain events for an ongoing Story: you'd want to use functions to
+implement this simulation.
+
+**Passages** are ideal for saying to the Player of your Storyworld. Typically,
+when you are effectively *telling* the Story, you'll want to use Passages.
+
+```ebnf
+procedureDecl = ( "function" | "passage )
+                [ "@" INTEGER ] IDENTIFIER "(" [ parameters ] ")" ":" type
+                statement*
+                "end" ;
+
+parameters = parameter ( "," parameter )* ;
+
+parameter = IDENTIFIER ":" type ;
+```
+
+To reiterate: a Function can do anything a Passage can do and vice-versa. The
+choice is a matter of convenience. So, what's the difference? The Romualdo
+compiler can operate in two different modes. All the grammar bits in this
+document focus on **Code Mode**, which looks just like a traditional programming
+language. The second mode, **Lecture Mode**, a bit less orthodox, is used in
+`say` statements and Passages.
+
+We'll get into details of Lecture Mode when talking about the `say` statement.
+
+### Statements
 
 **TODO!**
 
-## Advanced Topics
-
-### Versioning
+## Versioning
 
 **TODO**, but in summary:
 

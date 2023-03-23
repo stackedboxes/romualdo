@@ -141,6 +141,101 @@ could work well-enough to catch pretty much all relevant errors at compile-time.
 In principle, both should be allowed to do the same things. It's just that the
 syntax accepted by each one is different, favoring either text or code.
 
+### Code in Passages
+
+```romualdo
+passage p(): void
+    Alright, so this is some lecturing we are making
+    \if wantMoreLecturing == "a lot" then
+        This is more, much more, much more, much more,
+        much more, much more, much more, much more,
+        much more, much more, much more, much more,
+        much more, much more, much more, lecturing
+        for ya!
+    \else      \# backslash actually optional here, because of dedenting
+        Alright, I am stopping here!
+    \end       \# ditto
+end
+
+This is equivalent to:
+
+```romualdo
+function p(): void
+    say
+        Alright, so this is some lecturing we are making
+    end
+    if wantMoreLecturing == "a lot" then
+        This is more, much more, much more, much more,
+        much more, much more, much more, much more,
+        much more, much more, much more, much more,
+        much more, much more, much more, lecturing
+        for ya!
+    else
+        say
+            Alright, I am stopping here!
+        end
+    end
+end
+```
+
+Passages simply are Lecture mode by default and `say`/`end` is implicit.
+
+### Curlies and Passages
+
+What if we run some code in curlies that eventually runs `say`? This should be
+forbidden, right? This will just lead to confusing, wrong, unintentionally
+interleaving output from different Passages.
+
+So, how can we avoid it?
+
+At compile time we can check if there is *any* chance of a `say` being executed.
+Not sure this can be foolproof (at least not without forbidding a lot of code
+that is actually harmless -- AKA false positives).
+
+So, if we hit a `say` while on curlies, skip the `say` ("no runtime errors") and
+log it or whatever. But what else? Is this enough?
+
+Some sort of coloring (procedures are "colored" as either talky or silent;
+silents cannot call talkies) would technically work. But that's basically what I
+could achieve with static analysis (the compile-time checks I mentioned above).
+It's likely to end up making the vast majority of procedures talkies and thus
+forbidding their usage on curlies. *But...* is this bad, really? Effectively,
+what I am doing is saying that only procedures that are very clearly silents can
+be called from curlies. Curlies are meant to do relatively simple things. So,
+maybe that's my solution after all.
+
+### Arrays and maps
+
+First big challenge here is: how to avoid runtime errors? Out-of-bounds indices,
+nonexisting keys, bad types. I want means to check for these conditions before
+trying them, of course. But I need a proper solution for *when* they happen! The
+obvious solution is to always have a default return value. But with what syntax?
+
+I mean, returning the default value for the type would work (and maybe is a
+decent default/fallback), but would be nice to offer a way to the user to
+provide the in-case-of-error value.
+
+Let's try:
+
+```romualdo
+var i = myArray[3]!171
+var s = myMap["key"]!"default"
+```
+
+Anyway, I'd say accessing a wrong index without providing a default *is* a sort
+of "soft error", and I would like to warn/log it in test runs or rehearsal.
+
+Not bad. What about writing? Writing to a nonexisting map key just creates the
+new entry. Fine. No so easy with arrays! I don't think I can do any better than
+a no-op and soft error.
+
+TODO: Can I make chains have a single default value? Like this:
+
+```romualdo
+var i = myArray[3][5][1]!171              \# Uses default if any of the accesses fail
+var s = myMap["key1"]["key2"]!"default"   \# Ditto
+```
+
 ### Modules (Packages?)
 
 Scratch all that comes below after the horizontal line. It's probably a better
@@ -269,3 +364,5 @@ follow. These are more about implementation than design.
 * **User friendliness over best practices.** I don't mind having two almost
   identical functions if they can provide better error messages (compared with
   merging them into a single function). "User" in this case means "me".
+* **No runtime errors.** Stories don't crash, and stories is what we are trying
+  to make.
