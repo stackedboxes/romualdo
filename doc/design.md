@@ -354,6 +354,10 @@ version only when using some special compiler flag or command. Otherwise, for
 day-to-day work, generate binaries with, say, negative versions, indicating they
 are WIP.
 
+TODO: How to read a `meta`? Maybe `package.Func.metaName`. Int his case, need to
+allow the "third segment" in assignments and reads: `qualifiedIdentifier` alone
+won't do.
+
 ## Principles
 
 Rough and kinda conflicting, but these are some principles I am trying to

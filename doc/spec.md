@@ -25,13 +25,14 @@ we don't say "Romualdo programs" or "Romualdo apps"; we say "Romualdo
 
 The result of running a Storyworld is a **Story**.
 
-### Host Language
+### Driver Program
 
 The Romualdo tools are designed so that a Storyworld can be run as part of a
 program written in another programming language (as long as we have a Romualdo
 Virtual Machine available for that language).
 
-The language that "hosts" a Romualdo Storyworld is called the **Host Language**.
+That program that "hosts" the Romualdo Storyworld is called the **Driver
+Program**.
 
 ### Packages
 
@@ -195,24 +196,26 @@ type = "void"
      | "[" "]" type
      | "map"
      | procedureType
-     | qualifiedIdentifier ;
+     | userDefinedType ;
 
 procedureType = ( "function" | "passage" ) "(" [ typeList ] ")" ":" type ;
 
 typeList = type ( "," type )* ;
 
-qualifiedIdentifier = IDENTIFIER [ "." IDENTIFIER ] ;
+userDefinedType = IDENTIFIER [ "." IDENTIFIER ] ;
 ```
 
 The supported types are:
 
 * `void`: A non-type. Used when a type is formally required, but is not really
   needed (like the return value of a function that doesn't return anything).
-* `bool`: Booleans, true or false, no surprise here, right?
+* `bool`: Booleans, true or false, no surprise here, right? (Default value:
+  false)
 * `int`: A signed integer number, no less than 32 bits. You shouldn't really
-  count on the size (no pun intended).
+  count on the size (no pun intended). (Default value: false)
 * `float`: A floating-point number, most likely a IEEE 754 binary64 (double
-  precision) number (but, again, you should not count on that).
+  precision) number (but, again, you should not count on that). (Default value:
+  NaN)
 * `bnum`: Chris Crawford's bounded numbers, which I hope will be nice for doing
   story things like character models (that's what `bnum`s were designed for,
   anyway).
@@ -223,16 +226,20 @@ The supported types are:
   While all keys must be strings, the values can be of any, possibly mixed
   types. The fact that a `map` value can be of any type is the reason for the
   existence of type-unsafe corners of the language. It's also handy for
-  communication with the Host Language, as many modern programming languages
+  communication with the Driver Program, as many modern programming languages
   have types that are a superset of what a Romualdo `map` is.
 * Procedures: Procedures taking a certain set of parameters and returning a
   certain type.
-* User-defined types: that's why we have that `qualifiedIdentifier` in the list
-  of types. It is "qualified" instead of a regular `IDENTIFIER` because it may
-  contain an imported Package name.
+* User-defined types: Those can be declared in the same Package or in some other
+  Package and imported, so `userDefinedType` allows for things like `myType` or
+  like `thatPackage.ThatType`.
 
 TODO: Point to the (yet-to-be written) section in which we explain how we deal
-with the `map` type unsafeness.
+with the `map` type unsafeness. (Thinking of default values on "soft errors".)
+
+TODO: Need some thinking about how NaNs are handled. May want to leave this open
+("don't count on this"), as being specific here can lead to unnecessary
+difficulties in implementing VMs in certain languages.
 
 ## Declarations
 
@@ -242,14 +249,18 @@ declaration = globalsBlock
             | passageDecl ;
 ```
 
+TODO: User-defined types: type `alias`es and `struct`s (`class`es?).
+
 ### Globals
 
 Global variables must be declared in a `globals` block.
 
 ```ebnf
 globalsBlock = "globals" [ "@" INTEGER ]
-               varDeclStmt*
+               varDecl*
                "end" ;
+
+varDecl = IDENTIFIER [ ":" type ] [ "=" expression ] ;
 ```
 
 Each `globals` block has a version (if omitted, it is assumed to be 1). There
@@ -284,6 +295,19 @@ globals@3
 end
 ```
 
+The initialization expression is optional. If omitted, each variable is
+initialized by the default value of it's corresponding type.
+
+The type can be omitted if it can be inferred from the initialization
+expression:
+
+```romualdo
+globals
+    EndGame = false      \# Fine, `EndGame` is a bool because `false` is a bool
+    artifactsCount       \# Error! Type not informed and can't be inferred
+end
+```
+
 *Note:* We don't allow removing or changing types of globals from one version to
 another because this could potentially break ongoing Stories. And we require all
 variables to be redeclared to avoid having globals confusingly scattered over
@@ -302,12 +326,8 @@ Storyworld. For example, maybe you want to have some sort of simulation to
 generate certain events for an ongoing Story: you'd want to use functions to
 implement this simulation.
 
-**Passages** are ideal for saying to the Player of your Storyworld. Typically,
-when you are effectively *telling* the Story, you'll want to use Passages.
-
 ```ebnf
-procedureDecl = ( "function" | "passage )
-                [ "@" INTEGER ] IDENTIFIER "(" [ parameters ] ")" ":" type
+functionDecl =  "function" [ "@" INTEGER ] IDENTIFIER "(" [ parameters ] ")" ":" type
                 statement*
                 "end" ;
 
@@ -316,18 +336,155 @@ parameters = parameter ( "," parameter )* ;
 parameter = IDENTIFIER ":" type ;
 ```
 
-To reiterate: a Function can do anything a Passage can do and vice-versa. The
-choice is a matter of convenience. So, what's the difference? The Romualdo
-compiler can operate in two different modes. All the grammar bits in this
-document focus on **Code Mode**, which looks just like a traditional programming
-language. The second mode, **Lecture Mode**, a bit less orthodox, is used in
-`say` statements and Passages.
+**Passages** are ideal for saying to the Player of your Storyworld. Typically,
+when you are effectively *telling* the Story, you'll want to use Passages.
 
-We'll get into details of Lecture Mode when talking about the `say` statement.
+```ebnf
+passageDecl =  "passage" [ "@" INTEGER ] IDENTIFIER "(" [ parameters ] ")" ":" type
+               LECTURE
+               "end" ;
+```
+
+To reiterate: a Function can do anything a Passage can do and vice-versa. The
+choice is a matter of convenience, and the difference is that the body of
+Function is sequence of statements, while the body of a Passage is what we call
+a Lecture. TODO: Point to the section in which we describe Lectures.
 
 ### Statements
 
-**TODO!**
+Statements are language constructs that do stuff. They don't have a value.
+
+```ebnf
+statement = varDeclStmt
+          | assignmentStmt
+          | blockStmt
+          | whileStmt
+          | ifStmt
+          | returnStmt
+          | sayStmt
+          | expression ;
+
+varDeclStmt = "var" varDecl ;
+
+assignment = [ call "." ] IDENTIFIER "=" expression ;
+
+blockStmt = "do"
+            statement*
+            "end" ;
+
+whileStmt = "while" expression "do"
+            statement*
+            "end" ;
+
+ifStmt = "if" expression "then" statement*
+         elseif*
+         [ "else" statement* ]
+         "end" ;
+
+elseif = "elseif" expression "then" statement*
+
+returnStmt = "return" [ expression ] ;
+
+sayStmt = "say" LECTURE "end" ;
+```
+
+Some notes about the statements:
+
+* Local variable declarations can appear anywhere (anywhere a statement can
+  appear, *bien entendu*). A local variable exists from the point it is declared
+  until the end of its scope. A local variable cannot shadow an existing local
+  variable.
+* The only purpose of `do`...`end` statements is to create blocks, which form a
+  scope and therefore allow to control the lifetime of the enclosed local
+  variables. TODO: I honestly didn't intend to have this on the language, but I
+  added them to allow me having local variables before I have other
+  block-defining statements. Maybe I'll remove it in the future.
+* Nothing surprising about `while` loops: execute a sequence of statements as
+  long as a given expression evaluates to `true`.
+* Nothing surprising with `if`s either.
+* Ditto for `return`s.
+* The `say` statement is used to send information to the Driver Program that is
+  running the Storyworld. Typically, it is used to describe events that happened
+  in the story and need to be somehow shown to the player (the *how* in the
+  *somehow* is responsibility of the Driver Program, not of Romualdo). TODO:
+  Link to the description of Lectures.
+* Expressions can be used as statements. Depending on the expression this can be
+  useful (a function call is often used for its side-effects only) or useless
+  (an expression like `1 + 1` by itself serves no purpose -- but is considered
+  valid nevertheless).
+* TODO: `for` loops are the most notable absence here. I want to support things
+  like `for i in range(0, 10) do ... end` and `for t in arrayOfThings do ...
+  end`, but then I'd have to store some additional state (the `range()` result,
+  the current pointer into `arrayOfThings`) somewhere and don't know where this
+  somewhere would be. Probably in a local variable. Anyway, for now, `for` loops
+  are not available at all.
+    * TODO: We can probably go with two versions of `for`: one for counting,
+      another for iterating over collections (maybe `for` and `foreach`?).
+
+## Expressions
+
+Expressions evaluate to a value. The different levels of precedence are encoded
+in the grammar (which makes the grammar weirder to look at, but will hopefully
+translate more directly to the implementation).
+
+```ebnf
+expression = logicOr ;
+
+logicOr = logicAnd ( "or" logicAnd )* ;
+
+logicAnd = equality ( "and" equality )* ;
+
+equality = comparison ( ( "!=" | "==" ) comparison )* ;
+
+comparison = addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
+
+addition = multiplication ( ( "-" | "+" ) multiplication )* ;
+
+multiplication = exponentiation ( ( "/" | "*" ) exponentiation )* ;
+
+exponentiation = unary ( "^" exponentiation )* ;
+
+unary = ( "not" | "-" | "+" ) unary
+      | call ;
+
+call = "listen" expression
+     | primary ( "(" [ arguments ] ")"
+               | "." IDENTIFIER
+               | "[" expression "]"
+               )* ;
+
+arguments = expression ( "," expression )* ;
+
+primary = "true"
+        | "false"
+        | FLOAT
+        | INTEGER
+        | STRING
+        | arrayLiteral
+        | mapLiteral
+        | "(" expression ")" ;
+
+arrayLiteral = "[" [ expression ( "," expression )* [ "," ] ] "]" ;
+
+mapLiteral = "{" [ mapEntry   ( "," mapEntry   )* [ "," ] ] "}" ;
+
+mapEntry = ( IDENTIFIER | STRING ) "=" expression ;
+```
+
+Notes about expressions:
+
+* The `listen` expression is used to get input from the player. Its `expression`
+  argument must evaluate to a `map`, which represents the alternatives the
+  player has. `listen` transfers the control to the Driver Program, which can
+  access the data from this `map`, show alternatives to the Player, get a choice
+  from the Player and give the control back to the Storyworld, passing to it the
+  Player choice. The Player choice is the value of the `listen`, and is
+  always a `map`.
+    * TODO: The initial implementation of `listen`  will take a `[]string`
+      argument instead of `map` and return an `int`.
+* Logical operators `and` and `or` have short-circuited evaluation.
+* Note the syntax for literal arrays and maps. Trailing comma allowed.
+* TODO: blend for bnum!
 
 ## Versioning
 
