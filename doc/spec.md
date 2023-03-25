@@ -122,13 +122,8 @@ especially if you decide to reorganize your Package hierarchy.
 
 ### The `std` Package
 
-A special, magic case of Package imports is importing the Romualdo standard
-library. It is imported simply as `std`. This is not relative nor absolute; it's
-magic!
-
-```romualdo
-import std
-```
+A special, magic case of Package imports is the Romualdo standard library. It is
+always available as `std` without the need of importing it.
 
 ### Accessing symbols from imported Packages
 
