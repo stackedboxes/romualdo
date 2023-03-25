@@ -22,7 +22,7 @@ const (
 
 	// Literals
 	TokenKindIdentifier
-	TokenKindText // Text to be sent to the host
+	TokenKindLecture // Text to be `say`d
 
 	// Keywords
 	TokenKindBNum     // bnum
@@ -56,8 +56,8 @@ func (kind TokenKind) String() string {
 		return "TokenKindColon"
 	case TokenKindIdentifier:
 		return "TokenKindIdentifier"
-	case TokenKindText:
-		return "TokenKindText"
+	case TokenKindLecture:
+		return "TokenKindLecture"
 	case TokenKindBNum:
 		return "TokenKindBNum"
 	case TokenKindBool:
@@ -94,7 +94,7 @@ type Token struct {
 	// Lexeme is the text that makes up the token. It usually is just a slice of
 	// the source code string, but there are exceptions. Error tokens, for
 	// instance, will use this to store the error message as new string. And
-	// some token kinds (Text tokens, in particular) can do quite a bit of
+	// some token kinds (Lecture tokens, in particular) can do quite a bit of
 	// pre-processing to the input before turning it into a Lexeme (for example,
 	// removing blanks used for indentation).
 	Lexeme string

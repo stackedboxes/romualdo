@@ -48,7 +48,7 @@ func (i *interpreter) interpretBlock(block *ast.Block) error {
 
 func (i *interpreter) interpretStatement(stmt ast.Node) error {
 	switch n := stmt.(type) {
-	case *ast.Text:
+	case *ast.Lecture:
 		fmt.Println(n.Text)
 	default:
 		return fmt.Errorf("unknown statement type: %T", stmt)

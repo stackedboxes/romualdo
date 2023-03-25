@@ -45,7 +45,7 @@ This is only useful for testing when developing Romualdo itself.`,
 				return nil
 			case frontend.TokenKindPassage:
 				if tok.IsBackslashed() {
-					scanner.SetMode(frontend.ScannerModeText)
+					scanner.SetMode(frontend.ScannerModeLecture)
 				}
 			case frontend.TokenKindEnd:
 				if tok.IsBackslashed() {

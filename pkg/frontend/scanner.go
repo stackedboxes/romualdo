@@ -26,10 +26,9 @@ const (
 	// code, i.e., like a traditional programming language.
 	ScannerModeCode ScannerMode = iota
 
-	// ScannerModeText means that the scanner is treating the input as text
-	// meant to be sent to the host; programming keywords generally need to be
-	// escaped.
-	ScannerModeText
+	// ScannerModeLecture means that the scanner is treating the input as text
+	// meant to be `say`d; programming keywords generally need to be escaped.
+	ScannerModeLecture
 )
 
 // A Scanner (AKA lexer) tokenizes Romualdo source code.
@@ -55,9 +54,8 @@ type Scanner struct {
 	// tokens, this includes the backslash rune.
 	//
 	// This lexeme may be a transformed version of what is actually found in the
-	// code. For example, a Text segment will have the prefix spaces removed
-	// from the lexeme. So, I guess this may not fit the formal definition of a
-	// lexeme.
+	// code. For example, a Lecture will have the prefix spaces removed from the
+	// lexeme. So, I guess this may not fit the formal definition of a lexeme.
 	//
 	// TODO: Should probably use a strings.Builder. But also, as noted
 	// elsewhere, should be used only if we cannot use a slice of source.
@@ -91,7 +89,7 @@ func (s *Scanner) Token() *Token {
 	switch s.mode {
 	case ScannerModeCode:
 		return s.codeModeToken()
-	case ScannerModeText:
+	case ScannerModeLecture:
 		return s.textModeToken()
 	default:
 		panic("Can't happen")
@@ -104,7 +102,7 @@ func (s *Scanner) SetMode(mode ScannerMode) {
 }
 
 //
-// Code mode
+// Code Mode
 //
 
 // codeModeToken returns the next token, using the "code mode" scanning rules.
@@ -173,7 +171,7 @@ func (s *Scanner) skipWhitespace() {
 }
 
 //
-// Text mode
+// Lecture Mode
 //
 
 // textModeToken returns the next Token, using the "text mode" scanning rules.
@@ -210,21 +208,21 @@ func (s *Scanner) textModeToken() *Token {
 
 	// Now we are finally at a point where real text could exist.
 	for {
-		// EOF ends the Text token. But if we already have read some text,
-		// return it as a Text token. (The EOF will be returned later on, as the
-		// next token is requested.)
+		// EOF ends the Lecture token. But if we already have read some text,
+		// return it as a Lecture token. (The EOF will be returned as the next
+		// token.)
 		if s.isAtEnd() {
 			if len(s.tokenLexeme) > 0 {
-				return s.makeToken(TokenKindText)
+				return s.makeToken(TokenKindLecture)
 			}
 			return s.makeToken(TokenKindEOF)
 		}
 
-		// A backslashed token also ends the Text token. Handling is analogous
-		// to the EOF case above.
+		// A backslashed token also ends the Lecture token. Handling is
+		// analogous to the EOF case above.
 		if s.atBackslashedToken() {
 			if len(s.tokenLexeme) > 0 {
-				return s.makeToken(TokenKindText)
+				return s.makeToken(TokenKindLecture)
 			}
 			return s.backslashedToken()
 		}

@@ -164,7 +164,7 @@ func (p *parser) passageDecl() *ast.ProcDecl {
 	// Consume the last token of the type only after switching to text mode,
 	// because we want advance() to parse the next token already in text mode.
 	proc.ReturnType = p.parseTypeNoConsume()
-	p.scanner.SetMode(ScannerModeText)
+	p.scanner.SetMode(ScannerModeLecture)
 	p.advance()
 
 	// As above, make sure we switch back to code mode before parsing the first
@@ -198,7 +198,7 @@ func (p *parser) blockNoConsume() *ast.Block {
 
 	if p.currentToken.Kind != TokenKindEnd {
 		closingKeyword := "end"
-		if p.scanner.mode == ScannerModeText {
+		if p.scanner.mode == ScannerModeLecture {
 			closingKeyword = "\\end"
 		}
 		p.errorAtCurrent("Expected %q to end the block started at line %v.", closingKeyword, blockLine)
@@ -212,10 +212,10 @@ func (p *parser) blockNoConsume() *ast.Block {
 func (p *parser) statement() ast.Node {
 	p.advance()
 
-	// For now, we know only about Text statements.
+	// For now, we know only about Lectures.
 	switch p.previousToken.Kind {
-	case TokenKindText:
-		return &ast.Text{
+	case TokenKindLecture:
+		return &ast.Lecture{
 			Text: p.previousToken.Lexeme,
 		}
 	default:

@@ -91,29 +91,23 @@ func (n *Block) Walk(v Visitor) {
 	v.Leave(n)
 }
 
-// Text is an AST node representing a text statement.
+// Lecture is an AST node representing a Lecture.
 //
-// TODO: It's odd to call it a "text statement". Feels more like a "text
-// literal" -- but it works as a statement in practice. Must thing about it.
-// Especially, need to take into account how to create the equivalent thing in
-// code mode, *and* how to deal with "interpolated" values within text in text
-// mode.
-type Text struct {
+// A Lecture is an unorthodox language construct, that looks like a literal, but
+// works like a statement. Essentially, a Lecture is automatically `say`d by the
+// Storyworld when evaluated.
+type Lecture struct {
 	BaseNode
 
-	// Text contains the text's text. I swear this makes sense!
+	// Text contains the Lecture's text.
 	Text string
 }
 
-func (n *Text) Type() TypeTag {
-	// TODO: Here's another misty point of the design: what is the type of a
-	// Text? As a statement, it can be void as we are doing here. But if we look
-	// at it as a literal, it must have some non-void type! Maybe its own text
-	// type? Maybe string?
+func (n *Lecture) Type() TypeTag {
 	return TypeVoid
 }
 
-func (n *Text) Walk(v Visitor) {
+func (n *Lecture) Walk(v Visitor) {
 	v.Enter(n)
 	v.Leave(n)
 }

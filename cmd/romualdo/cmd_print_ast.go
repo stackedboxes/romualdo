@@ -64,8 +64,8 @@ func (ap *ASTPrinter) Enter(node ast.Node) {
 		ap.builder.WriteString(fmt.Sprintf("ProcDecl [%v %v(%v):%v]\n", n.Kind, n.Name, n.Parameters, n.ReturnType))
 	case *ast.Block:
 		ap.builder.WriteString("Block\n")
-	case *ast.Text:
-		ap.builder.WriteString(fmt.Sprintf("Text [%v]\n", romutil.FormatTextForDisplay(n.Text)))
+	case *ast.Lecture:
+		ap.builder.WriteString(fmt.Sprintf("Lecture [%v]\n", romutil.FormatTextForDisplay(n.Text)))
 	default:
 		panic(fmt.Sprintf("Unexpected node type: %T", n))
 	}
