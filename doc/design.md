@@ -136,6 +136,25 @@ running the compile-time checker. I think a well-designed checker along with a
 well-designed Lecture format (and not being too creative with interpolations)
 could work well-enough to catch pretty much all relevant errors at compile-time.
 
+### Unit tests
+
+I'll probably want to add some simple unit testing facility, inspired by D
+(though maybe even simpler). Something like this:
+
+```romualdo
+unittest
+    std.assert(doubleIt(3) == 6)
+    std.assert(doubleIt(7) == 14)
+end
+```
+
+That is, `unittest` blocks at global level are usually ignored (though they are
+parsed and checked). But when running with the right `romualdo` command, each of
+these blocks is executed (and `main` isn't).
+
+`unittest` blocks should probably reset all globals before running themselves.
+Or just start a brand new interpreter for each block and run them in parallel.
+
 ## Passages x Functions
 
 In principle, both should be allowed to do the same things. It's just that the

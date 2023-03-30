@@ -1,3 +1,6 @@
 # TODO
 
-So empty. As if there wasn't a lot to do!
+* Add hello test cases with varied EOL styles.
+* Someday: tests checking the exit code of the `romualdo` tool.
+* Maybe define `error` types specific for user-viewable messages and error
+  codes.
