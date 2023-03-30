@@ -11,26 +11,26 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/ast"
 )
 
-// GlobalsSymbolVisitor is a visitor that produces a table of global symbols.
-type GlobalsSymbolVisitor struct {
+// globalsSymbolVisitor is a visitor that produces a table of global symbols.
+type globalsSymbolVisitor struct {
 	level      int
 	procedures map[string]*ast.ProcDecl
 }
 
-// NewGlobalsSymbolVisitor cretes a new NewGlobalsSymbolVisitor.
-func NewGlobalsSymbolVisitor() *GlobalsSymbolVisitor {
-	return &GlobalsSymbolVisitor{
+// newGlobalsSymbolVisitor cretes a new newGlobalsSymbolVisitor.
+func newGlobalsSymbolVisitor() *globalsSymbolVisitor {
+	return &globalsSymbolVisitor{
 		procedures: map[string]*ast.ProcDecl{},
 	}
 }
 
 // Procedures returns the symbol table of global procedures. Must be called
 // after traversing the AST.
-func (g *GlobalsSymbolVisitor) Procedures() map[string]*ast.ProcDecl {
+func (g *globalsSymbolVisitor) Procedures() map[string]*ast.ProcDecl {
 	return g.procedures
 }
 
-func (g *GlobalsSymbolVisitor) Enter(node ast.Node) {
+func (g *globalsSymbolVisitor) Enter(node ast.Node) {
 	defer func() { g.level++ }()
 	switch n := node.(type) {
 	case *ast.ProcDecl:
@@ -45,6 +45,6 @@ func (g *GlobalsSymbolVisitor) Enter(node ast.Node) {
 	}
 }
 
-func (g *GlobalsSymbolVisitor) Leave(ast.Node) {
+func (g *globalsSymbolVisitor) Leave(ast.Node) {
 	g.level--
 }

@@ -10,6 +10,7 @@ package twi
 import (
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/stackedboxes/romualdo/pkg/ast"
 )
@@ -18,6 +19,7 @@ import (
 type interpreter struct {
 	ast        ast.Node
 	procedures map[string]*ast.ProcDecl
+	out        io.Writer
 }
 
 // run runs ("walks"?) the Storyworld whose AST is in i.ast.
@@ -49,7 +51,7 @@ func (i *interpreter) interpretBlock(block *ast.Block) error {
 func (i *interpreter) interpretStatement(stmt ast.Node) error {
 	switch n := stmt.(type) {
 	case *ast.Lecture:
-		fmt.Println(n.Text)
+		fmt.Fprintf(i.out, n.Text)
 	default:
 		return fmt.Errorf("unknown statement type: %T", stmt)
 	}
