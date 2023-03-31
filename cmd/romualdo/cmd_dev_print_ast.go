@@ -8,9 +8,7 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -19,7 +17,7 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
-var printASTCmd = &cobra.Command{
+var devPrintASTCmd = &cobra.Command{
 	Use:   "print-ast",
 	Short: "Parse the source code, print the AST",
 	Long: `Parse the source code, print the AST. AST stands for "Abstract Syntax Tree",
@@ -27,14 +25,9 @@ and if you want to see it, that's your command.`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path := args[0]
-		source, err := ioutil.ReadFile(path)
+		ast, err := frontend.ParseFile(path)
 		if err != nil {
-			return err
-		}
-
-		ast := frontend.Parse(string(source))
-		if ast == nil {
-			return errors.New("Parsing error.")
+			return fmt.Errorf("Parsing error: %w", err)
 		}
 
 		ap := &ASTPrinter{}

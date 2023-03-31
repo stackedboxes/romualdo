@@ -7,20 +7,12 @@
 
 package main
 
-import (
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
-var rootCmd = &cobra.Command{
-	Use:          "romualdo",
-	SilenceUsage: true,
-	Short:        "Romualdo is a programming language for Interactive Storytelling",
-	Long: `A programming language designed for creating Interactive Storytelling
-experiences. Whatever this means. And only for a certain definition
-of Interactive Storytelling.`,
-}
-
-func init() {
-	devCmd.AddCommand(scanCmd, devPrintASTCmd, devTestCmd)
-	rootCmd.AddCommand(walkCmd, devCmd)
+var devCmd = &cobra.Command{
+	Use:   "dev <subcommand>",
+	Short: "Collection of subcommands for developing Romualdo itself",
+	Long: `Collection of subcommands useful for developing Romualdo itself.
+If you are not working to improve the 'romualdo' tool, you probably
+don't need to look here.`,
 }
