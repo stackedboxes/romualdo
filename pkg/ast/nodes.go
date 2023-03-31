@@ -23,11 +23,32 @@ func (n *BaseNode) Line() int {
 // The AST nodes
 //
 
-// Storyworld is an AST node representing everything from a Romualdo source code
-// file. It is the root of the AST.
-//
-// TODO: Likely to not be the root of the AST once we start supporting multiple
-// files.
+// Storyworld is an AST mode representing the whole Storyworld, regardless of
+// its structure in terms of files. See SourceFile for a more file-centric view.
+type Storyworld struct {
+	BaseNode
+
+	// Declarations stores all the declarations found in all source files that
+	// compose the Storyworld.
+	Declarations []Node
+}
+
+func (n *Storyworld) Type() TypeTag {
+	return TypeVoid
+}
+
+func (n *Storyworld) Walk(v Visitor) {
+	v.Enter(n)
+	for _, decl := range n.Declarations {
+		decl.Walk(v)
+	}
+	v.Leave(n)
+}
+
+// SourceFile is an AST node representing everything from a Romualdo source code
+// file. It is the root of the formal AST (though in normal usage the romualdo
+// tool will parse several files concurrently and move all parsed declarations
+// to a single Storyworld node).
 type SourceFile struct {
 	BaseNode
 

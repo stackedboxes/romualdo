@@ -16,12 +16,12 @@ import (
 
 var walkCmd = &cobra.Command{
 	Use:   "walk <path>",
-	Short: "Runs the source using the tree-walk interpreter",
-	Long:  `Runs the source using the tree-walk interpreter.`,
+	Short: "Runs the Storyworld using the tree-walk interpreter",
+	Long:  `Runs the Storyworld using the tree-walk interpreter.`,
 	Args:  cobra.ExactArgs(1),
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path := args[0]
-		return twi.InterpretSource(path, os.Stdout)
+		return twi.InterpretStoryworld(path, os.Stdout)
 	},
 }
