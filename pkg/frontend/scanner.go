@@ -141,7 +141,7 @@ func (s *Scanner) codeModeToken() *Token {
 
 	// If we could not figure out what token that rune was supposed start, it's
 	// an error.
-	return s.errorToken("Unexpected character %q.", r)
+	return s.errorToken("unexpected character %q.", r)
 }
 
 // skipWhitespace skips all whitespace and comments, leaving the s.current index
@@ -293,7 +293,7 @@ func (s *Scanner) skipHorizontalWhitespace() string {
 // appropriate error token.
 func (s *Scanner) isSpacePrefixValid(prefix string) (bool, *Token) {
 	if strings.Contains(prefix, " ") && strings.Contains(prefix, "\t") {
-		return false, s.errorToken("Space prefix cannot contain mixed spaces and tabs.")
+		return false, s.errorToken("space prefix cannot contain mixed spaces and tabs.")
 	}
 	return true, nil
 }
@@ -304,7 +304,7 @@ func (s *Scanner) isSpacePrefixValid(prefix string) (bool, *Token) {
 func (s *Scanner) skipSpacePrefix(prefix string) *Token {
 	for _, r := range prefix {
 		if s.isAtEnd() || s.advance() != r {
-			return s.errorToken("Expected the same space prefix as the previous line.")
+			return s.errorToken("expected the same space prefix as the previous line.")
 		}
 	}
 	return nil

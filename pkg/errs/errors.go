@@ -39,19 +39,19 @@ func NewGenericCompileTime(fileName, format string, a ...any) *CompileTime {
 
 // Error converts the CompileTime to a string. Fulfils the error interface.
 func (e *CompileTime) Error() string {
+	line := ""
+	if e.Line > 0 {
+		line = fmt.Sprintf("%v:", e.Line)
+	}
 	at := ""
 	if e.Lexeme != "" {
 		if e.Lexeme == "end of file" {
-			at = fmt.Sprintf("at %v", e.Lexeme)
+			at = fmt.Sprintf(" at %v", e.Lexeme)
 		} else {
-			at = fmt.Sprintf("at %q", e.Lexeme)
+			at = fmt.Sprintf(" at %q", e.Lexeme)
 		}
 	}
-	line := ""
-	if e.Line > 0 {
-		line = fmt.Sprintf(":%v", e.Line)
-	}
-	return fmt.Sprintf("%v%v%v: %v", e.FileName, line, at, e.Message)
+	return fmt.Sprintf("%v:%v%v: %v", e.FileName, line, at, e.Message)
 }
 
 // CompileTimeCollection is a collection of CompileTime errors.
