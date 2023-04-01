@@ -13,6 +13,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/stackedboxes/romualdo/pkg/ast"
+	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/frontend"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
@@ -23,18 +24,16 @@ var devPrintASTCmd = &cobra.Command{
 	Long: `Parse the source code, print the AST. AST stands for "Abstract Syntax Tree",
 and if you want to see it, that's your command.`,
 	Args: cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		path := args[0]
 		ast, err := frontend.ParseFile(path)
 		if err != nil {
-			return fmt.Errorf("Parsing error: %w", err)
+			errs.ReportAndExit(err)
 		}
 
 		ap := &ASTPrinter{}
 		ast.Walk(ap)
 		fmt.Println(ap) // TODO: It's a bit odd to use ASTPrinter.String().
-
-		return nil
 	},
 }
 

@@ -9,23 +9,26 @@ package frontend
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/stackedboxes/romualdo/pkg/ast"
+	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
 // parser is a parser for the Romualdo language. It converts source code into an
 // AST.
 type parser struct {
+	// fileName contains the name of the file being parsed.
+	fileName string
+
 	// currentToken is the current token we are parsing.
 	currentToken *Token
 
 	// previousToken is the previous token we have parsed.
 	previousToken *Token
 
-	// hadError indicates whether we found at least one syntax error.
-	hadError bool
+	// errors contains the syntax errors we have found so far.
+	errors *errs.CompileTimeCollection
 
 	// panicMode indicates whether we are in panic mode. This has nothing to do
 	// with Go panics. Right after finding a syntax error it is hard to generate
@@ -39,29 +42,30 @@ type parser struct {
 }
 
 // newParser returns a new parser that will parse source.
-func newParser(source string) *parser {
+func newParser(fileName, source string) *parser {
 	return &parser{
-		scanner: NewScanner(source),
+		fileName: fileName,
+		errors:   &errs.CompileTimeCollection{},
+		scanner:  NewScanner(source),
 	}
 }
 
-// parse parses source and returns the root of the resulting AST. Returns nil in
-// case of error.
-func (p *parser) parse() *ast.SourceFile {
+// parse parses source and returns the root of the resulting AST.
+func (p *parser) parse() (*ast.SourceFile, error) {
 	sf := &ast.SourceFile{}
 
 	p.advance()
 
 	for !p.match(TokenKindEOF) {
 		decl := p.declaration()
-		if p.hadError {
-			return nil
+		if p.hadError() {
+			return nil, p.errors
 		}
 
 		sf.Declarations = append(sf.Declarations, decl)
 	}
 
-	return sf
+	return sf, nil
 }
 
 //
@@ -294,7 +298,10 @@ func (p *parser) parseParameterList() []ast.Parameter {
 // Error reporting
 //
 
-// TODO: Those error reporting funcs should accept formatting, right?
+// hadError checks if this parser has hit some syntax error already.
+func (p *parser) hadError() bool {
+	return !p.errors.IsEmpty()
+}
 
 // errorAtCurrent reports an error at the current (c.currentToken) token.
 func (p *parser) errorAtCurrent(format string, a ...any) {
@@ -312,19 +319,22 @@ func (p *parser) errorAt(tok *Token, format string, a ...any) {
 		return
 	}
 
-	p.panicMode = true
+	err := &errs.CompileTime{
+		Message:  fmt.Sprintf(format, a...),
+		FileName: p.fileName,
+		Line:     tok.Line,
+	}
 
-	fmt.Fprintf(os.Stderr, "[line %v] Error", tok.Line)
+	p.panicMode = true
 
 	switch tok.Kind {
 	case TokenKindEOF:
-		fmt.Fprintf(os.Stderr, " at end of file")
+		err.Lexeme = "end of file"
 	case TokenKindError:
-		// Nothing.
+		err.Lexeme = ""
 	default:
-		fmt.Fprintf(os.Stderr, " at %q", romutil.FormatTextForDisplay(tok.Lexeme))
+		err.Lexeme = romutil.FormatTextForDisplay(tok.Lexeme)
 	}
 
-	fmt.Fprintf(os.Stderr, ": %v\n", fmt.Sprintf(format, a...))
-	p.hadError = true
+	p.errors.Add(err)
 }

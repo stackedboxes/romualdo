@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/twi"
 )
 
@@ -20,8 +21,9 @@ var walkCmd = &cobra.Command{
 	Long:  `Runs the Storyworld using the tree-walk interpreter.`,
 	Args:  cobra.ExactArgs(1),
 
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		path := args[0]
-		return twi.InterpretStoryworld(path, os.Stdout)
+		err := twi.InterpretStoryworld(path, os.Stdout)
+		errs.ReportAndExit(err)
 	},
 }

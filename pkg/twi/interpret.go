@@ -8,7 +8,6 @@
 package twi
 
 import (
-	"errors"
 	"io"
 
 	"github.com/stackedboxes/romualdo/pkg/ast"
@@ -31,9 +30,9 @@ func interpretAST(ast ast.Node, procedures map[string]*ast.ProcDecl, out io.Writ
 
 // InterpretStoryworld interprets the Storyworld located at path.
 func InterpretStoryworld(path string, out io.Writer) error {
-	ast := frontend.ParseStoryworld(path)
-	if ast == nil {
-		return errors.New("Parsing error.") // TODO: Saner error handling and reporting, please!
+	ast, err := frontend.ParseStoryworld(path)
+	if err != nil {
+		return err
 	}
 
 	gsv := newGlobalsSymbolVisitor()

@@ -8,7 +8,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"regexp"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
+	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 	"github.com/stackedboxes/romualdo/pkg/twi"
 )
@@ -28,7 +28,7 @@ var devTestCmd = &cobra.Command{
 	Use:   "test",
 	Short: "Run a Romualdo test suite",
 	Long:  `Run a Romualdo test suite (i.e., meant to test Romualdo itself).`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Run tests concurrently. Like we do Storyworld parsing.
 		err := romutil.ForEachMatchingFileRecursive(flagDevTestSuite, regexp.MustCompile("test.toml"),
 			func(configPath string) error {
@@ -41,7 +41,7 @@ var devTestCmd = &cobra.Command{
 				return runTestCase(testPath, testConf)
 			},
 		)
-		return err
+		errs.ReportAndExit(err)
 	},
 }
 
@@ -80,8 +80,8 @@ func runTestCase(testPath string, testConf *testConfig) error {
 
 	actualOut := output.String()
 	if actualOut != testConf.ExpectedOutput[0] {
-		// TODO: Need better error handling and reporting!
-		return fmt.Errorf("Error on test %q: Expected output %q, got %q.", testPath, actualOut, testConf.ExpectedOutput[0])
+		errTS := errs.NewTestSuite(testPath, "expected output %q, got %q.", testConf.ExpectedOutput[0], actualOut)
+		return errTS
 	}
 	return nil
 }

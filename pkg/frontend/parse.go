@@ -8,25 +8,28 @@
 package frontend
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"regexp"
 
 	"github.com/stackedboxes/romualdo/pkg/ast"
+	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
 // ParseStoryworld parses the Storyworld at a given root directory. It
-// recursively looks for Romualdo source files (*.rd), parse each of them
-// concurrently, and places all declarations into an ast.Storyworld. In case of
-// errors, returns nil and prints the error messages to the standard error.
-//
-// TODO: Should probably return an error instead (maybe one that contains a list
-// of errors). Parsing itself shouldn't print to stderr directly.
-func ParseStoryworld(root string) *ast.Storyworld {
+// recursively looks for Romualdo source files (*.rd), parses each of them
+// concurrently, and places all declarations into an ast.Storyworld.
+func ParseStoryworld(root string) (*ast.Storyworld, error) {
 	sourceFiles, err := findRomualdoSourceFiles(root)
 	if err != nil {
-		return nil
+		ctErr := errs.NewGenericCompileTime(root, err.Error())
+		return nil, ctErr
+	}
+
+	if len(sourceFiles) == 0 {
+		ctErr := errs.NewGenericCompileTime(root, "No Romualdo source files (*.rd) found.")
+		return nil, ctErr
 	}
 
 	chFiles := make(chan *ast.SourceFile, 1024)
@@ -37,23 +40,26 @@ func ParseStoryworld(root string) *ast.Storyworld {
 	}
 
 	sw := &ast.Storyworld{}
+	allErrors := &errs.CompileTimeCollection{}
 
-	gotAnError := false
 	for i := 0; i < len(sourceFiles); i++ {
 		select {
 		case sfNode := <-chFiles:
 			sw.Declarations = append(sw.Declarations, sfNode.Declarations...)
 		case err := <-chError:
-			gotAnError = true
-			// TODO: Odd error handling/reporting
-			fmt.Fprintf(os.Stderr, "Parsing the Storyworld: %v\n", err)
+			compErrs := &errs.CompileTimeCollection{}
+			if errors.As(err, &compErrs) {
+				allErrors.AddMany(compErrs)
+			} else {
+				return nil, errs.NewICE("While parsing the Storyworld got an error of type %T: %v", err, err)
+			}
 		}
 	}
 
-	if gotAnError {
-		return nil
+	if !allErrors.IsEmpty() {
+		return nil, allErrors
 	}
-	return sw
+	return sw, nil
 }
 
 // findRomualdoSourceFiles traverses the filesystem starting at root looking for
@@ -74,14 +80,14 @@ func findRomualdoSourceFiles(root string) ([]string, error) {
 func ParseFile(path string) (*ast.SourceFile, error) {
 	source, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		ctErr := errs.NewGenericCompileTime(path, err.Error())
+		return nil, ctErr
 	}
 
-	p := newParser(string(source))
-	sfNode := p.parse()
-	if sfNode == nil {
-		// TODO: Bad error handling! (parse() should not print to stderr directly!)
-		return nil, fmt.Errorf("Error parsing %q", path)
+	p := newParser(path, string(source))
+	sfNode, err := p.parse()
+	if err != nil {
+		return nil, err
 	}
 
 	return sfNode, nil
@@ -96,6 +102,7 @@ func parseFileAsync(path string, chFiles chan<- *ast.SourceFile, chError chan<- 
 	sfNode, err := ParseFile(path)
 	if err != nil {
 		chError <- err
+		return
 	}
 	chFiles <- sfNode
 }

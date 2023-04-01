@@ -5,16 +5,5 @@
 * Licensed under the MIT license (see LICENSE.txt for details)                 *
 \******************************************************************************/
 
-package main
-
-import (
-	"fmt"
-	"os"
-)
-
-func main() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "Internal Compiler Error: unexpected top-level error:%v\n", err)
-		os.Exit(171) // TODO: Unified status codes!
-	}
-}
+// The errs package contains stuff related with errors.
+package errs

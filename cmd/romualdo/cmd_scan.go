@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/frontend"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
@@ -26,11 +27,12 @@ This is only useful for testing when developing Romualdo itself.`,
 	// For the purposes of the testing, the scanner will run in code mode except
 	// between pairs of \passage and \end backslashed keywords (where it will
 	// run in text mode).
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		path := args[0]
 		source, err := os.ReadFile(path)
 		if err != nil {
-			return err
+			ctErr := errs.NewGenericCompileTime(path, err.Error())
+			errs.ReportAndExit(ctErr)
 		}
 
 		scanner := frontend.NewScanner(string(source))
@@ -42,7 +44,7 @@ This is only useful for testing when developing Romualdo itself.`,
 
 			switch tok.Kind {
 			case frontend.TokenKindEOF, frontend.TokenKindError:
-				return nil
+				return
 			case frontend.TokenKindPassage:
 				if tok.IsBackslashed() {
 					scanner.SetMode(frontend.ScannerModeLecture)
