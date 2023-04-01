@@ -8,7 +8,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/stackedboxes/romualdo/pkg/errs"
@@ -16,7 +15,6 @@ import (
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "Internal Compiler Error: unexpected top-level error:%v\n", err)
-		os.Exit(errs.StatusCodeICE)
+		os.Exit(errs.StatusCodeBadUsage)
 	}
 }

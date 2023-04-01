@@ -8,6 +8,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"regexp"
@@ -28,6 +29,7 @@ var devTestCmd = &cobra.Command{
 	Use:   "test",
 	Short: "Run a Romualdo test suite",
 	Long:  `Run a Romualdo test suite (i.e., meant to test Romualdo itself).`,
+	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Run tests concurrently. Like we do Storyworld parsing.
 		err := romutil.ForEachMatchingFileRecursive(flagDevTestSuite, regexp.MustCompile("test.toml"),
@@ -57,12 +59,14 @@ func init() {
 func readTestConfig(path string) (*testConfig, error) {
 	tomlSource, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		tsErr := errs.NewTestSuite(path, "%v", err.Error())
+		return nil, tsErr
 	}
 	tomlConfigData := &testConfig{}
 	err = toml.Unmarshal(tomlSource, &tomlConfigData)
 	if err != nil {
-		return nil, err
+		tsErr := errs.NewTestSuite(path, "%v", err.Error())
+		return nil, tsErr
 	}
 
 	return tomlConfigData, nil
@@ -83,5 +87,7 @@ func runTestCase(testPath string, testConf *testConfig) error {
 		errTS := errs.NewTestSuite(testPath, "expected output %q, got %q.", testConf.ExpectedOutput[0], actualOut)
 		return errTS
 	}
+
+	fmt.Printf("Test case passed: %v.\n", testPath)
 	return nil
 }

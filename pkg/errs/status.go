@@ -18,6 +18,11 @@ const (
 	// test suite.
 	StatusCodeTestSuiteError = 2
 
+	// StatusCodeBadUsage indicates some user error in the usage of the romualdo
+	// tool (e.g., passing the wrong number of arguments, or passing a
+	// nonexisting command-line flag).
+	StatusCodeBadUsage = 50
+
 	// StatusCodeICE indicates an Internal Compiler Error.
 	StatusCodeICE = 125
 )
