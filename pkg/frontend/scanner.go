@@ -245,6 +245,22 @@ func (s *Scanner) textModeToken() *Token {
 				continue
 			}
 			if errToken := s.skipSpacePrefix(spacePrefix); errToken != nil {
+				// We failed to match the space prefix. This is not necessarily
+				// an error: if the token right ahead is an `end` token, we
+				// shall use instead of erroring out.
+				if s.current < 1 || s.current+2 > len(s.source) {
+					return errToken
+				}
+				if s.source[s.current-1:s.current+2] == "end" {
+					// We have an `end` token ahead. Let's return the Lecture we
+					// just read, and set everything up so that the `end` token
+					// is returned next.
+					s.tokenLexeme = s.tokenLexeme[0:len(s.tokenLexeme)]
+					tok := s.makeToken(TokenKindLecture)
+					s.current -= 1 // the `e` of `end` was consumed; undo that
+					s.SetMode(ScannerModeCode)
+					return tok
+				}
 				return errToken
 			}
 		default:
