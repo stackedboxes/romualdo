@@ -18,6 +18,11 @@ const (
 	// test suite.
 	StatusCodeTestSuiteError = 2
 
+	// StatusCodeCommandPrepError indicates some error happened while preparing
+	// to actually run the command. For example, an error opening the source
+	// file that is supposed to be compiled.
+	StatusCodeCommandPrepError = 10
+
 	// StatusCodeBadUsage indicates some user error in the usage of the romualdo
 	// tool (e.g., passing the wrong number of arguments, or passing a
 	// nonexisting command-line flag).

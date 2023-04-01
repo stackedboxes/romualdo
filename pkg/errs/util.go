@@ -16,6 +16,8 @@ import (
 // ReportAndExit reports the error err to the end user and exits with the
 // appropriate status code. It's fine if err is nil, we handle this case here.
 func ReportAndExit(err error) {
+	badUsageError := &BadUsage{}
+	cmdPrepError := &CommandPrep{}
 	compTimeError := &CompileTime{}
 	compTimeColl := &CompileTimeCollection{}
 	testSuiteError := &TestSuite{}
@@ -23,6 +25,14 @@ func ReportAndExit(err error) {
 	switch {
 	case err == nil:
 		os.Exit(StatusCodeSuccess)
+
+	case errors.As(err, &badUsageError):
+		fmt.Printf("Usage: %v\n", badUsageError)
+		os.Exit(StatusCodeBadUsage)
+
+	case errors.As(err, &cmdPrepError):
+		fmt.Printf("%v\n", cmdPrepError)
+		os.Exit(StatusCodeCommandPrepError)
 
 	case errors.As(err, &compTimeError):
 		fmt.Printf("%v\n", compTimeError)

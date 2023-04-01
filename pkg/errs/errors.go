@@ -113,6 +113,45 @@ func (e *TestSuite) Error() string {
 	return fmt.Sprintf("%v: %v", e.TestCase, e.Message)
 }
 
+// CommandPrep is an error that happened when preparing to run some command of
+// the romualdo tool. For example, an error opening the source file that is
+// supposed to be compiled.
+type CommandPrep struct {
+	// Message contains a message explaining what happened.
+	Message string
+}
+
+// NewCommandPrep is a handy way to create a CommandPrep error.
+func NewCommandPrep(format string, a ...any) *CommandPrep {
+	return &CommandPrep{
+		Message: fmt.Sprintf(format, a...),
+	}
+}
+
+// Error converts the CommandPrep to a string. Fulfils the error interface.
+func (e *CommandPrep) Error() string {
+	return fmt.Sprintf("%v", e.Message)
+}
+
+// BadUsage is an error that happened because the romualdo tool was called in
+// the wrong way (like incorrect command-line arguments).
+type BadUsage struct {
+	// Message contains a message explaining what happened.
+	Message string
+}
+
+// NewBadUsage is a handy way to create a BadUsage error.
+func NewBadUsage(format string, a ...any) *BadUsage {
+	return &BadUsage{
+		Message: fmt.Sprintf(format, a...),
+	}
+}
+
+// Error converts the BadUsage to a string. Fulfils the error interface.
+func (e *BadUsage) Error() string {
+	return fmt.Sprintf("%v", e.Message)
+}
+
 // ICE is an Internal Compiler Error. Used to report some unexpected issue with
 // the compiler -- like when we find it is on a state it wasn't expected to be.
 // It's always a bug.
