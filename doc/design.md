@@ -15,6 +15,18 @@ For this iteration, the main changes are:
 
 ## Ongoing design
 
+### Tree Walk Interpreter
+
+Do I need it?
+
+I want a way to run Romualdo code at compile time (to support compile-time
+checkers). But I guess this can even be a second step. Like, compile everything
+(including the checker), then running the checker on every Lecture. *If* I find
+a way to identify every Lecture in the compiled code.
+
+So, all doable with the bytecode interpreter? An therefore no tree walk
+interpreter needed?
+
 ### Passages
 
 Tentative example:
