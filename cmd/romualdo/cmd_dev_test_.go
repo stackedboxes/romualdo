@@ -76,8 +76,9 @@ func readTestConfig(path string) (*testConfig, error) {
 // testConf.
 func runTestCase(testPath string, testConf *testConfig) error {
 	// TODO: Add support fot interactivity.
+	srcPath := path.Join(testPath, "src")
 	output := &strings.Builder{}
-	err := twi.InterpretStoryworld(testPath, output)
+	err := twi.InterpretStoryworld(srcPath, output)
 	if err != nil {
 		return err
 	}
