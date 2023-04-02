@@ -141,7 +141,7 @@ func (s *Scanner) codeModeToken() *Token {
 
 	// If we could not figure out what token that rune was supposed start, it's
 	// an error.
-	return s.errorToken("unexpected character %q.", r)
+	return s.errorToken("unexpected character '%c'.", r)
 }
 
 // skipWhitespace skips all whitespace and comments, leaving the s.current index
@@ -359,7 +359,7 @@ func (s *Scanner) backslashedToken() *Token {
 	if tok.Kind == TokenKindIdentifier {
 		// There's no such thing as a "backslashed identifier", only backslashed
 		// keywords. Ergo, this must be an error.
-		return s.errorToken("Unknown keyword: %q", tok.Lexeme[1:])
+		return s.errorToken("Unknown keyword: '%v'", tok.Lexeme[1:])
 	}
 	return tok
 }

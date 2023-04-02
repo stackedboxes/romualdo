@@ -85,7 +85,7 @@ func runTestCase(testPath string, testConf *testConfig) error {
 
 	actualOut := output.String()
 	if actualOut != testConf.ExpectedOutput[0] {
-		errTS := errs.NewTestSuite(testPath, "expected output %q, got %q.", testConf.ExpectedOutput[0], actualOut)
+		errTS := errs.NewTestSuite(testPath, "expected output '%v', got '%v'.", testConf.ExpectedOutput[0], actualOut)
 		return errTS
 	}
 

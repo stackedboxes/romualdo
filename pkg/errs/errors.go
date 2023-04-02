@@ -48,7 +48,7 @@ func (e *CompileTime) Error() string {
 		if e.Lexeme == "end of file" {
 			at = fmt.Sprintf(" at %v", e.Lexeme)
 		} else {
-			at = fmt.Sprintf(" at %q", e.Lexeme)
+			at = fmt.Sprintf(" at '%v'", e.Lexeme)
 		}
 	}
 	return fmt.Sprintf("%v:%v%v: %v", e.FileName, line, at, e.Message)

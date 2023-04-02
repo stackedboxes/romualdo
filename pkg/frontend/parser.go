@@ -140,7 +140,7 @@ func (p *parser) functionDecl() *ast.ProcDecl {
 	p.consume(TokenKindIdentifier, "Expected the function name.")
 	proc.Name = p.previousToken.Lexeme
 
-	p.consume(TokenKindLeftParen, "Expected '(' after the function name %q.", proc.Name)
+	p.consume(TokenKindLeftParen, "Expected '(' after the function name '%v'.", proc.Name)
 	proc.Parameters = p.parseParameterList()
 	p.consume(TokenKindColon, "Expected ':' after parameter list.")
 
@@ -161,7 +161,7 @@ func (p *parser) passageDecl() *ast.ProcDecl {
 	p.consume(TokenKindIdentifier, "Expected the passage name.")
 	proc.Name = p.previousToken.Lexeme
 
-	p.consume(TokenKindLeftParen, "Expected '(' after the passage name %q.", proc.Name)
+	p.consume(TokenKindLeftParen, "Expected '(' after the passage name '%v'.", proc.Name)
 	proc.Parameters = p.parseParameterList()
 	p.consume(TokenKindColon, "Expected ':' after parameter list.")
 
@@ -205,7 +205,7 @@ func (p *parser) blockNoConsume() *ast.Block {
 		if p.scanner.mode == ScannerModeLecture {
 			closingKeyword = "\\end"
 		}
-		p.errorAtCurrent("Expected %q to end the block started at line %v.", closingKeyword, blockLine)
+		p.errorAtCurrent("Expected '%v' to end the block started at line %v.", closingKeyword, blockLine)
 		return nil
 	}
 	return block
