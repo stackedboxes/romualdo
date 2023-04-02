@@ -1,0 +1,2 @@
+passage main(): void
+\end
