@@ -80,7 +80,9 @@ declarations:
 sourceFile = packageImport* declaration* EOF ;
 ```
 
-All Romualdo source files must be encoded in UTF-8.
+All Romualdo source files must be encoded in UTF-8. Line feed (LF) characters
+are used as the line end markers, and carriage returns (CR) are ignored (so,
+both Unix-style and Windows-style line endings are supported).
 
 ## Package imports
 

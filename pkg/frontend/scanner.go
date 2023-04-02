@@ -161,6 +161,9 @@ func (s *Scanner) skipWhitespace() {
 			// Line breaks
 			s.line++
 			s.current += width
+		} else if r == '\r' {
+			// Ignore carriage returns
+			s.current += width
 		} else if unicode.IsSpace(r) {
 			// Other whitespace
 			s.current += width
@@ -181,6 +184,11 @@ func (s *Scanner) textModeToken() *Token {
 	s.start = s.current
 	if s.isAtEnd() {
 		return s.makeToken(TokenKindEOF)
+	}
+
+	if s.peek() == '\r' {
+		// Ignore carriage returns
+		s.advance()
 	}
 
 	// Check for a backslashed token.
@@ -263,6 +271,8 @@ func (s *Scanner) textModeToken() *Token {
 				}
 				return errToken
 			}
+		case '\r':
+			// Ignore carriage returns
 		default:
 			s.tokenLexeme += string(r)
 		}
