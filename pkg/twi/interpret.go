@@ -18,7 +18,7 @@ import (
 //
 // TODO: This will change a lot. For example, currently there is no provision
 // for interactivity.
-func interpretAST(ast ast.Node, procedures map[string]*ast.ProcDecl, out io.Writer) error {
+func interpretAST(ast ast.Node, procedures map[string]*ast.ProcedureDecl, out io.Writer) error {
 	i := interpreter{
 		ast:        ast,
 		procedures: procedures,

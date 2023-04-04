@@ -68,6 +68,13 @@ func (p *parser) parse() (*ast.SourceFile, error) {
 	return sf, nil
 }
 
+// packagePath returns the package path of the file being parsed.
+//
+// TODO: For now fixed at "/" because we don't support packages yet.
+func (p *parser) packagePath() string {
+	return "/"
+}
+
 //
 // Parsing building blocks
 //
@@ -132,9 +139,10 @@ func (p *parser) declaration() ast.Node {
 
 // functionDecl parses a function declaration. The "function" token must have
 // been just consumed.
-func (p *parser) functionDecl() *ast.ProcDecl {
-	proc := &ast.ProcDecl{
-		Kind: ast.ProcKindFunction,
+func (p *parser) functionDecl() *ast.ProcedureDecl {
+	proc := &ast.ProcedureDecl{
+		Kind:    ast.ProcKindFunction,
+		Package: p.packagePath(),
 	}
 
 	p.consume(TokenKindIdentifier, "Expected the function name.")
@@ -153,9 +161,10 @@ func (p *parser) functionDecl() *ast.ProcDecl {
 
 // passageDecl parses a passage declaration. The "passage" token must have been
 // just consumed.
-func (p *parser) passageDecl() *ast.ProcDecl {
-	proc := &ast.ProcDecl{
-		Kind: ast.ProcKindPassage,
+func (p *parser) passageDecl() *ast.ProcedureDecl {
+	proc := &ast.ProcedureDecl{
+		Kind:    ast.ProcKindPassage,
+		Package: p.packagePath(),
 	}
 
 	p.consume(TokenKindIdentifier, "Expected the passage name.")

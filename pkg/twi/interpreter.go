@@ -18,15 +18,15 @@ import (
 // interpreter is a tree-walk interpreter for a Romualdo AST.
 type interpreter struct {
 	ast        ast.Node
-	procedures map[string]*ast.ProcDecl
+	procedures map[string]*ast.ProcedureDecl
 	out        io.Writer
 }
 
 // run runs ("walks"?) the Storyworld whose AST is in i.ast.
 func (i *interpreter) run() error {
-	main, ok := i.procedures["main"]
+	main, ok := i.procedures["/main"]
 	if !ok {
-		return errors.New(`Missing "main" procedure`)
+		return errors.New(`Missing "/main" procedure`)
 	}
 	return i.interpretProcedure(main)
 }
@@ -35,7 +35,7 @@ func (i *interpreter) run() error {
 // interpret*() methods
 //
 
-func (i *interpreter) interpretProcedure(proc *ast.ProcDecl) error {
+func (i *interpreter) interpretProcedure(proc *ast.ProcedureDecl) error {
 	return i.interpretBlock(proc.Body)
 }
 

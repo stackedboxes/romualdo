@@ -15,6 +15,7 @@ type BaseNode struct {
 	LineNumber int
 }
 
+// Line returns the line number from where this node comes.
 func (n *BaseNode) Line() int {
 	return n.LineNumber
 }
@@ -25,6 +26,9 @@ func (n *BaseNode) Line() int {
 
 // Storyworld is an AST mode representing the whole Storyworld, regardless of
 // its structure in terms of files. See SourceFile for a more file-centric view.
+//
+// TODO: This doesn't support parallel compilation beyond parsing. Need to
+// change to a more traditional compile / link process.
 type Storyworld struct {
 	BaseNode
 
@@ -68,24 +72,45 @@ func (n *SourceFile) Walk(v Visitor) {
 	v.Leave(n)
 }
 
-// ProcDecl is an AST node representing the declaration (and the definition,
-// Romualdo doesn't have this distinction) of a procedure. A procedure can be
-// either a function or a passage.
-type ProcDecl struct {
+// ProcedureDecl is an AST node representing the declaration (and the
+// definition, Romualdo doesn't have this distinction) of a Procedure. A
+// Procedure can be either a Function or a Passage.
+type ProcedureDecl struct {
 	BaseNode
 
-	Kind       ProcKind
-	Name       string
+	// Kind tells if this is this a Function or a Passage. Important mainly for
+	// error reporting, because internally it doesn't matter much.
+	Kind ProcKind
+
+	// Package is the absolute path of the package this Procedure belongs to.
+	Package string
+
+	// Name is the Procedure name.
+	Name string
+
+	// ReturnType contains the return type of this Procedure.
 	ReturnType TypeTag
+
+	// Parameters contains the parameters expected by this Procedure.
 	Parameters []Parameter
-	Body       *Block
+
+	// Block contains the Procedure body (i.e., the statements that make it up).
+	Body *Block
+
+	//
+	// Fields used for code generation
+	//
+
+	// ChunkIndex is the index into the array of Chunks where the bytecode for
+	// this procedure is stored.
+	ChunkIndex int
 }
 
-func (n *ProcDecl) Type() TypeTag {
+func (n *ProcedureDecl) Type() TypeTag {
 	return TypeVoid
 }
 
-func (n *ProcDecl) Walk(v Visitor) {
+func (n *ProcedureDecl) Walk(v Visitor) {
 	v.Enter(n)
 	n.Body.Walk(v)
 	v.Leave(n)

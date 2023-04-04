@@ -226,7 +226,8 @@ The supported types are:
   communication with the Driver Program, as many modern programming languages
   have types that are a superset of what a Romualdo `map` is.
 * Procedures: Procedures taking a certain set of parameters and returning a
-  certain type.
+  certain type. As far as type declarations go, `function` and `passage` are
+  interchangeable.
 * User-defined types: Those can be declared in the same Package or in some other
   Package and imported, so `userDefinedType` allows for things like `myType` or
   like `thatPackage.ThatType`.

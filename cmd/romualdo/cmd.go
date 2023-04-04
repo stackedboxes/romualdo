@@ -22,5 +22,5 @@ of Interactive Storytelling.`,
 
 func init() {
 	devCmd.AddCommand(scanCmd, devPrintASTCmd, devTestCmd)
-	rootCmd.AddCommand(walkCmd, devCmd)
+	rootCmd.AddCommand(buildCmd, walkCmd, devCmd)
 }

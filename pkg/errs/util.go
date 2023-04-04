@@ -14,7 +14,8 @@ import (
 )
 
 // ReportAndExit reports the error err to the end user and exits with the
-// appropriate status code. It's fine if err is nil, we handle this case here.
+// appropriate status code. It's fine if err is nil: this just means we had a
+// successful execution and we handle this case here.
 func ReportAndExit(err error) {
 	badUsageError := &BadUsage{}
 	cmdPrepError := &CommandPrep{}

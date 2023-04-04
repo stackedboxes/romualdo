@@ -14,32 +14,32 @@ import (
 // globalsSymbolVisitor is a visitor that produces a table of global symbols.
 type globalsSymbolVisitor struct {
 	level      int
-	procedures map[string]*ast.ProcDecl
+	procedures map[string]*ast.ProcedureDecl
 }
 
 // newGlobalsSymbolVisitor cretes a new newGlobalsSymbolVisitor.
 func newGlobalsSymbolVisitor() *globalsSymbolVisitor {
 	return &globalsSymbolVisitor{
-		procedures: map[string]*ast.ProcDecl{},
+		procedures: map[string]*ast.ProcedureDecl{},
 	}
 }
 
 // Procedures returns the symbol table of global procedures. Must be called
 // after traversing the AST.
-func (g *globalsSymbolVisitor) Procedures() map[string]*ast.ProcDecl {
+func (g *globalsSymbolVisitor) Procedures() map[string]*ast.ProcedureDecl {
 	return g.procedures
 }
 
 func (g *globalsSymbolVisitor) Enter(node ast.Node) {
 	defer func() { g.level++ }()
 	switch n := node.(type) {
-	case *ast.ProcDecl:
+	case *ast.ProcedureDecl:
 		// Level 0 is the File itself; globals are at level 1
 		if g.level != 1 {
 			return
 		}
 		// TODO: Check for duplicates here? Or somewhere else? Or both?
-		g.procedures[n.Name] = n
+		g.procedures[n.Package+n.Name] = n
 	default:
 		// Nothing
 	}

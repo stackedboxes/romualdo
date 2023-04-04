@@ -52,7 +52,7 @@ func (ap *ASTPrinter) Enter(node ast.Node) {
 	switch n := node.(type) {
 	case *ast.SourceFile:
 		ap.builder.WriteString("SourceFile\n")
-	case *ast.ProcDecl:
+	case *ast.ProcedureDecl:
 		ap.builder.WriteString(fmt.Sprintf("ProcDecl [%v %v(%v):%v]\n", n.Kind, n.Name, n.Parameters, n.ReturnType))
 	case *ast.Block:
 		ap.builder.WriteString("Block\n")

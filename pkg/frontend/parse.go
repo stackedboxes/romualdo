@@ -90,6 +90,13 @@ func ParseFile(path string) (*ast.SourceFile, error) {
 		return nil, err
 	}
 
+	// Assorted semantic checks (but no type checks)
+	sc := NewSemanticChecker(path)
+	sfNode.Walk(sc)
+	if !sc.errors.IsEmpty() {
+		return nil, sc.errors
+	}
+
 	return sfNode, nil
 }
 
