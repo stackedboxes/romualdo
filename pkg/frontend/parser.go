@@ -165,6 +165,9 @@ func (p *parser) passageDecl() *ast.ProcedureDecl {
 	proc := &ast.ProcedureDecl{
 		Kind:    ast.ProcKindPassage,
 		Package: p.packagePath(),
+		BaseNode: ast.BaseNode{
+			LineNumber: p.previousToken.Line,
+		},
 	}
 
 	p.consume(TokenKindIdentifier, "Expected the passage name.")
