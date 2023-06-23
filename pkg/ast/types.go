@@ -36,6 +36,8 @@ const (
 
 	// TypeString identifies a string type.
 	TypeString
+
+	// TODO: Do we need a TypeLecture here?
 )
 
 func (tag TypeTag) String() string {

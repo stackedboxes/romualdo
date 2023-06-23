@@ -8,8 +8,12 @@
 package bytecode
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"reflect"
+
+	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
 // A ValueKind represents one of the types a value in the Romualdo Virtual
@@ -130,5 +134,47 @@ func ValuesEqual(a, b Value) bool {
 
 	default:
 		panic(fmt.Sprintf("Unexpected Value type: %T", va))
+	}
+}
+
+//
+// romutil.Serializer and romutil.Deserializer interfaces
+//
+
+// These are the in-disk constants that identify the type of a Romualdo value.
+const (
+	cswBoolFalse byte = 0
+	cswBoolTrue  byte = 1
+	cswInt       byte = 2
+	cswFloat     byte = 3
+	cswBNum      byte = 4
+	cswString    byte = 5
+	cswLecture   byte = 6
+)
+
+// Serialize serializes the CompiledStoryworld to the given io.Writer.
+func (v Value) Serialize(w io.Writer) error {
+	switch vv := v.Value.(type) {
+	case Procedure:
+		return errors.New("Cannot serialize Procedure values")
+
+	case Lecture:
+		bs := []byte{cswLecture}
+		_, err := w.Write(bs)
+		if err != nil {
+			return err
+		}
+
+		err = romutil.SerializeU32(w, uint32(len(vv.Text)))
+		if err != nil {
+			return err
+		}
+
+		_, err = io.WriteString(w, vv.Text)
+		return err
+
+	default:
+		// Can't happen
+		return fmt.Errorf("Unexpected Value type: %T", vv)
 	}
 }

@@ -2,7 +2,10 @@
 
 Next up:
 
-* Implement serialization/deserialization for CompiledStoryWorld and DebugInfo.
+* ~~Implement serialization for CompiledStoryWorld~~
+* Implement serialization for DebugInfo
+* Implement deserialization for CompiledStoryWorld
+* Implement deserialization for DebugInfo.
 * Implement a `run` command that executes a CompiledStoryWorld saved to disk.
 * Implement a `--trace` flag to `run`
 * Implement a `disassemble` command.
@@ -22,6 +25,13 @@ Then, the way forward is:
 * Add tests for interactivity.
 
 At this point we can make interactive stuff.
+
+Then, rethink file extensions. Maybe:
+
+* `.ral` for sources
+* `.ras` for compiled storyworlds
+* `.rad` for debug info
+* `.raf` for saved ("frozen") state (doesn't really need to be standardized)
 
 * ~~Add package names to parsed stuff.~~
 * Tests cases for errors (is it failing as expected for wrong code?)

@@ -120,7 +120,7 @@ func (cg *codeGeneratorPassTwo) makeConstant(value bytecode.Value) int {
 	}
 
 	constantIndex := cg.codeGenerator.csw.AddConstant(value)
-	if constantIndex >= bytecode.MaxConstants {
+	if constantIndex >= int(bytecode.MaxConstants) {
 		cg.codeGenerator.error("Too many constants in one Storyworld, the maximum is %v.", bytecode.MaxConstants)
 		return 0
 	}

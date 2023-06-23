@@ -40,10 +40,16 @@ var buildCmd = &cobra.Command{
 			errs.ReportAndExit(err)
 		}
 		csw, di, err := backend.GenerateCode(swAST, path)
+		_ = di
 
 		// TODO: Save the Compiled Storyworld and debug info to disk.
-		_ = csw
-		_ = di
+		cswFile, err := os.Create("csw.ras")
+		if err != nil {
+			errs.ReportAndExit(err)
+		}
+		defer cswFile.Close()
+
+		err = csw.Serialize(cswFile)
 
 		errs.ReportAndExit(err)
 	},
