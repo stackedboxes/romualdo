@@ -24,7 +24,8 @@ All integers are stored in little endian.
 * A `uint32` with the number of Chunks.
 * Each of the Chunks, which looks like this:
     * A `uint32` with Chunk size.
-    * An array of bytes, with the bytecode.
+    * An array of bytes, with the bytecode. The opcodes and instruction format
+      are documented in [Instruction Set](instruction_set.md).
 
 ### First Chunk
 
