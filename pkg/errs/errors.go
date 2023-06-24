@@ -135,6 +135,25 @@ func (e *CommandPrep) Error() string {
 	return fmt.Sprintf("%v", e.Message)
 }
 
+// CommandFinish is an error that happened when finishing to run some command of
+// the romualdo tool. For example, an error writing to the output file.
+type CommandFinish struct {
+	// Message contains a message explaining what happened.
+	Message string
+}
+
+// NewCommandFinish is a handy way to create a CommandFinish error.
+func NewCommandFinish(format string, a ...any) *CommandFinish {
+	return &CommandFinish{
+		Message: fmt.Sprintf(format, a...),
+	}
+}
+
+// Error converts the CommandFinish to a string. Fulfils the error interface.
+func (e *CommandFinish) Error() string {
+	return fmt.Sprintf("%v", e.Message)
+}
+
 // BadUsage is an error that happened because the romualdo tool was called in
 // the wrong way (like incorrect command-line arguments).
 type BadUsage struct {

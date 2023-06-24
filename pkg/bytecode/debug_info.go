@@ -11,6 +11,7 @@ import (
 	"hash/crc32"
 	"io"
 
+	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
@@ -62,22 +63,19 @@ var DebugInfoMagic = []byte{0x52, 0x6D, 0x6C, 0x64, 0x44, 0x62, 0x67, 0x1A}
 //
 // Serialize serializes the DebugInfo to the given io.Writer.
 func (di *DebugInfo) Serialize(w io.Writer) error {
-	// TODO: Translate these errors to some Romualdo error. Probably want a new
-	// one, with a new exit code. Something to do with I/O errors, perhaps.
-
 	err := di.serializeHeader(w)
 	if err != nil {
-		return err
+		return errs.NewCommandFinish("serializing debug info header: %v", err)
 	}
 
 	crc32, err := di.serializePayload(w)
 	if err != nil {
-		return err
+		return errs.NewCommandFinish("serializing debug info payload: %v", err)
 	}
 
 	err = di.serializeFooter(w, crc32)
 	if err != nil {
-		return err
+		return errs.NewCommandFinish("serializing debug info footer: %v", err)
 	}
 
 	return nil

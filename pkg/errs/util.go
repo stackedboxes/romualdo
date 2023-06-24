@@ -19,6 +19,7 @@ import (
 func ReportAndExit(err error) {
 	badUsageError := &BadUsage{}
 	cmdPrepError := &CommandPrep{}
+	cmdFinishError := &CommandFinish{}
 	compTimeError := &CompileTime{}
 	compTimeColl := &CompileTimeCollection{}
 	testSuiteError := &TestSuite{}
@@ -34,6 +35,10 @@ func ReportAndExit(err error) {
 	case errors.As(err, &cmdPrepError):
 		fmt.Printf("%v\n", cmdPrepError)
 		os.Exit(StatusCodeCommandPrepError)
+
+	case errors.As(err, &cmdFinishError):
+		fmt.Printf("%v\n", cmdFinishError)
+		os.Exit(StatusCodeCommandFinishError)
 
 	case errors.As(err, &compTimeError):
 		fmt.Printf("%v\n", compTimeError)

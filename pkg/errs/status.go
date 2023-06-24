@@ -23,6 +23,11 @@ const (
 	// file that is supposed to be compiled.
 	StatusCodeCommandPrepError = 10
 
+	// StatusCodeCommandFinishError indicates some error happened while
+	// finishing the execution of the command. For example, an error writing
+	// the output file.
+	StatusCodeCommandFinishError = 11
+
 	// StatusCodeBadUsage indicates some user error in the usage of the romualdo
 	// tool (e.g., passing the wrong number of arguments, or passing a
 	// nonexisting command-line flag).

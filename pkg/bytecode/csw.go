@@ -11,6 +11,7 @@ import (
 	"hash/crc32"
 	"io"
 
+	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
@@ -80,22 +81,19 @@ func (csw *CompiledStoryworld) AddConstant(value Value) int {
 
 // Serialize serializes the CompiledStoryworld to the given io.Writer.
 func (csw *CompiledStoryworld) Serialize(w io.Writer) error {
-	// TODO: Translate these errors to some Romualdo error. Probably want a new
-	// one, with a new exit code. Something to do with I/O errors, perhaps.
-
 	err := csw.serializeHeader(w)
 	if err != nil {
-		return err
+		return errs.NewCommandFinish("serializing compiled storyworld header: %v", err)
 	}
 
 	crc32, err := csw.serializePayload(w)
 	if err != nil {
-		return err
+		return errs.NewCommandFinish("serializing compiled storyworld payload: %v", err)
 	}
 
 	err = csw.serializeFooter(w, crc32)
 	if err != nil {
-		return err
+		return errs.NewCommandFinish("serializing compiled storyworld footer: %v", err)
 	}
 
 	return nil
