@@ -48,8 +48,17 @@ var buildCmd = &cobra.Command{
 			errs.ReportAndExit(err)
 		}
 		defer cswFile.Close()
-
 		err = csw.Serialize(cswFile)
+		if err != nil {
+			errs.ReportAndExit(err)
+		}
+
+		debugInfoFile, err := os.Create("csw.rad")
+		if err != nil {
+			errs.ReportAndExit(err)
+		}
+		defer debugInfoFile.Close()
+		err = di.Serialize(debugInfoFile)
 
 		errs.ReportAndExit(err)
 	},

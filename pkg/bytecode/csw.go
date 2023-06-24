@@ -117,8 +117,6 @@ func (csw *CompiledStoryworld) serializeHeader(w io.Writer) error {
 // io.Writer. In other words, this the function doing the actual serialization.
 // Returns the CRC32 of the data written to w, and an error.
 func (csw *CompiledStoryworld) serializePayload(w io.Writer) (uint32, error) {
-	// Our payload writer, which keeps track of the number of bytes written and
-	// computes the CRC32 of the data written.
 	crc := crc32.NewIEEE()
 	mw := io.MultiWriter(w, crc)
 

@@ -2,7 +2,6 @@
 
 Next up:
 
-* Implement serialization for DebugInfo
 * Implement deserialization for CompiledStoryWorld
 * Implement deserialization for DebugInfo.
 * Implement a `run` command that executes a CompiledStoryWorld saved to disk.
