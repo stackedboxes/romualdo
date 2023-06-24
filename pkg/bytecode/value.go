@@ -152,11 +152,11 @@ const (
 	cswLecture   byte = 6
 )
 
-// Serialize serializes the CompiledStoryworld to the given io.Writer.
+// Serialize serializes the Value to the given io.Writer.
 func (v Value) Serialize(w io.Writer) error {
 	switch vv := v.Value.(type) {
 	case Procedure:
-		return errors.New("Cannot serialize Procedure values")
+		return errors.New("cannot serialize procedure values")
 
 	case Lecture:
 		bs := []byte{cswLecture}
@@ -165,16 +165,38 @@ func (v Value) Serialize(w io.Writer) error {
 			return err
 		}
 
-		err = romutil.SerializeU32(w, uint32(len(vv.Text)))
-		if err != nil {
-			return err
-		}
-
-		_, err = io.WriteString(w, vv.Text)
+		err = romutil.SerializeString(w, vv.Text)
 		return err
 
 	default:
 		// Can't happen
-		return fmt.Errorf("Unexpected Value type: %T", vv)
+		return fmt.Errorf("unexpected value type: %T", vv)
 	}
+}
+
+// Deserialize deserializes the Value from the given io.Reader.
+func (v Value) Deserialize(r io.Reader) error {
+	b := make([]byte, 1)
+	_, err := r.Read(b)
+	if err != nil {
+		return err
+	}
+
+	switch b[0] {
+	case cswBoolFalse:
+		v.Value = false
+	case cswBoolTrue:
+		v.Value = true
+	case cswLecture:
+		text, err := romutil.DeserializeString(r)
+		if err != nil {
+			return err
+		}
+		v.Value = Lecture{text}
+	default:
+		// Can't happen
+		return fmt.Errorf("unexpected value identifier: %v", b[0])
+	}
+
+	return nil
 }

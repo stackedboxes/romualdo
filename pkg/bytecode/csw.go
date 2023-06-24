@@ -8,6 +8,8 @@
 package bytecode
 
 import (
+	"errors"
+	"fmt"
 	"hash/crc32"
 	"io"
 
@@ -165,6 +167,88 @@ func (csw *CompiledStoryworld) serializeFooter(w io.Writer, crc32 uint32) error 
 	return err
 }
 
-// func (csw *CompiledStoryworld) Deserialize(r io.Reader) error {
-// // TODO!
-// }
+// Deserialize deserializes a CompiledStoryworld from the given io.Reader.
+func (csw *CompiledStoryworld) Deserialize(r io.Reader) error {
+	err := csw.deserializeHeader(r)
+	if err != nil {
+		return err
+	}
+
+	crc32, err := csw.deserializePayload(r)
+	if err != nil {
+		return err
+	}
+
+	err = csw.deserializeFooter(r, crc32)
+	return err
+}
+
+// deserializeHeader reads and checks the header of a CompiledStoryworld from
+// the given io.Reader. If everything is OK, it returns nil, otherwise it
+// returns an error.
+func (csw *CompiledStoryworld) deserializeHeader(r io.Reader) error {
+	// Magic
+	readMagic := make([]byte, len(CSWMagic))
+	_, err := io.ReadFull(r, readMagic)
+	if err != nil {
+		return err
+	}
+	for i, b := range readMagic {
+		if b != CSWMagic[i] {
+			return errors.New("invalid compiled storyworld magic number")
+		}
+	}
+
+	// Version
+	readVersion, err := romutil.DeserializeU32(r)
+	if err != nil {
+		return err
+	}
+	if readVersion != CSWVersion {
+		return fmt.Errorf("unsupported compiled storyworld version: %v", readVersion)
+	}
+
+	// Header is OK
+	return nil
+}
+
+// deserializePayload reads the payload of a CompiledStoryworld from the given
+// io.Reader. In other words, this the function doing the actual
+// deserialization. Returns the CRC32 of the data read from r, and an error. It
+// updates the CompiledStoryworld with the deserialized data as it goes.
+func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, error) {
+
+	crc32Summer := crc32.NewIEEE()
+	tr := io.TeeReader(r, crc32Summer)
+
+	// Constants
+	lenConstants, err := romutil.DeserializeU32(tr)
+	if err != nil {
+		return 0, err
+	}
+
+	csw.Constants = make([]Value, lenConstants)
+
+	for i := range csw.Constants {
+		err = csw.Constants[i].Deserialize(tr)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return crc32Summer.Sum32(), nil
+}
+
+// deserializeFooter reads and checks the footer of a CompiledStoryworld from
+// the given io.Reader. You must pass the CRC32 of the payload previously read
+// from r.
+func (csw *CompiledStoryworld) deserializeFooter(r io.Reader, crc32 uint32) error {
+	readCRC32, err := romutil.DeserializeU32(r)
+	if err != nil {
+		return err
+	}
+	if readCRC32 != crc32 {
+		return errors.New("compiled storyworld CRC32 mismatch")
+	}
+	return nil
+}
