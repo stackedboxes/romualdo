@@ -218,8 +218,8 @@ func (csw *CompiledStoryworld) deserializeHeader(r io.Reader) error {
 // updates the CompiledStoryworld with the deserialized data as it goes.
 func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, error) {
 
-	crc32Summer := crc32.NewIEEE()
-	tr := io.TeeReader(r, crc32Summer)
+	crcSummer := crc32.NewIEEE()
+	tr := io.TeeReader(r, crcSummer)
 
 	// Constants
 	lenConstants, err := romutil.DeserializeU32(tr)
@@ -236,7 +236,7 @@ func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, error) {
 		}
 	}
 
-	return crc32Summer.Sum32(), nil
+	return crcSummer.Sum32(), nil
 }
 
 // deserializeFooter reads and checks the footer of a CompiledStoryworld from

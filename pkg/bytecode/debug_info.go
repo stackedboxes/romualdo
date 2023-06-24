@@ -8,6 +8,8 @@
 package bytecode
 
 import (
+	"errors"
+	"fmt"
 	"hash/crc32"
 	"io"
 
@@ -134,4 +136,99 @@ func (di *DebugInfo) serializePayload(w io.Writer) (uint32, error) {
 func (di *DebugInfo) serializeFooter(w io.Writer, crc32 uint32) error {
 	err := romutil.SerializeU32(w, crc32)
 	return err
+}
+
+func (di *DebugInfo) Deserialize(r io.Reader) error {
+	err := di.deserializeHeader(r)
+	if err != nil {
+		return errs.NewCommandFinish("deserializing debug info header: %v", err)
+	}
+
+	crc32, err := di.deserializePayload(r)
+	if err != nil {
+		return errs.NewCommandFinish("deserializing debug info payload: %v", err)
+	}
+
+	err = di.deserializeFooter(crc32, r)
+	if err != nil {
+		return errs.NewCommandFinish("deserializing debug info footer: %v", err)
+	}
+
+	return nil
+}
+
+// deserializeHeader reads the header of a DebugInfo from the given io.Reader.
+// It returns an error if the header is invalid.
+func (di *DebugInfo) deserializeHeader(r io.Reader) error {
+	readMagic := make([]byte, len(DebugInfoMagic))
+	_, err := io.ReadFull(r, readMagic)
+	if err != nil {
+		return err
+	}
+
+	if string(readMagic) != string(DebugInfoMagic) {
+		return errors.New("invalid debug info magic number")
+	}
+
+	version, err := romutil.DeserializeU32(r)
+	if err != nil {
+		return err
+	}
+
+	if version != DebugInfoVersion {
+		return fmt.Errorf("unsupported debug info version: %v", version)
+	}
+
+	return nil
+}
+
+// deserializePayload reads the payload of a DebugInfo from the given io.Reader.
+// Returns the CRC32 of the data read from r, and an error. It updates the
+// DebugInfo with the deserialized data as it goes.
+func (di *DebugInfo) deserializePayload(r io.Reader) (uint32, error) {
+	crcSummer := crc32.NewIEEE()
+	tr := io.TeeReader(r, crcSummer)
+
+	// Number of chunks
+	chunksCount, err := romutil.DeserializeU32(tr)
+	if err != nil {
+		return 0, err
+	}
+
+	// Chunks Names
+	di.ChunksNames, err = romutil.DeserializeStringSliceNoLength(tr, int(chunksCount))
+	if err != nil {
+		return 0, err
+	}
+
+	// Chunks Source Files
+	di.ChunksSourceFiles, err = romutil.DeserializeStringSliceNoLength(tr, int(chunksCount))
+	if err != nil {
+		return 0, err
+	}
+
+	// Chunks Lines
+	di.ChunksLines = make([][]int, chunksCount)
+	for i := range di.ChunksLines {
+		di.ChunksLines[i], err = romutil.DeserializeIntSliceAsU32(tr)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	// Voilà!
+	return crcSummer.Sum32(), nil
+}
+
+// deserializeFooter reads the footer of a DebugInfo from the given io.Reader.
+// You must pass the CRC32 of the payload previously read from r.
+func (di *DebugInfo) deserializeFooter(crc32 uint32, r io.Reader) error {
+	readCRC32, err := romutil.DeserializeU32(r)
+	if err != nil {
+		return err
+	}
+	if readCRC32 != crc32 {
+		return errors.New("debug info CRC32 mismatch")
+	}
+	return nil
 }

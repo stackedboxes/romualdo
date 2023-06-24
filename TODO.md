@@ -2,7 +2,6 @@
 
 Next up:
 
-* Implement deserialization for DebugInfo.
 * Implement a `run` command that executes a CompiledStoryWorld saved to disk.
 * Implement a `--trace` flag to `run`
 * Implement a `disassemble` command.
