@@ -40,7 +40,7 @@ var runCmd = &cobra.Command{
 		di, _ = loadDebugInfo(diPath)
 
 		// TODO: Run the storyworld. If only we had a VM to run it... :-P
-		fmt.Printf("csw = %#v, di = %#v", di, csw)
+		fmt.Printf("\ncsw = %#v\n di = %#v", csw, di)
 	},
 }
 

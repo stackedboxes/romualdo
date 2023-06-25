@@ -236,6 +236,34 @@ func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, error) {
 		}
 	}
 
+	// Chunks
+	lenChunks, err := romutil.DeserializeU32(tr)
+	if err != nil {
+		return 0, err
+	}
+	csw.Chunks = make([]*Chunk, lenChunks)
+	for i := range csw.Chunks {
+		lenChunkCode, err := romutil.DeserializeU32(tr)
+		if err != nil {
+			return 0, err
+		}
+		csw.Chunks[i] = &Chunk{
+			Code: make([]byte, lenChunkCode),
+		}
+		_, err = io.ReadFull(tr, csw.Chunks[i].Code)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	// FirstChunk
+	i32, err := romutil.DeserializeU32(tr)
+	if err != nil {
+		return 0, err
+	}
+	csw.FirstChunk = int(i32)
+
+	// Voilà!
 	return crcSummer.Sum32(), nil
 }
 
