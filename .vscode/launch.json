@@ -12,7 +12,7 @@
             "program": "${workspaceFolder}/cmd/romualdo",
             "env": {},
             "cwd": "${workspaceFolder}",
-            "args": ["build", "./my-test"]
+            "args": ["run", "csw.ras"]
         }
     ]
 }

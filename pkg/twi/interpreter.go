@@ -8,11 +8,11 @@
 package twi
 
 import (
-	"errors"
 	"fmt"
 	"io"
 
 	"github.com/stackedboxes/romualdo/pkg/ast"
+	"github.com/stackedboxes/romualdo/pkg/errs"
 )
 
 // interpreter is a tree-walk interpreter for a Romualdo AST.
@@ -26,7 +26,7 @@ type interpreter struct {
 func (i *interpreter) run() error {
 	main, ok := i.procedures["/main"]
 	if !ok {
-		return errors.New(`Missing "/main" procedure`)
+		return errs.NewRuntime("Missing '/main' procedure")
 	}
 	return i.interpretProcedure(main)
 }
@@ -53,7 +53,7 @@ func (i *interpreter) interpretStatement(stmt ast.Node) error {
 	case *ast.Lecture:
 		fmt.Fprintf(i.out, n.Text)
 	default:
-		return fmt.Errorf("unknown statement type: %T", stmt)
+		return errs.NewRuntime("unknown statement type: %T", stmt)
 	}
 	return nil
 }

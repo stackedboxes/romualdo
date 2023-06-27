@@ -8,13 +8,13 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path"
 
 	"github.com/spf13/cobra"
 	"github.com/stackedboxes/romualdo/pkg/bytecode"
 	"github.com/stackedboxes/romualdo/pkg/errs"
+	"github.com/stackedboxes/romualdo/pkg/vm"
 )
 
 var runCmd = &cobra.Command{
@@ -39,8 +39,9 @@ var runCmd = &cobra.Command{
 		// now, but in the future, we may want a flag to control this.
 		di, _ = loadDebugInfo(diPath)
 
-		// TODO: Run the storyworld. If only we had a VM to run it... :-P
-		fmt.Printf("\ncsw = %#v\n di = %#v", csw, di)
+		theVM := vm.New()
+		err = theVM.Interpret(csw, di)
+		errs.ReportAndExit(err)
 	},
 }
 

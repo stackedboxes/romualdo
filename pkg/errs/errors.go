@@ -173,6 +173,26 @@ func (e *BadUsage) Error() string {
 	return fmt.Sprintf("%v", e.Message)
 }
 
+// Runtime is an error that happened while running a Storyworld. Not sure I am
+// ready to vouch for this, but I think that this if this ever happens, it means
+// there is a bug in the tooling.
+type Runtime struct {
+	// Message contains a message explaining what happened.
+	Message string
+}
+
+// NewRuntime is a handy way to create a Runtime error.
+func NewRuntime(format string, a ...any) *Runtime {
+	return &Runtime{
+		Message: fmt.Sprintf(format, a...),
+	}
+}
+
+// Error converts the Runtime to a string. Fulfils the error interface.
+func (e *Runtime) Error() string {
+	return fmt.Sprintf("%v", e.Message)
+}
+
 // ICE is an Internal Compiler Error. Used to report some unexpected issue with
 // the compiler -- like when we find it is on a state it wasn't expected to be.
 // It's always a bug.

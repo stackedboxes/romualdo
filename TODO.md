@@ -2,7 +2,6 @@
 
 Next up:
 
-* Implement a VM and use it in the `run` command.
 * Implement a `--trace` flag to `run`
 * Implement a `disassemble` command.
     * Add flags allowing to just print a summary (or "index").

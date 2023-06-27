@@ -230,7 +230,7 @@ func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, error) {
 	csw.Constants = make([]Value, lenConstants)
 
 	for i := range csw.Constants {
-		err = csw.Constants[i].Deserialize(tr)
+		csw.Constants[i], err = DeserializeValue(tr)
 		if err != nil {
 			return 0, err
 		}

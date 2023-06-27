@@ -138,7 +138,11 @@ func ValuesEqual(a, b Value) bool {
 }
 
 //
-// romutil.Serializer and romutil.Deserializer interfaces
+// Serialization and deserialization
+//
+// Note we don't implement the romutil.Deserializer interface for Values,
+// because Values are, well, value types, and this interface is for reference
+// types. The spirit is the same, though.
 //
 
 // These are the in-disk constants that identify the type of a Romualdo value.
@@ -174,12 +178,13 @@ func (v Value) Serialize(w io.Writer) error {
 	}
 }
 
-// Deserialize deserializes the Value from the given io.Reader.
-func (v Value) Deserialize(r io.Reader) error {
+// DeserializeValue deserializes a Value from the given io.Reader.
+func DeserializeValue(r io.Reader) (Value, error) {
+	v := Value{}
 	b := make([]byte, 1)
 	_, err := r.Read(b)
 	if err != nil {
-		return err
+		return v, err
 	}
 
 	switch b[0] {
@@ -190,13 +195,13 @@ func (v Value) Deserialize(r io.Reader) error {
 	case cswLecture:
 		text, err := romutil.DeserializeString(r)
 		if err != nil {
-			return err
+			return v, err
 		}
 		v.Value = Lecture{text}
 	default:
 		// Can't happen
-		return fmt.Errorf("unexpected value identifier: %v", b[0])
+		return v, fmt.Errorf("unexpected value identifier: %v", b[0])
 	}
 
-	return nil
+	return v, nil
 }
