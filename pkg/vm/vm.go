@@ -129,7 +129,7 @@ func (vm *VM) run() error {
 			if !value.IsLecture() {
 				vm.runtimeError("Expected a Lecture, got %T", value.Value)
 			}
-			fmt.Printf("%v\n", value.AsLecture().Text)
+			fmt.Printf("%v", value.AsLecture().Text)
 
 		default:
 			vm.runtimeError("Unexpected instruction: %v", instruction)
