@@ -20,13 +20,6 @@ Then, the way forward is:
 
 At this point we can make interactive stuff.
 
-Then, rethink file extensions. Maybe:
-
-* `.ral` for sources
-* `.ras` for compiled storyworlds
-* `.rad` for debug info
-* `.raf` for saved ("frozen") state (doesn't really need to be standardized)
-
 Older TODOs:
 
 * Tests cases for errors (is it failing as expected for wrong code?)

@@ -18,7 +18,7 @@ import (
 )
 
 // ParseStoryworld parses the Storyworld at a given directory swPath. It
-// recursively looks for Romualdo source files (*.rd), parses each of them
+// recursively looks for Romualdo source files (*.ral), parses each of them
 // concurrently, and places all declarations into an ast.Storyworld.
 func ParseStoryworld(swPath string) (*ast.Storyworld, error) {
 	sourceFiles, err := findRomualdoSourceFiles(swPath)
@@ -28,7 +28,7 @@ func ParseStoryworld(swPath string) (*ast.Storyworld, error) {
 	}
 
 	if len(sourceFiles) == 0 {
-		ctErr := errs.NewGenericCompileTime(swPath, "No Romualdo source files (*.rd) found.")
+		ctErr := errs.NewGenericCompileTime(swPath, "No Romualdo source files (*.ral) found.")
 		return nil, ctErr
 	}
 
@@ -63,10 +63,10 @@ func ParseStoryworld(swPath string) (*ast.Storyworld, error) {
 }
 
 // findRomualdoSourceFiles traverses the filesystem starting at swRoot looking for
-// Romualdo source files (*.rd). Returns a slice with all files found.
+// Romualdo source files (*.ral). Returns a slice with all files found.
 func findRomualdoSourceFiles(swRoot string) ([]string, error) {
 	files := []string{}
-	err := romutil.ForEachMatchingFileRecursive(swRoot, regexp.MustCompile(`.*\.rd`),
+	err := romutil.ForEachMatchingFileRecursive(swRoot, regexp.MustCompile(`.*\.ral`),
 		func(path string) error {
 			files = append(files, path)
 			return nil
