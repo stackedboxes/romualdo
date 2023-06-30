@@ -44,6 +44,8 @@ func (cg *codeGeneratorPassTwo) Enter(node ast.Node) {
 }
 
 func (cg *codeGeneratorPassTwo) Leave(node ast.Node) {
+	defer cg.codeGenerator.popFromNodeStack()
+
 	switch n := node.(type) {
 	case *ast.Storyworld:
 		break
@@ -72,8 +74,6 @@ func (cg *codeGeneratorPassTwo) Leave(node ast.Node) {
 	default:
 		cg.codeGenerator.ice("unknown node type: %T", n)
 	}
-
-	cg.codeGenerator.popFromNodeStack()
 }
 
 func (cg *codeGeneratorPassTwo) Event(node ast.Node, event int) {
