@@ -233,6 +233,10 @@ func (p *parser) statement() ast.Node {
 	switch p.previousToken.Kind {
 	case TokenKindLecture:
 		return &ast.Lecture{
+			BaseNode: ast.BaseNode{
+				SrcFile:    p.fileName,
+				LineNumber: p.previousToken.Line,
+			},
 			Text: p.previousToken.Lexeme,
 		}
 	default:
