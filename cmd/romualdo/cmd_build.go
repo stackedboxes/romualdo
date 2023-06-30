@@ -23,19 +23,19 @@ var buildCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
-		path := args[0]
-		fileInfo, err := os.Stat(path)
+		swPath := args[0]
+		fileInfo, err := os.Stat(swPath)
 		if err != nil {
 			cpErr := errs.NewCommandPrep(err.Error())
 			errs.ReportAndExit(cpErr)
 		}
 
 		if !fileInfo.IsDir() {
-			buErr := errs.NewBadUsage("the build command expects a directory, but %v isn't one", path)
+			buErr := errs.NewBadUsage("the build command expects a directory, but %v isn't one", swPath)
 			errs.ReportAndExit(buErr)
 		}
 
-		swAST, err := frontend.ParseStoryworld(path)
+		swAST, err := frontend.ParseStoryworld(swPath)
 		if err != nil {
 			errs.ReportAndExit(err)
 		}

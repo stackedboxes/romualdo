@@ -50,7 +50,7 @@ func newParser(fileName, source string) *parser {
 	}
 }
 
-// parse parses source and returns the root of the resulting AST.
+// parse parses p.scanner.source and returns the root of the resulting AST.
 func (p *parser) parse() (*ast.SourceFile, error) {
 	sf := &ast.SourceFile{}
 

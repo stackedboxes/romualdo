@@ -17,8 +17,6 @@ import (
 
 // codeGenerator contains the code that is common among the actual code
 // generation steps.
-//
-// TODO: Need to bring the source file name here somehow.
 type codeGenerator struct {
 	// csw is the CompiledStoryworld being generated.
 	csw *bytecode.CompiledStoryworld

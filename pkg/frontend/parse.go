@@ -17,18 +17,18 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
-// ParseStoryworld parses the Storyworld at a given root directory. It
+// ParseStoryworld parses the Storyworld at a given directory swPath. It
 // recursively looks for Romualdo source files (*.rd), parses each of them
 // concurrently, and places all declarations into an ast.Storyworld.
-func ParseStoryworld(root string) (*ast.Storyworld, error) {
-	sourceFiles, err := findRomualdoSourceFiles(root)
+func ParseStoryworld(swPath string) (*ast.Storyworld, error) {
+	sourceFiles, err := findRomualdoSourceFiles(swPath)
 	if err != nil {
-		ctErr := errs.NewGenericCompileTime(root, err.Error())
+		ctErr := errs.NewGenericCompileTime(swPath, err.Error())
 		return nil, ctErr
 	}
 
 	if len(sourceFiles) == 0 {
-		ctErr := errs.NewGenericCompileTime(root, "No Romualdo source files (*.rd) found.")
+		ctErr := errs.NewGenericCompileTime(swPath, "No Romualdo source files (*.rd) found.")
 		return nil, ctErr
 	}
 
@@ -62,11 +62,11 @@ func ParseStoryworld(root string) (*ast.Storyworld, error) {
 	return sw, nil
 }
 
-// findRomualdoSourceFiles traverses the filesystem starting at root looking for
+// findRomualdoSourceFiles traverses the filesystem starting at swRoot looking for
 // Romualdo source files (*.rd). Returns a slice with all files found.
-func findRomualdoSourceFiles(root string) ([]string, error) {
+func findRomualdoSourceFiles(swRoot string) ([]string, error) {
 	files := []string{}
-	err := romutil.ForEachMatchingFileRecursive(root, regexp.MustCompile(`.*\.rd`),
+	err := romutil.ForEachMatchingFileRecursive(swRoot, regexp.MustCompile(`.*\.rd`),
 		func(path string) error {
 			files = append(files, path)
 			return nil
