@@ -111,9 +111,31 @@ func (v Value) String() string {
 		return fmt.Sprintf("<procedure %d>", vv.ChunkIndex)
 	case Lecture:
 		// There are no variables of type Lecture, so users will never manually
+		// convert a Lecture to a string. This will appear in debug traces, but
+		// otherwise we don't need to worry about a user-friendly representation
+		// here.
+		return fmt.Sprintf("<Lecture: %v>", romutil.FormatTextForDisplay(vv.Text))
+	default:
+		return fmt.Sprintf("<Unexpected type %T>", vv)
+	}
+}
+
+// DebugString converts the value to a string usable in debug contexts.
+// debugInfo can be nil (but this will result in less information in the
+// resulting strings).
+func (v Value) DebugString(debugInfo *DebugInfo) string {
+	switch vv := v.Value.(type) {
+	case Procedure:
+		procName := ""
+		if debugInfo != nil {
+			procName = " (" + debugInfo.ChunksSourceFiles[vv.ChunkIndex] + ")"
+		}
+		return fmt.Sprintf("<procedure %v%v>", vv.ChunkIndex, procName)
+	case Lecture:
+		// There are no variables of type Lecture, so users will never manually
 		// convert a Lecture to a string. So, we don't need to worry about a
 		// user-friendly representation here.
-		return fmt.Sprintf("<Lecture: %v>", vv.Text)
+		return fmt.Sprintf("<Lecture: %v>", romutil.FormatTextForDisplay(vv.Text))
 	default:
 		return fmt.Sprintf("<Unexpected type %T>", vv)
 	}

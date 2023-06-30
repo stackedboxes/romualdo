@@ -14,7 +14,7 @@ import (
 )
 
 // GenerateCode generates the bytecode for a given AST. The file name is used
-// for error messages.
+// for error messages and debug information.
 func GenerateCode(root ast.Node, fileName string) (
 	csw *bytecode.CompiledStoryworld,
 	debugInfo *bytecode.DebugInfo,

@@ -99,6 +99,19 @@ func (vm *VM) run() error {
 			return nil
 		}
 
+		if vm.DebugTraceExecution {
+			fmt.Print("Stack: ")
+
+			for _, v := range vm.stack.data {
+				fmt.Printf("[ %v ]", v.DebugString(vm.debugInfo))
+			}
+
+			fmt.Print("\n")
+
+			chunkIndex := vm.frame.proc.ChunkIndex
+			vm.csw.DisassembleInstruction(vm.currentChunk(), os.Stdout, vm.frame.ip, vm.debugInfo, chunkIndex)
+		}
+
 		currentChunk := vm.currentChunk()
 		instruction := currentChunk.Code[vm.frame.ip]
 		vm.frame.ip++

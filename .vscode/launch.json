@@ -12,7 +12,8 @@
             "program": "${workspaceFolder}/cmd/romualdo",
             "env": {},
             "cwd": "${workspaceFolder}",
-            "args": ["run", "csw.ras"]
+            "args": ["build", "my-test"]
+            // "args": ["run", "csw.ras"]
         }
     ]
 }

@@ -17,6 +17,9 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/vm"
 )
 
+// runDebugTraceExecution is for the flag --trace.
+var runDebugTraceExecution bool
+
 var runCmd = &cobra.Command{
 	Use:   "run <ras file>",
 	Short: "Runs a compiled Storyworld",
@@ -40,6 +43,7 @@ var runCmd = &cobra.Command{
 		di, _ = loadDebugInfo(diPath)
 
 		theVM := vm.New()
+		theVM.DebugTraceExecution = runDebugTraceExecution
 		err = theVM.Interpret(csw, di)
 		errs.ReportAndExit(err)
 	},

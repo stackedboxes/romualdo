@@ -2,7 +2,6 @@
 
 Next up:
 
-* Implement a `--trace` flag to `run`
 * Implement a `disassemble` command.
     * Add flags allowing to just print a summary (or "index").
     * Allow show details about just one (or some) selected things from the
