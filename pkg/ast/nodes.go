@@ -11,11 +11,21 @@ import "fmt"
 
 // BaseNode contains the functionality common to all AST nodes.
 type BaseNode struct {
-	// LineNumber stores the line number from where this node comes.
+	// SrcFile stores the file name (from the Storyworld root) where this node
+	// was defined.
+	SrcFile string
+
+	// LineNumber stores the line number where this node was defined.
 	LineNumber int
 }
 
-// Line returns the line number from where this node comes.
+// SourceFile returns the file name (from the Storyworld root) where this node
+// was defined.
+func (n *BaseNode) SourceFile() string {
+	return n.SrcFile
+}
+
+// Line returns the line number where this node was defined.
 func (n *BaseNode) Line() int {
 	return n.LineNumber
 }

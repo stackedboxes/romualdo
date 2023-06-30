@@ -20,9 +20,6 @@ import (
 //
 // TODO: Need to bring the source file name here somehow.
 type codeGenerator struct {
-	// fileName is the name of the source file being compiled.
-	fileName string
-
 	// csw is the CompiledStoryworld being generated.
 	csw *bytecode.CompiledStoryworld
 
@@ -67,6 +64,11 @@ func (cg *codeGenerator) popFromNodeStack() {
 	cg.nodeStack = cg.nodeStack[:len(cg.nodeStack)-1]
 }
 
+// nodeStackTop returns the node on the top of the node stack.
+func (cg *codeGenerator) nodeStackTop() ast.Node {
+	return cg.nodeStack[len(cg.nodeStack)-1]
+}
+
 // currentLine returns the source code line corresponding to whatever we are
 // currently compiling.
 func (cg *codeGenerator) currentLine() int {
@@ -78,7 +80,7 @@ func (cg *codeGenerator) currentLine() int {
 func (cg *codeGenerator) error(format string, a ...interface{}) {
 	e := errs.CompileTime{
 		Message:  fmt.Sprintf(format, a...),
-		FileName: cg.fileName,
+		FileName: cg.nodeStackTop().SourceFile(),
 		Line:     cg.currentLine(),
 	}
 	panic(e)

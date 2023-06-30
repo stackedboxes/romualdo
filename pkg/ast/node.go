@@ -12,6 +12,12 @@ type Node interface {
 	// Type returns the type of Node.
 	Type() TypeTag
 
+	// SourceFile returns the file name (from the Storyworld root) where this
+	// node was defined.
+	//
+	// TODO: Probably what I want for now.
+	SourceFile() string
+
 	// Line returns the line of code that produced this node.
 	Line() int
 

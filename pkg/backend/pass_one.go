@@ -45,7 +45,7 @@ func (cg *codeGeneratorPassOne) Enter(node ast.Node) {
 		newChunk := &bytecode.Chunk{}
 		csw.Chunks = append(csw.Chunks, newChunk)
 		di.ChunksNames = append(di.ChunksNames, n.Name)
-		di.ChunksSourceFiles = append(di.ChunksSourceFiles, cg.codeGenerator.fileName)
+		di.ChunksSourceFiles = append(di.ChunksSourceFiles, n.SourceFile())
 		di.ChunksLines = append(di.ChunksLines, []int{})
 
 		fqn := n.Package + n.Name

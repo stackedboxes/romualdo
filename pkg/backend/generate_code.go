@@ -15,7 +15,7 @@ import (
 
 // GenerateCode generates the bytecode for a given AST. The file name is used
 // for error messages and debug information.
-func GenerateCode(root ast.Node, fileName string) (
+func GenerateCode(root ast.Node) (
 	csw *bytecode.CompiledStoryworld,
 	debugInfo *bytecode.DebugInfo,
 	err error) {
@@ -33,13 +33,13 @@ func GenerateCode(root ast.Node, fileName string) (
 				return
 			default:
 				err = errs.NewICE("unexpected error type: %T (%v)", r, r)
+				return
 			}
 		}
 	}()
 
 	passOne := &codeGeneratorPassOne{
 		codeGenerator: &codeGenerator{
-			fileName:           fileName,
 			csw:                &bytecode.CompiledStoryworld{},
 			debugInfo:          &bytecode.DebugInfo{},
 			compilationContext: newCompilationContext(),
@@ -54,7 +54,6 @@ func GenerateCode(root ast.Node, fileName string) (
 
 	passTwo := &codeGeneratorPassTwo{
 		codeGenerator: &codeGenerator{
-			fileName:           fileName,
 			csw:                passOne.codeGenerator.csw,
 			debugInfo:          passOne.codeGenerator.debugInfo,
 			compilationContext: passOne.codeGenerator.compilationContext,

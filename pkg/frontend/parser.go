@@ -166,6 +166,7 @@ func (p *parser) passageDecl() *ast.ProcedureDecl {
 		Kind:    ast.ProcKindPassage,
 		Package: p.packagePath(),
 		BaseNode: ast.BaseNode{
+			SrcFile:    p.fileName,
 			LineNumber: p.previousToken.Line,
 		},
 	}
