@@ -36,16 +36,13 @@ var CSWMagic = []byte{0x52, 0x6D, 0x6C, 0x64, 0x43, 0x53, 0x57, 0x1A}
 // CompiledStoryworld is a compiled, binary version of a Romualdo Language
 // Storyworld.
 //
-// TODO: Make it serializable and deserializable. All serialized data shall be
-// little endian.
-//
 // TODO: Use a string interner to avoid having duplicate strings in memory.
 // Make some measurements to ensure it's really beneficial.
 type CompiledStoryworld struct {
 	// The constant values used in all Chunks.
 	Constants []Value
 
-	// Chunks is a slide with all Chunks of bytecode containing the compiled
+	// Chunks is a slice with all Chunks of bytecode containing the compiled
 	// data. There is one Chunk for each procedure in the Storyworld.
 	//
 	// TODO: And in the future, one Chunk for every version of every procedure.

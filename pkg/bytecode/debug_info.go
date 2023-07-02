@@ -20,9 +20,6 @@ import (
 // DebugInfo contains debug information matching a CompiledStoryworld. All
 // information that is not strictly necessary to run a Storyworld but is useful
 // for debugging, producing better error reporting, etc, belongs here.
-//
-// TODO: Make it serializable and deserializable. All serialized data shall be
-// little endian.
 type DebugInfo struct {
 	// ChunksNames contains the names of the procedures on a CompiledStoryworld.
 	// There is one entry for each entry in the corresponding
