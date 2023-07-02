@@ -2,10 +2,10 @@
 
 Next up:
 
-* Implement a `disassemble` command.
-    * Add flags allowing to just print a summary (or "index").
-    * Allow show details about just one (or some) selected things from the
-      "index".
+* Rename "first chunk" to "initial chunk"?
+* File names are still not correctly recorded. Here's what I get from
+  disassemble:  
+     First procedure: 0 [main(), test/hello_escaped/]
 
 Once I have those in place I have pretty much the whole workflow working. (Maybe
 missing only the "build new version" flow, which will allow to create new

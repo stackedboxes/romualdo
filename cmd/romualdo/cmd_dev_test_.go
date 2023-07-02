@@ -47,7 +47,7 @@ var devTestCmd = &cobra.Command{
 	},
 }
 
-// flagDevTestSuite is the value of the `suite` flag of the `dev test` command.
+// flagDevTestSuite is the value of the --suite flag of the `dev test` command.
 var flagDevTestSuite string
 
 func init() {

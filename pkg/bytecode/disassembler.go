@@ -10,8 +10,15 @@ package bytecode
 import (
 	"fmt"
 	"io"
-	"strings"
 )
+
+// DisassembleChunk disassembles a whole chunk and writes the output to out.
+// debugInfo is optional: if not nil, it will be used for better disassembly.
+func (csw *CompiledStoryworld) DisassembleChunk(chunk *Chunk, out io.Writer, debugInfo *DebugInfo, chunkIndex int) {
+	for offset := 0; offset < len(chunk.Code); {
+		offset = csw.DisassembleInstruction(chunk, out, offset, debugInfo, chunkIndex)
+	}
+}
 
 // DisassembleInstruction disassembles the instruction at a given offset of
 // chunk and returns the offset of the next instruction to disassemble. Output
@@ -26,16 +33,11 @@ func (csw *CompiledStoryworld) DisassembleInstruction(chunk *Chunk, out io.Write
 	if debugInfo != nil {
 		lines = debugInfo.ChunksLines[chunkIndex]
 	}
-	sourceFile := ""
-	if debugInfo != nil {
-		sourceFile = debugInfo.ChunksSourceFiles[chunkIndex]
-	}
 
 	if offset > 0 && lines[offset] == lines[offset-1] {
-		blank := strings.Repeat(" ", len(sourceFile)+1)
-		fmt.Fprintf(out, "%v    | ", blank)
+		fmt.Fprintf(out, "    | ")
 	} else {
-		fmt.Fprintf(out, "%v:%5d ", sourceFile, lines[offset])
+		fmt.Fprintf(out, "%5d ", lines[offset])
 	}
 
 	// Instruction
@@ -73,6 +75,6 @@ func (csw *CompiledStoryworld) disassembleSimpleInstruction(out io.Writer, name 
 // Returns the offset to the next instruction.
 func (csw *CompiledStoryworld) disassembleConstantInstruction(chunk *Chunk, out io.Writer, name string, offset int, di *DebugInfo) int {
 	index := DecodeUInt31(chunk.Code[offset+1:])
-	fmt.Fprintf(out, "%-16s %4d '%v'\n", name, index, csw.Constants[index].DebugString(di))
+	fmt.Fprintf(out, "%-16s %4d %v\n", name, index, csw.Constants[index].DebugString(di))
 	return offset + 5
 }

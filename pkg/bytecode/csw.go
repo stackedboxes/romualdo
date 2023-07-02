@@ -195,6 +195,8 @@ func (csw *CompiledStoryworld) deserializeHeader(r io.Reader) error {
 	}
 	for i, b := range readMagic {
 		if b != CSWMagic[i] {
+			// TODO: Could be friendlier here, by comparing readMagic with other
+			// Romualdo magic numbers and reporting a more meaningful error.
 			return errors.New("invalid compiled storyworld magic number")
 		}
 	}
