@@ -1,0 +1,11 @@
+passage foo(): void
+    Something else
+end
+
+passage main(): void
+    Hello, World!
+end
+
+\# passage main(): void
+\#     Hello, World! Again!
+\# end

@@ -13,7 +13,7 @@
             "env": {},
             "cwd": "${workspaceFolder}",
             "args": ["build", "my-test"]
-            // "args": ["run", "csw.ras"]
+            // "args": ["run", "--trace", "csw.ras"]
         }
     ]
 }
