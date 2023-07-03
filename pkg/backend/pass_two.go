@@ -59,7 +59,7 @@ func (cg *codeGeneratorPassTwo) Leave(node ast.Node) {
 		//
 		// TODO: Not yet! There's no semantic checker for now.
 		if n.Name == "main" && n.Package == "/" {
-			cg.codeGenerator.csw.FirstChunk = cg.currentChunkIndex
+			cg.codeGenerator.csw.InitialChunk = cg.currentChunkIndex
 		}
 
 		// Leave the current chunk index invalid, as we are outside of any function.

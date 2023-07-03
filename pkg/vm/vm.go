@@ -74,8 +74,8 @@ func (vm *VM) Interpret(csw *bytecode.CompiledStoryworld, di *bytecode.DebugInfo
 	// an implicit call to the initial Procedure, so we push it. This keeps this
 	// implicit call consistent with calls made by the user, and avoid having to
 	// treat it as a special case elsewhere.
-	vm.push(bytecode.NewValueProcedure(csw.FirstChunk))
-	proc := bytecode.Procedure{ChunkIndex: csw.FirstChunk}
+	vm.push(bytecode.NewValueProcedure(csw.InitialChunk))
+	proc := bytecode.Procedure{ChunkIndex: csw.InitialChunk}
 	vm.callProcedure(proc, 0)
 	vm.frame = vm.frames[0]
 

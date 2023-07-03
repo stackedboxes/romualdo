@@ -27,9 +27,9 @@ All integers are stored in little endian.
     * An array of bytes, with the bytecode. The opcodes and instruction format
       are documented in [Instruction Set](instruction_set.md).
 
-#### First Chunk
+#### Initial Chunk
 
-* An `uint32`, which is the index to the first chunk (Procedure) of a Story.
+* An `uint32`, which is the index to the initial Chunk (Procedure) of a Story.
 
 ### Compiled Storyworld Footer
 

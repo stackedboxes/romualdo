@@ -48,10 +48,10 @@ type CompiledStoryworld struct {
 	// TODO: And in the future, one Chunk for every version of every procedure.
 	Chunks []*Chunk
 
-	// FirstChunk indexes the element in Chunks from where the Storyworld
-	// execution starts. In other words, it points to the lastest version of the
+	// InitialChunk indexes the element in Chunks from where the Storyworld
+	// execution starts. In other words, it points to the latest version of the
 	// "/main" chunk.
-	FirstChunk int
+	InitialChunk int
 }
 
 // SearchConstant searches the constant pool for a constant with the given
@@ -147,8 +147,8 @@ func (csw *CompiledStoryworld) serializePayload(w io.Writer) (uint32, error) {
 		}
 	}
 
-	// FirstChunk
-	err = romutil.SerializeU32(mw, uint32(csw.FirstChunk))
+	// InitialChunk
+	err = romutil.SerializeU32(mw, uint32(csw.InitialChunk))
 	if err != nil {
 		return 0, err
 	}
@@ -255,12 +255,12 @@ func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, error) {
 		}
 	}
 
-	// FirstChunk
+	// InitialChunk
 	i32, err := romutil.DeserializeU32(tr)
 	if err != nil {
 		return 0, err
 	}
-	csw.FirstChunk = int(i32)
+	csw.InitialChunk = int(i32)
 
 	// Voilà!
 	return crcSummer.Sum32(), nil

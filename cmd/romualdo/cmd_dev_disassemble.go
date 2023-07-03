@@ -28,7 +28,7 @@ var devDisassembleCmd = &cobra.Command{
 		// Basic info
 		fmt.Printf("Disassembling %s\n", args[0])
 		fmt.Printf("Total %v constants, %v chunks\n", len(csw.Constants), len(csw.Chunks))
-		fmt.Printf("First chunk: %v %v\n", csw.FirstChunk, chunkDebugInfo(csw, di, csw.FirstChunk))
+		fmt.Printf("Initial chunk: %v %v\n", csw.InitialChunk, chunkDebugInfo(csw, di, csw.InitialChunk))
 
 		// Chunks summary
 		fmt.Println("\nChunks summary:")
