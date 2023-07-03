@@ -9,6 +9,7 @@ package frontend
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/stackedboxes/romualdo/pkg/ast"
 	"github.com/stackedboxes/romualdo/pkg/errs"
@@ -18,7 +19,8 @@ import (
 // parser is a parser for the Romualdo language. It converts source code into an
 // AST.
 type parser struct {
-	// fileName contains the name of the file being parsed.
+	// fileName contains the name of the file being parsed, from the root of the
+	// Storyworld.
 	fileName string
 
 	// currentToken is the current token we are parsing.
@@ -41,7 +43,9 @@ type parser struct {
 	scanner *Scanner
 }
 
-// newParser returns a new parser that will parse source.
+// newParser returns a new parser that will parse source. fileName must be
+// relative to the Storyworld root; it is used for things like deriving the
+// package path, debugging, and error reporting.
 func newParser(fileName, source string) *parser {
 	return &parser{
 		fileName: fileName,
@@ -69,10 +73,9 @@ func (p *parser) parse() (*ast.SourceFile, error) {
 }
 
 // packagePath returns the package path of the file being parsed.
-//
-// TODO: For now fixed at "/" because we don't support packages yet.
 func (p *parser) packagePath() string {
-	return "/"
+	result := "/" + filepath.Dir(p.fileName)
+	return filepath.Clean(result)
 }
 
 //

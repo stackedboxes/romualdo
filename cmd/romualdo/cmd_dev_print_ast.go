@@ -9,6 +9,7 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -26,7 +27,7 @@ and if you want to see it, that's your command.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		path := args[0]
-		ast, err := frontend.ParseFile(path)
+		ast, err := frontend.ParseFile(path, filepath.Dir(path))
 		if err != nil {
 			errs.ReportAndExit(err)
 		}

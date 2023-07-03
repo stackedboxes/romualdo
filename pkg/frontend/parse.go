@@ -10,6 +10,7 @@ package frontend
 import (
 	"errors"
 	"os"
+	"path/filepath"
 	"regexp"
 
 	"github.com/stackedboxes/romualdo/pkg/ast"
@@ -17,18 +18,18 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
-// ParseStoryworld parses the Storyworld at a given directory swPath. It
+// ParseStoryworld parses the Storyworld at a given directory swRoot. It
 // recursively looks for Romualdo source files (*.ral), parses each of them
 // concurrently, and places all declarations into an ast.Storyworld.
-func ParseStoryworld(swPath string) (*ast.Storyworld, error) {
-	sourceFiles, err := findRomualdoSourceFiles(swPath)
+func ParseStoryworld(swRoot string) (*ast.Storyworld, error) {
+	sourceFiles, err := findRomualdoSourceFiles(swRoot)
 	if err != nil {
-		ctErr := errs.NewGenericCompileTime(swPath, err.Error())
+		ctErr := errs.NewGenericCompileTime(swRoot, err.Error())
 		return nil, ctErr
 	}
 
 	if len(sourceFiles) == 0 {
-		ctErr := errs.NewGenericCompileTime(swPath, "No Romualdo source files (*.ral) found.")
+		ctErr := errs.NewGenericCompileTime(swRoot, "No Romualdo source files (*.ral) found.")
 		return nil, ctErr
 	}
 
@@ -36,7 +37,7 @@ func ParseStoryworld(swPath string) (*ast.Storyworld, error) {
 	chError := make(chan error, 1024)
 
 	for _, sourceFile := range sourceFiles {
-		go parseFileAsync(sourceFile, chFiles, chError)
+		go parseFileAsync(sourceFile, swRoot, chFiles, chError)
 	}
 
 	sw := &ast.Storyworld{}
@@ -75,23 +76,30 @@ func findRomualdoSourceFiles(swRoot string) ([]string, error) {
 	return files, err
 }
 
-// parseFile parses the Romualdo source file located at path and returns its
-// corresponding AST.
-func ParseFile(path string) (*ast.SourceFile, error) {
-	source, err := os.ReadFile(path)
+// parseFile parses the Romualdo source file located at fileName and returns its
+// corresponding AST. swRoot is the path to the root of the Storyworld, and is
+// used to compute the file name relative to the Storyworld root.
+func ParseFile(fileName, swRoot string) (*ast.SourceFile, error) {
+	source, err := os.ReadFile(fileName)
 	if err != nil {
-		ctErr := errs.NewGenericCompileTime(path, err.Error())
+		ctErr := errs.NewGenericCompileTime(fileName, err.Error())
 		return nil, ctErr
 	}
 
-	p := newParser(path, string(source))
+	fileNameFromSWRoot, err := filepath.Rel(swRoot, fileName)
+	if err != nil {
+		return nil, err
+	}
+	fileNameFromSWRoot = filepath.Clean(fileNameFromSWRoot)
+
+	p := newParser(fileNameFromSWRoot, string(source))
 	sfNode, err := p.parse()
 	if err != nil {
 		return nil, err
 	}
 
 	// Assorted semantic checks (but no type checks)
-	sc := NewSemanticChecker(path)
+	sc := NewSemanticChecker(fileName)
 	sfNode.Walk(sc)
 	if !sc.errors.IsEmpty() {
 		return nil, sc.errors
@@ -105,8 +113,8 @@ func ParseFile(path string) (*ast.SourceFile, error) {
 // called from a goroutine). It is guaranteed to send once to either one (but
 // not both) of the channels it receives: either an error or the AST
 // corresponding to the parsed file.
-func parseFileAsync(path string, chFiles chan<- *ast.SourceFile, chError chan<- error) {
-	sfNode, err := ParseFile(path)
+func parseFileAsync(path, swRoot string, chFiles chan<- *ast.SourceFile, chError chan<- error) {
+	sfNode, err := ParseFile(path, swRoot)
 	if err != nil {
 		chError <- err
 		return
