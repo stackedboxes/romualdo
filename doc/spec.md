@@ -505,3 +505,42 @@ Notes about expressions:
   version causes the latest version to be called.
 * See also the descriptions of `globals` blocks and Procedures for the details
   on versioning specific to them.
+
+## Ink-like Variable text?
+
+One thing I have a kind of [Ink](https://www.inklestudios.com/ink/)-envy is
+their set [variable
+text](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md#8-variable-text)
+features. Like this, taken directly from their docs:
+
+```ink
+The radio hissed into life. {"Three!"|"Two!"|"One!"|There was the white noise racket of an explosion.|But it was just static.}
+```
+
+This kind of thing is definitely not my focus with Romualdo (again, roughly
+speaking, Romualdo leans more towards programming than text generation), but I
+think these are cool features.
+
+How could I support this? Imagining something like this:
+
+```romualdo
+say
+    The radio hissed into life. { say.sequence("\"Three!\"", "\"Two!\"", "\"One!\"", "There was the white noise racket of an explosion.", "But it was just static.") }
+end
+```
+
+Two problems. First, ugly quote escaping. Second, `say.sequence()` needs to
+somehow store state *per call site.*
+
+What about an implicit *call site* argument available to every Procedure? Or
+explicitly declared by Procedures that want it, but implicitly passed. Or
+something like this:
+
+```romualdo
+function foo(): void
+    var percallsite i = 0
+    \# ...
+end
+```
+
+Could such feature be useful for other useful stuff beyond variable text?
