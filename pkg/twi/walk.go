@@ -28,8 +28,9 @@ func interpretAST(ast ast.Node, procedures map[string]*ast.ProcedureDecl, out io
 	return i.run()
 }
 
-// InterpretStoryworld interprets the Storyworld located at path.
-func InterpretStoryworld(path string, out io.Writer) error {
+// WalkStoryworld interprets the Storyworld located at path using the tree-walk
+// interpreter. Sends output to out.
+func WalkStoryworld(path string, out io.Writer) error {
 	ast, err := frontend.ParseStoryworld(path)
 	if err != nil {
 		return err

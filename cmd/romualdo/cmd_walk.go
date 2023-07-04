@@ -34,7 +34,7 @@ var walkCmd = &cobra.Command{
 			errs.ReportAndExit(buErr)
 		}
 
-		err = twi.InterpretStoryworld(path, os.Stdout)
+		err = twi.WalkStoryworld(path, os.Stdout)
 		errs.ReportAndExit(err)
 	},
 }

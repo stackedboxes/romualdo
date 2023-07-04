@@ -78,7 +78,7 @@ func runTestCase(testPath string, testConf *testConfig) error {
 	// TODO: Add support fot interactivity.
 	srcPath := path.Join(testPath, "src")
 	output := &strings.Builder{}
-	err := twi.InterpretStoryworld(srcPath, output)
+	err := twi.WalkStoryworld(srcPath, output)
 	if err != nil {
 		return err
 	}
