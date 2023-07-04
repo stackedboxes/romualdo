@@ -8,6 +8,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/vm"
@@ -25,7 +27,7 @@ var runCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		csw, di := loadBinariesExitingOnError(args[0], false)
 
-		theVM := vm.New()
+		theVM := vm.New(os.Stdout)
 		theVM.DebugTraceExecution = runDebugTraceExecution
 		err := theVM.Interpret(csw, di)
 		errs.ReportAndExit(err)

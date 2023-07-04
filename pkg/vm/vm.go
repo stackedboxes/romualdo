@@ -9,6 +9,7 @@ package vm
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -21,6 +22,9 @@ type VM struct {
 	// Set DebugTraceExecution to true to make the VM disassemble the code as it
 	// runs through it.
 	DebugTraceExecution bool
+
+	// out is where the VM sends its output.
+	out io.Writer
 
 	// csw is the compiled storyworld we are executing.
 	csw *bytecode.CompiledStoryworld
@@ -41,10 +45,11 @@ type VM struct {
 	frame *callFrame
 }
 
-// New returns a new Virtual Machine.
-func New() *VM {
+// New returns a new Virtual Machine. out is where the VM sends its output.
+func New(out io.Writer) *VM {
 	return &VM{
 		stack: &Stack{},
+		out:   out,
 	}
 }
 
@@ -129,7 +134,7 @@ func (vm *VM) run() error {
 			if !value.IsLecture() {
 				vm.runtimeError("Expected a Lecture, got %T", value.Value)
 			}
-			fmt.Printf("%v", value.AsLecture().Text)
+			fmt.Fprintf(vm.out, "%v", value.AsLecture().Text)
 
 		default:
 			vm.runtimeError("Unexpected instruction: %v", instruction)
