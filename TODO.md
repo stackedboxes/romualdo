@@ -1,13 +1,16 @@
 # TODO
 
 * Make testing work with both `walk` and `run`.
+* Define a proper error-handling strategy. I think I am going in the way of
+  using `errs.ReportAndExit()` on commands, and requiring all public Romualdo
+  code to raise only proper Romualdo errors.
 * Implement `listen`
 * Implement `if`.
 * Add tests for interactivity.
 
 At this point we can make interactive stuff.
 
-Older TODOs:
+Older TODOs (review):
 
 * Tests cases for errors (is it failing as expected for wrong code?)
 * Eventually, will need an array of `meta`s: one per chunk, with the `meta`s
