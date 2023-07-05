@@ -9,6 +9,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"regexp"
@@ -19,11 +20,16 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 	"github.com/stackedboxes/romualdo/pkg/twi"
+	"github.com/stackedboxes/romualdo/pkg/vm"
 )
 
 type testConfig struct {
 	ExpectedOutput []string
 }
+
+// swRunnerFunc is a function that can run a Storyworld at path outputting to
+// out.
+type swRunnerFunc func(path string, out io.Writer) error
 
 var devTestCmd = &cobra.Command{
 	Use:   "test",
@@ -32,6 +38,17 @@ var devTestCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Run tests concurrently. Like we do Storyworld parsing.
+
+		var runner swRunnerFunc = nil
+
+		if flagDevTestWalkDontRun {
+			fmt.Println("Using the tree-walk interpreter.")
+			runner = twi.WalkStoryworld
+		} else {
+			fmt.Println("Using the bytecode interpreter.")
+			runner = func(path string, out io.Writer) error { return vm.RunStoryworld(path, out, false) }
+		}
+
 		err := romutil.ForEachMatchingFileRecursive(flagDevTestSuite, regexp.MustCompile("test.toml"),
 			func(configPath string) error {
 				testConf, err := readTestConfig(configPath)
@@ -40,7 +57,22 @@ var devTestCmd = &cobra.Command{
 				}
 
 				testPath := path.Dir(configPath)
-				return runTestCase(testPath, testConf)
+				srcPath := path.Join(testPath, "src")
+				output := &strings.Builder{}
+
+				err = runner(srcPath, output)
+				if err != nil {
+					return errs.NewTestSuite(testPath, "running the storyworld: %v", err)
+				}
+
+				actualOut := output.String()
+				if actualOut != testConf.ExpectedOutput[0] {
+					errTS := errs.NewTestSuite(testPath, "expected output '%v', got '%v'.", testConf.ExpectedOutput[0], actualOut)
+					return errTS
+				}
+
+				fmt.Printf("Test case passed: %v.\n", testPath)
+				return nil
 			},
 		)
 		errs.ReportAndExit(err)
@@ -50,9 +82,16 @@ var devTestCmd = &cobra.Command{
 // flagDevTestSuite is the value of the --suite flag of the `dev test` command.
 var flagDevTestSuite string
 
+// flagDevTestWalkDontRun is the value of the --walk-dont-run flag of the `dev
+// test` command.
+var flagDevTestWalkDontRun bool
+
 func init() {
 	devTestCmd.Flags().StringVarP(&flagDevTestSuite, "suite", "s",
 		"./test", "Path to the test suite to run")
+
+	devTestCmd.Flags().BoolVarP(&flagDevTestWalkDontRun, "walk-dont-run", "w",
+		false, "Test using the walk tree interpreter instead of the bytecode one")
 }
 
 // readTestConfig reads a test configuration from a TOML file.
@@ -72,10 +111,11 @@ func readTestConfig(path string) (*testConfig, error) {
 	return tomlConfigData, nil
 }
 
-// runTestCase runs the test case rooted at testPath, and whose configuration is
-// testConf.
-func runTestCase(testPath string, testConf *testConfig) error {
+// walkTestCase runs a test case using the walk tree interpreter. The desired
+// test case is rooted at testPath, and the configuration to use is testConf.
+func walkTestCase(testPath string, testConf *testConfig) error {
 	// TODO: Add support fot interactivity.
+	// TODO: Should use errs.ReportAndExit() here, too, right?
 	srcPath := path.Join(testPath, "src")
 	output := &strings.Builder{}
 	err := twi.WalkStoryworld(srcPath, output)

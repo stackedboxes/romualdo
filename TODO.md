@@ -1,6 +1,5 @@
 # TODO
 
-* Make testing work with both `walk` and `run`.
 * Define a proper error-handling strategy. I think I am going in the way of
   using `errs.ReportAndExit()` on commands, and requiring all public Romualdo
   code to raise only proper Romualdo errors.
