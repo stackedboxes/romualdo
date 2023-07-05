@@ -14,7 +14,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/stackedboxes/romualdo/pkg/bytecode"
-	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/vm"
 )
 
@@ -25,9 +24,7 @@ var devDisassembleCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		csw, di, err := vm.LoadCompiledStoryworldBinaries(args[0], false)
-		if err != nil {
-			errs.ReportAndExit(err)
-		}
+		reportAndExitOnError(err)
 
 		// Basic info
 		fmt.Printf("Disassembling %s\n", args[0])
@@ -62,7 +59,7 @@ var devDisassembleCmd = &cobra.Command{
 			csw.DisassembleChunk(c, os.Stdout, di, i)
 		}
 
-		errs.ReportAndExit(nil)
+		reportAndExit(nil)
 	},
 }
 

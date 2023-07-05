@@ -61,20 +61,20 @@ var DebugInfoMagic = []byte{0x52, 0x6D, 0x6C, 0x64, 0x44, 0x62, 0x67, 0x1A}
 // romutil.Serializer and romutil.Deserializer interfaces
 //
 // Serialize serializes the DebugInfo to the given io.Writer.
-func (di *DebugInfo) Serialize(w io.Writer) error {
+func (di *DebugInfo) Serialize(w io.Writer) errs.Error {
 	err := di.serializeHeader(w)
 	if err != nil {
-		return errs.NewCommandFinish("serializing debug info header: %v", err)
+		return errs.NewRomualdoTool("serializing debug info header: %v", err)
 	}
 
 	crc32, err := di.serializePayload(w)
 	if err != nil {
-		return errs.NewCommandFinish("serializing debug info payload: %v", err)
+		return errs.NewRomualdoTool("serializing debug info payload: %v", err)
 	}
 
 	err = di.serializeFooter(w, crc32)
 	if err != nil {
-		return errs.NewCommandFinish("serializing debug info footer: %v", err)
+		return errs.NewRomualdoTool("serializing debug info footer: %v", err)
 	}
 
 	return nil
@@ -138,17 +138,17 @@ func (di *DebugInfo) serializeFooter(w io.Writer, crc32 uint32) error {
 func (di *DebugInfo) Deserialize(r io.Reader) error {
 	err := di.deserializeHeader(r)
 	if err != nil {
-		return errs.NewCommandFinish("deserializing debug info header: %v", err)
+		return errs.NewRomualdoTool("deserializing debug info header: %v", err)
 	}
 
 	crc32, err := di.deserializePayload(r)
 	if err != nil {
-		return errs.NewCommandFinish("deserializing debug info payload: %v", err)
+		return errs.NewRomualdoTool("deserializing debug info payload: %v", err)
 	}
 
 	err = di.deserializeFooter(crc32, r)
 	if err != nil {
-		return errs.NewCommandFinish("deserializing debug info footer: %v", err)
+		return errs.NewRomualdoTool("deserializing debug info footer: %v", err)
 	}
 
 	return nil

@@ -11,6 +11,7 @@ import (
 	"io"
 
 	"github.com/stackedboxes/romualdo/pkg/ast"
+	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/frontend"
 )
 
@@ -18,7 +19,7 @@ import (
 //
 // TODO: This will change a lot. For example, currently there is no provision
 // for interactivity.
-func interpretAST(ast ast.Node, procedures map[string]*ast.ProcedureDecl, out io.Writer) error {
+func interpretAST(ast ast.Node, procedures map[string]*ast.ProcedureDecl, out io.Writer) errs.Error {
 	i := interpreter{
 		ast:        ast,
 		procedures: procedures,
@@ -30,7 +31,7 @@ func interpretAST(ast ast.Node, procedures map[string]*ast.ProcedureDecl, out io
 
 // WalkStoryworld interprets the Storyworld located at path using the tree-walk
 // interpreter. Sends output to out.
-func WalkStoryworld(path string, out io.Writer) error {
+func WalkStoryworld(path string, out io.Writer) errs.Error {
 	ast, err := frontend.ParseStoryworld(path)
 	if err != nil {
 		return err

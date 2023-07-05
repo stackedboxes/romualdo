@@ -1,8 +1,5 @@
 # TODO
 
-* Define a proper error-handling strategy. I think I am going in the way of
-  using `errs.ReportAndExit()` on commands, and requiring all public Romualdo
-  code to raise only proper Romualdo errors.
 * Implement `listen`
 * Implement `if`.
 * Add tests for interactivity.
@@ -18,3 +15,4 @@ Older TODOs (review):
     * Actually, I am confused. Need to know what is part of the static CSW
       and what is dynamic state the VM maintains.
 * Someday: tests checking the exit code of the `romualdo` tool.
+    * Like, tests with syntax errors and such.

@@ -29,10 +29,10 @@ import (
 //     compiled and interpreted.
 //
 // trace tells if you want to debug-trace the execution of the VM.
-func RunStoryworld(path string, out io.Writer, trace bool) error {
+func RunStoryworld(path string, out io.Writer, trace bool) errs.Error {
 	fileInfo, err := os.Stat(path)
 	if err != nil {
-		return errs.NewCommandPrep("stating %v: %v", path, err)
+		return errs.NewRomualdoTool("stating %v: %v", path, err)
 	}
 
 	if fileInfo.IsDir() {
@@ -42,17 +42,17 @@ func RunStoryworld(path string, out io.Writer, trace bool) error {
 	return runStoryworldFromBinary(path, out, trace)
 }
 
-func runStoryworldFromSource(path string, out io.Writer, trace bool) error {
+func runStoryworldFromSource(path string, out io.Writer, trace bool) errs.Error {
 	// Parse
 	swAST, err := frontend.ParseStoryworld(path)
 	if err != nil {
-		return errs.NewCommandPrep("parsing the storyworld: %v", err)
+		return errs.NewRomualdoTool("parsing the storyworld: %v", err)
 	}
 
 	// Generate code
 	csw, di, err := backend.GenerateCode(swAST)
 	if err != nil {
-		return errs.NewCommandPrep("generating code: %v", err)
+		return errs.NewRomualdoTool("generating code: %v", err)
 	}
 
 	// Run
@@ -61,13 +61,13 @@ func runStoryworldFromSource(path string, out io.Writer, trace bool) error {
 	return theVM.Interpret(csw, di)
 }
 
-func runStoryworldFromBinary(rasFile string, out io.Writer, trace bool) error {
+func runStoryworldFromBinary(rasFile string, out io.Writer, trace bool) errs.Error {
 	var csw *bytecode.CompiledStoryworld
 	var di *bytecode.DebugInfo
 
 	csw, di, err := LoadCompiledStoryworldBinaries(rasFile, false)
 	if err != nil {
-		return errs.NewCommandPrep("loading compiled storyworld: %v", err)
+		return errs.NewRomualdoTool("loading compiled storyworld: %v", err)
 	}
 
 	theVM := New(out)
@@ -75,17 +75,17 @@ func runStoryworldFromBinary(rasFile string, out io.Writer, trace bool) error {
 	return theVM.Interpret(csw, di)
 }
 
-func LoadCompiledStoryworldBinaries(cswPath string, diRequired bool) (*bytecode.CompiledStoryworld, *bytecode.DebugInfo, error) {
+func LoadCompiledStoryworldBinaries(cswPath string, diRequired bool) (*bytecode.CompiledStoryworld, *bytecode.DebugInfo, errs.Error) {
 	// Compiled Storyworld itself
 	cswFile, err := os.Open(cswPath)
 	if err != nil {
-		return nil, nil, errs.NewCommandPrep("opening compiled storyworld file %v: %v", cswPath, err)
+		return nil, nil, errs.NewRomualdoTool("opening compiled storyworld file %v: %v", cswPath, err)
 	}
 
 	csw := &bytecode.CompiledStoryworld{}
 	err = csw.Deserialize(cswFile)
 	if err != nil {
-		return nil, nil, errs.NewCommandPrep("reading the storyworld file %v: %v", cswPath, err)
+		return nil, nil, errs.NewRomualdoTool("reading the storyworld file %v: %v", cswPath, err)
 	}
 
 	// Debug info
@@ -93,7 +93,7 @@ func LoadCompiledStoryworldBinaries(cswPath string, diRequired bool) (*bytecode.
 	diFile, err := os.Open(diPath)
 	if err != nil {
 		if diRequired {
-			return nil, nil, errs.NewCommandPrep("opening debug info file %v: %v", diPath, err)
+			return nil, nil, errs.NewRomualdoTool("opening debug info file %v: %v", diPath, err)
 		}
 		return csw, nil, nil
 	}
@@ -101,7 +101,7 @@ func LoadCompiledStoryworldBinaries(cswPath string, diRequired bool) (*bytecode.
 	di := &bytecode.DebugInfo{}
 	err = di.Deserialize(diFile)
 	if diRequired && err != nil {
-		return nil, nil, errs.NewCommandPrep("reading debug info from %v: %v", diPath, err)
+		return nil, nil, errs.NewRomualdoTool("reading debug info from %v: %v", diPath, err)
 	}
 
 	return csw, di, nil

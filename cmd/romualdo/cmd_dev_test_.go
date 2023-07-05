@@ -29,7 +29,7 @@ type testConfig struct {
 
 // swRunnerFunc is a function that can run a Storyworld at path outputting to
 // out.
-type swRunnerFunc func(path string, out io.Writer) error
+type swRunnerFunc func(path string, out io.Writer) errs.Error
 
 var devTestCmd = &cobra.Command{
 	Use:   "test",
@@ -46,14 +46,15 @@ var devTestCmd = &cobra.Command{
 			runner = twi.WalkStoryworld
 		} else {
 			fmt.Println("Using the bytecode interpreter.")
-			runner = func(path string, out io.Writer) error { return vm.RunStoryworld(path, out, false) }
+			runner = func(path string, out io.Writer) errs.Error { return vm.RunStoryworld(path, out, false) }
 		}
 
 		err := romutil.ForEachMatchingFileRecursive(flagDevTestSuite, regexp.MustCompile("test.toml"),
-			func(configPath string) error {
+			func(configPath string) errs.Error {
 				testConf, err := readTestConfig(configPath)
 				if err != nil {
-					return err
+					rtErr := errs.NewRomualdoTool("reading test config file: %v", err)
+					return rtErr
 				}
 
 				testPath := path.Dir(configPath)
@@ -75,7 +76,7 @@ var devTestCmd = &cobra.Command{
 				return nil
 			},
 		)
-		errs.ReportAndExit(err)
+		reportAndExit(err)
 	},
 }
 
@@ -109,26 +110,4 @@ func readTestConfig(path string) (*testConfig, error) {
 	}
 
 	return tomlConfigData, nil
-}
-
-// walkTestCase runs a test case using the walk tree interpreter. The desired
-// test case is rooted at testPath, and the configuration to use is testConf.
-func walkTestCase(testPath string, testConf *testConfig) error {
-	// TODO: Add support fot interactivity.
-	// TODO: Should use errs.ReportAndExit() here, too, right?
-	srcPath := path.Join(testPath, "src")
-	output := &strings.Builder{}
-	err := twi.WalkStoryworld(srcPath, output)
-	if err != nil {
-		return err
-	}
-
-	actualOut := output.String()
-	if actualOut != testConf.ExpectedOutput[0] {
-		errTS := errs.NewTestSuite(testPath, "expected output '%v', got '%v'.", testConf.ExpectedOutput[0], actualOut)
-		return errTS
-	}
-
-	fmt.Printf("Test case passed: %v.\n", testPath)
-	return nil
 }

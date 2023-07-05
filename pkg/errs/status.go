@@ -8,31 +8,31 @@
 package errs
 
 const (
-	// StatusCodeSuccess indicates a successful execution.
+	// statusCodeSuccess indicates a successful execution.
 	StatusCodeSuccess = 0
 
-	// StatusCodeCompileTimeError indicates a compile-time error.
-	StatusCodeCompileTimeError = 1
+	// statusCodeCompileTimeError indicates a compile-time error.
+	statusCodeCompileTimeError = 1
 
-	// StatusCodeTestSuiteError indicates a failure while running Romualdo's own
+	// statusCodeTestSuiteError indicates a failure while running Romualdo's own
 	// test suite.
-	StatusCodeTestSuiteError = 2
+	statusCodeTestSuiteError = 2
 
-	// StatusCodeCommandPrepError indicates some error happened while preparing
-	// to actually run the command. For example, an error opening the source
-	// file that is supposed to be compiled.
-	StatusCodeCommandPrepError = 10
-
-	// StatusCodeCommandFinishError indicates some error happened while
-	// finishing the execution of the command. For example, an error writing
-	// the output file.
-	StatusCodeCommandFinishError = 11
-
-	// StatusCodeBadUsage indicates some user error in the usage of the romualdo
+	// statusCodeBadUsage indicates some user error in the usage of the romualdo
 	// tool (e.g., passing the wrong number of arguments, or passing a
 	// nonexisting command-line flag).
-	StatusCodeBadUsage = 50
+	StatusCodeBadUsage = 3
 
-	// StatusCodeICE indicates an Internal Compiler Error.
-	StatusCodeICE = 125
+	// statusCodeRomualdoToolError indicates an error while running the romualdo
+	// tool that doesn't fit in any of the other categories.
+	statusCodeRomualdoToolError = 4
+
+	// statusCodeRuntimeError indicates something bad happened at runtime. This
+	// isn't expected to happen, and should indicate a bug in the compiler or in
+	// the language. (Well, ideally. As of July 2023 I cannot promise this is
+	// valid!)
+	statusCodeRuntimeError = 100
+
+	// statusCodeICE indicates an Internal Compiler Error.
+	statusCodeICE = 125
 )

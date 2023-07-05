@@ -14,6 +14,7 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/backend"
 	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/frontend"
+	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
 var buildCmd = &cobra.Command{
@@ -24,41 +25,29 @@ var buildCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		swPath := args[0]
-		fileInfo, err := os.Stat(swPath)
-		if err != nil {
-			cpErr := errs.NewCommandPrep(err.Error())
-			errs.ReportAndExit(cpErr)
-		}
-
-		if !fileInfo.IsDir() {
-			buErr := errs.NewBadUsage("the build command expects a directory, but %v isn't one", swPath)
-			errs.ReportAndExit(buErr)
+		if isDir, err := romutil.IsDir(swPath); err != nil || !isDir {
+			buErr := errs.NewBadUsage("The build command expects a directory, but %v isn't one", swPath)
+			reportAndExit(buErr)
 		}
 
 		swAST, err := frontend.ParseStoryworld(swPath)
-		if err != nil {
-			errs.ReportAndExit(err)
-		}
+		reportAndExitOnError(err)
 
 		csw, di, err := backend.GenerateCode(swAST)
+		reportAndExitOnError(err)
 
-		cswFile, err := os.Create("csw.ras")
-		if err != nil {
-			errs.ReportAndExit(err)
-		}
-		defer cswFile.Close()
+		cswFile, plainErr := os.Create("csw.ras")
 		err = csw.Serialize(cswFile)
-		if err != nil {
-			errs.ReportAndExit(err)
-		}
+		reportAndExitOnError(err)
+		defer cswFile.Close()
 
-		debugInfoFile, err := os.Create("csw.rad")
-		if err != nil {
-			errs.ReportAndExit(err)
+		debugInfoFile, plainErr := os.Create("csw.rad")
+		if plainErr != nil {
+			err = errs.NewRomualdoTool("creating debug info file: %v", plainErr)
+			reportAndExit(err)
 		}
 		defer debugInfoFile.Close()
 		err = di.Serialize(debugInfoFile)
-
-		errs.ReportAndExit(err)
+		reportAndExit(err)
 	},
 }

@@ -23,18 +23,18 @@ var walkCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		path := args[0]
-		fileInfo, err := os.Stat(path)
-		if err != nil {
-			cpErr := errs.NewCommandPrep(err.Error())
-			errs.ReportAndExit(cpErr)
+		fileInfo, plainErr := os.Stat(path)
+		if plainErr != nil {
+			rtErr := errs.NewRomualdoTool("stating %v: %v", path, plainErr)
+			reportAndExit(rtErr)
 		}
 
 		if !fileInfo.IsDir() {
-			buErr := errs.NewBadUsage("the walk command expects a directory, but %v isn't one", path)
-			errs.ReportAndExit(buErr)
+			buErr := errs.NewBadUsage("The walk command expects a directory, but %v isn't one", path)
+			reportAndExit(buErr)
 		}
 
-		err = twi.WalkStoryworld(path, os.Stdout)
-		errs.ReportAndExit(err)
+		err := twi.WalkStoryworld(path, os.Stdout)
+		reportAndExit(err)
 	},
 }

@@ -18,7 +18,7 @@ import (
 func GenerateCode(root ast.Node) (
 	csw *bytecode.CompiledStoryworld,
 	debugInfo *bytecode.DebugInfo,
-	err error) {
+	err errs.Error) {
 
 	defer func() {
 		if r := recover(); r != nil {

@@ -11,7 +11,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/vm"
 )
 
@@ -27,6 +26,6 @@ Storyworld (*.ras) or a Storyworld source directory.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		err := vm.RunStoryworld(args[0], os.Stdout, runDebugTraceExecution)
-		errs.ReportAndExit(err)
+		reportAndExit(err)
 	},
 }

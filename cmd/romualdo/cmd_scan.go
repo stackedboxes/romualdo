@@ -32,7 +32,7 @@ This is only useful for testing when developing Romualdo itself.`,
 		source, err := os.ReadFile(path)
 		if err != nil {
 			ctErr := errs.NewCompileTimeWithoutLine(path, err.Error())
-			errs.ReportAndExit(ctErr)
+			reportAndExit(ctErr)
 		}
 
 		scanner := frontend.NewScanner(string(source))

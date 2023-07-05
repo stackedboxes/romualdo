@@ -60,7 +60,7 @@ func (vm *VM) currentChunk() *bytecode.Chunk {
 
 // Interpret interprets a given compiled Storyworld.
 // TODO: DebugInfo should be optional.
-func (vm *VM) Interpret(csw *bytecode.CompiledStoryworld, di *bytecode.DebugInfo) (err error) {
+func (vm *VM) Interpret(csw *bytecode.CompiledStoryworld, di *bytecode.DebugInfo) (err errs.Error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if e, ok := r.(*errs.Runtime); ok {
@@ -96,7 +96,7 @@ func (vm *VM) Interpret(csw *bytecode.CompiledStoryworld, di *bytecode.DebugInfo
 }
 
 // run runs the code loaded into vm.
-func (vm *VM) run() error {
+func (vm *VM) run() errs.Error {
 	for {
 		// TODO: Temporary hack to detect the of end of a program. Eventually,
 		// this will be done by the return instruction.

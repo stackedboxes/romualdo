@@ -14,7 +14,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/stackedboxes/romualdo/pkg/ast"
-	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/frontend"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
@@ -28,9 +27,7 @@ and if you want to see it, that's your command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		path := args[0]
 		ast, err := frontend.ParseFile(path, filepath.Dir(path))
-		if err != nil {
-			errs.ReportAndExit(err)
-		}
+		reportAndExitOnError(err)
 
 		ap := &ASTPrinter{}
 		ast.Walk(ap)
