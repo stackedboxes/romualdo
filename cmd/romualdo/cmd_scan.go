@@ -31,7 +31,7 @@ This is only useful for testing when developing Romualdo itself.`,
 		path := args[0]
 		source, err := os.ReadFile(path)
 		if err != nil {
-			ctErr := errs.NewGenericCompileTime(path, err.Error())
+			ctErr := errs.NewCompileTimeWithoutLine(path, err.Error())
 			errs.ReportAndExit(ctErr)
 		}
 

@@ -27,11 +27,9 @@ type CompileTime struct {
 	Lexeme string
 }
 
-// NewGenericCompileTime is a handy way to create a "generic" CompileTime error.
-// Here, "generic" means that it is not related with a specific line of code.
-//
-// TODO: Find a better name instead of "generic". Maybe "WithoutLine"?
-func NewGenericCompileTime(fileName, format string, a ...any) *CompileTime {
+// NewCompileTimeWithoutLine is a handy way to create a CompileTime error that
+// is not related with a specific line of code.
+func NewCompileTimeWithoutLine(fileName, format string, a ...any) *CompileTime {
 	return &CompileTime{
 		Message:  fmt.Sprintf(format, a...),
 		FileName: fileName,

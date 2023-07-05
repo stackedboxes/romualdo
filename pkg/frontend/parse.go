@@ -24,12 +24,12 @@ import (
 func ParseStoryworld(swRoot string) (*ast.Storyworld, error) {
 	sourceFiles, err := findRomualdoSourceFiles(swRoot)
 	if err != nil {
-		ctErr := errs.NewGenericCompileTime(swRoot, err.Error())
+		ctErr := errs.NewCompileTimeWithoutLine(swRoot, err.Error())
 		return nil, ctErr
 	}
 
 	if len(sourceFiles) == 0 {
-		ctErr := errs.NewGenericCompileTime(swRoot, "No Romualdo source files (*.ral) found.")
+		ctErr := errs.NewCompileTimeWithoutLine(swRoot, "No Romualdo source files (*.ral) found.")
 		return nil, ctErr
 	}
 
@@ -82,7 +82,7 @@ func findRomualdoSourceFiles(swRoot string) ([]string, error) {
 func ParseFile(fileName, swRoot string) (*ast.SourceFile, error) {
 	source, err := os.ReadFile(fileName)
 	if err != nil {
-		ctErr := errs.NewGenericCompileTime(fileName, err.Error())
+		ctErr := errs.NewCompileTimeWithoutLine(fileName, err.Error())
 		return nil, ctErr
 	}
 

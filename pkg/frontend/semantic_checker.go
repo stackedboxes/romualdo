@@ -79,7 +79,7 @@ func (sc *semanticChecker) Event(node ast.Node, event int) {
 
 // error reports an error.
 func (sc *semanticChecker) error(format string, a ...interface{}) {
-	sc.errors.Add(errs.NewGenericCompileTime(sc.fileName, format, a...))
+	sc.errors.Add(errs.NewCompileTimeWithoutLine(sc.fileName, format, a...))
 }
 
 // currentLine returns the source code line corresponding to whatever we are
