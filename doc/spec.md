@@ -480,6 +480,10 @@ Notes about expressions:
   always a `map`.
     * TODO: The initial implementation of `listen`  will take a `[]string`
       argument instead of `map` and return an `int`.
+    * TODO: And the *really very first* implementation will take a `string` and
+      return another one. This is so I can implement the interactivity
+      infrastructure using only `string`s, which is effectively the only type I
+      have for now.
 * Logical operators `and` and `or` have short-circuited evaluation.
 * Note the syntax for literal arrays and maps. Trailing comma allowed.
 * TODO: blend for bnum!

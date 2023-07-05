@@ -119,6 +119,13 @@ result = listen ["alternative 1", "alternative 2", "alternative 3"]
 That is, `listen` takes an array of strings (the choices offered to the Player)
 and returns an integer (the index of the Player choice).
 
+TODO: For the *very first version*, before I support arrays or `int`s:
+
+```romualdo
+var result: string
+result = listen "What's your favorite color?"
+```
+
 ### Output filters and checkers
 
 TODO!
