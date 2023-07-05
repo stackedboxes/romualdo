@@ -19,17 +19,14 @@ import (
 var runDebugTraceExecution bool
 
 var runCmd = &cobra.Command{
-	Use:   "run <ras-file>",
-	Short: "Runs a compiled Storyworld",
-	Long:  `Runs a compiled Storyworld.`,
-	Args:  cobra.ExactArgs(1),
+	Use:   "run <ras-file or storyworld-path>",
+	Short: "Runs a Storyworld using the VM-based interpreter",
+	Long: `Runs a Storyworld using the VM-based interpreter. Can run either a compiled
+Storyworld (*.ras) or a Storyworld source directory.`,
+	Args: cobra.ExactArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
-		csw, di := loadBinariesExitingOnError(args[0], false)
-
-		theVM := vm.New(os.Stdout)
-		theVM.DebugTraceExecution = runDebugTraceExecution
-		err := theVM.Interpret(csw, di)
+		err := vm.RunStoryworld(args[0], os.Stdout, runDebugTraceExecution)
 		errs.ReportAndExit(err)
 	},
 }
