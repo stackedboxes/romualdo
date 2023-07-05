@@ -125,7 +125,7 @@ func (p *parser) consume(kind TokenKind, format string, a ...any) {
 }
 
 //
-// Parsing of grammar rules (thinks that return Nodes)
+// Parsing of grammar rules (things that return Nodes)
 //
 
 // Parses any kind of top-level declaration, like functions and passages.
