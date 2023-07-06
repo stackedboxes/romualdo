@@ -34,7 +34,10 @@ func SerializeU32(w io.Writer, v uint32) errs.Error {
 	var u32 [4]byte
 	binary.LittleEndian.PutUint32(u32[:], v)
 	_, err := w.Write(u32[:])
-	return errs.NewRomualdoTool("serializing uint32: %v", err)
+	if err != nil {
+		return errs.NewRomualdoTool("serializing uint32: %v", err)
+	}
+	return nil
 }
 
 // DeserializeU32 reads a uint32 from the given io.Reader, in little endian
@@ -58,7 +61,10 @@ func SerializeString(w io.Writer, s string) errs.Error {
 	}
 
 	_, plainErr := io.WriteString(w, s)
-	return errs.NewRomualdoTool("serializing string: %v", plainErr)
+	if plainErr != nil {
+		return errs.NewRomualdoTool("serializing string: %v", plainErr)
+	}
+	return nil
 }
 
 // DeserializeString reads a string from the given io.Reader. It first reads the
@@ -72,7 +78,10 @@ func DeserializeString(r io.Reader) (string, errs.Error) {
 
 	buf := make([]byte, length)
 	_, plainErr := io.ReadFull(r, buf)
-	return string(buf), errs.NewRomualdoTool("deserializing string: %v", plainErr)
+	if plainErr != nil {
+		return "", errs.NewRomualdoTool("deserializing string: %v", plainErr)
+	}
+	return string(buf), nil
 }
 
 // SerializeStringSliceNoLength writes a []string to a given io.Writer. For each
