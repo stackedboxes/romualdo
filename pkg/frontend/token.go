@@ -23,6 +23,7 @@ const (
 	// Literals
 	TokenKindIdentifier
 	TokenKindLecture // Text to be `say`d
+	TokenKindStringLiteral
 
 	// Keywords
 	TokenKindBNum     // bnum
@@ -77,6 +78,8 @@ func (kind TokenKind) String() string {
 		return "TokenKindPassage"
 	case TokenKindString:
 		return "TokenKindString"
+	case TokenKindStringLiteral:
+		return "TokenKindStringLiteral"
 	case TokenKindVoid:
 		return "TokenKindVoid"
 	case TokenKindError:

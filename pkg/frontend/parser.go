@@ -246,7 +246,7 @@ func (p *parser) statement() ast.Node {
 	// now. (Just to have a complete interactive thing before I add proper
 	// expressions.)
 	case TokenKindListen:
-		p.consume(TokenKindString, "Expected a string literal after 'listen'.")
+		p.consume(TokenKindStringLiteral, "Expected a string literal after 'listen'.")
 		return &ast.Listen{
 			BaseNode: ast.BaseNode{
 				SrcFile:    p.fileName,

@@ -404,7 +404,7 @@ func (s *Scanner) scanString() *Token {
 	// The closing quote.
 	r := s.advance()
 	s.tokenLexeme += string(r)
-	return s.makeToken(TokenKindString)
+	return s.makeToken(TokenKindStringLiteral)
 }
 
 //
