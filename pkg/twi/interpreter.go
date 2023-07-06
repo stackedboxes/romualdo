@@ -8,8 +8,10 @@
 package twi
 
 import (
+	"bufio"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/stackedboxes/romualdo/pkg/ast"
 	"github.com/stackedboxes/romualdo/pkg/errs"
@@ -52,6 +54,19 @@ func (i *interpreter) interpretStatement(stmt ast.Node) errs.Error {
 	switch n := stmt.(type) {
 	case *ast.Lecture:
 		fmt.Fprintf(i.out, n.Text)
+
+	case *ast.Listen:
+		// TODO: Temporary handling of listen as statement; it's actually an
+		// expression, but we can't handle expressions yet.
+		fmt.Fprintf(i.out, "==> %v\n", n.Options)
+
+		// TODO: Don't read from stdin, need to be more versatile for testing
+		// and real use.
+		fmt.Fprint(i.out, "> ")
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		fmt.Fprintf(i.out, "USER INPUT: %v", scanner.Text())
+
 	default:
 		return errs.NewRuntime("unknown statement type: %T", stmt)
 	}

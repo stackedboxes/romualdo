@@ -1,6 +1,6 @@
 # TODO
 
-* Implement `listen`
+* Add basic support for expressions, make `listen` an expression.
 * Implement `if`.
 * Add tests for interactivity.
 

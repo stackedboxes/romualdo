@@ -232,7 +232,6 @@ func (p *parser) blockNoConsume() *ast.Block {
 func (p *parser) statement() ast.Node {
 	p.advance()
 
-	// For now, we know only about Lectures.
 	switch p.previousToken.Kind {
 	case TokenKindLecture:
 		return &ast.Lecture{
@@ -242,6 +241,20 @@ func (p *parser) statement() ast.Node {
 			},
 			Text: p.previousToken.Lexeme,
 		}
+
+	// TODO: listen is really an expression, but we parse it as a statement for
+	// now. (Just to have a complete interactive thing before I add proper
+	// expressions.)
+	case TokenKindListen:
+		p.consume(TokenKindString, "Expected a string literal after 'listen'.")
+		return &ast.Listen{
+			BaseNode: ast.BaseNode{
+				SrcFile:    p.fileName,
+				LineNumber: p.previousToken.Line,
+			},
+			Options: p.previousToken.Lexeme,
+		}
+
 	default:
 		p.errorAtPrevious("Expected statement.")
 		return nil

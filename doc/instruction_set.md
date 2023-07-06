@@ -122,3 +122,18 @@ have of `NOP` in the x86 architecture. Whatever.
 **Immediate Operands:** None.  
 **Pops:** One value, the Lecture to be said.  
 **Pushes:** Nothing.
+
+### `LISTEN`
+
+TODO: This string-based interface is temporary, until we support richer types.
+
+**Purpose:** Pauses the execution and waits for user input.  
+**Immediate Operands:** None.  
+**Pops:** One value, a string with the options to show to the user.  
+**Pushes:** One value, a string with the Player choice.
+
+A `LISTEN` instruction pauses the execution and returns control to the driver
+program. At this point, the VM should have popped the options string from the
+stack. When the driver program resumes the VM execution, the Player choice
+string will be pushed, so that the next instruction will have access to it
+already.

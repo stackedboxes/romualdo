@@ -168,6 +168,27 @@ func (n *Lecture) Walk(v Visitor) {
 	v.Leave(n)
 }
 
+// Listen is an AST node representing a Listen expression.
+type Listen struct {
+	BaseNode
+
+	// Options contains the options for this listen expression.
+	//
+	// TODO: Temporarily using a string, which doesn't make a whole much sense
+	// as "options" but that's what I can do for now. Eventually shall be a map.
+	Options string
+}
+
+func (n *Listen) Type() TypeTag {
+	// TODO: Eventually, will be a map, right?
+	return TypeString
+}
+
+func (n *Listen) Walk(v Visitor) {
+	v.Enter(n)
+	v.Leave(n)
+}
+
 //
 // Helper types
 //

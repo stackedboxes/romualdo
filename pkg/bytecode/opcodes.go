@@ -14,4 +14,5 @@ const (
 	OpNop OpCode = iota
 	OpConstant
 	OpSay
+	OpListen
 )

@@ -31,6 +31,7 @@ const (
 	TokenKindFloat    // float
 	TokenKindFunction // function
 	TokenKindInt      // int
+	TokenKindListen   // listen
 	TokenKindPassage  // passage
 	TokenKindString   // string
 	TokenKindVoid     // void
@@ -70,6 +71,8 @@ func (kind TokenKind) String() string {
 		return "TokenKindFunction"
 	case TokenKindInt:
 		return "TokenKindInt"
+	case TokenKindListen:
+		return "TokenKindListen"
 	case TokenKindPassage:
 		return "TokenKindPassage"
 	case TokenKindString:

@@ -71,6 +71,10 @@ func (cg *codeGeneratorPassTwo) Leave(node ast.Node) {
 		cg.emitConstant(bytecode.NewValueLecture(n.Text))
 		cg.emitBytes(byte(bytecode.OpSay))
 
+	case *ast.Listen:
+		cg.emitConstant(bytecode.NewValueString(n.Options))
+		cg.emitBytes(byte(bytecode.OpListen))
+
 	default:
 		cg.codeGenerator.ice("unknown node type: %T", n)
 	}

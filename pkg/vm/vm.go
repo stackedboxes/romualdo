@@ -8,6 +8,7 @@
 package vm
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -135,6 +136,21 @@ func (vm *VM) run() errs.Error {
 				vm.runtimeError("Expected a Lecture, got %T", value.Value)
 			}
 			fmt.Fprintf(vm.out, "%v", value.AsLecture().Text)
+
+		case bytecode.OpListen:
+			options := vm.pop()
+			fmt.Fprintf(vm.out, "==> %v\n", options.AsString())
+
+			// TODO: Don't read from stdin, need to be more versatile for testing
+			// and real use.
+
+			// TODO: Implement proper return to driver program and stuff.
+			fmt.Fprint(vm.out, "> ")
+			scanner := bufio.NewScanner(os.Stdin)
+			scanner.Scan()
+			choice := scanner.Text()
+			fmt.Fprintf(vm.out, "USER INPUT: %v", choice)
+			vm.push(bytecode.NewValueString(choice))
 
 		default:
 			vm.runtimeError("Unexpected instruction: %v", instruction)

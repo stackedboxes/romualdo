@@ -501,6 +501,7 @@ var lexemeToTokenKind = map[string]TokenKind{
 	"float":    TokenKindFloat,
 	"function": TokenKindFunction,
 	"int":      TokenKindInt,
+	"listen":   TokenKindListen,
 	"passage":  TokenKindPassage,
 	"string":   TokenKindString,
 	"void":     TokenKindVoid,

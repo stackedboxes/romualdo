@@ -1,9 +1,13 @@
-passage foo(): void
-    Something else
-end
+\# function foo(): void
+\#     listen "What's your favorite color?"
+\# end
 
-passage main(): void
-    Hello, World!
+\# passage main(): void
+\#     Hello, World!
+\# end
+
+function main(): void
+    listen "What's your name?"
 end
 
 \# passage main(): void

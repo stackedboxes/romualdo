@@ -53,6 +53,9 @@ func (csw *CompiledStoryworld) DisassembleInstruction(chunk *Chunk, out io.Write
 	case OpSay:
 		return csw.disassembleSimpleInstruction(out, "SAY", offset)
 
+	case OpListen:
+		return csw.disassembleSimpleInstruction(out, "LISTEN", offset)
+
 	default:
 		fmt.Fprintf(out, "Unknown opcode %d\n", instruction)
 		return offset + 1
