@@ -29,6 +29,9 @@ const (
 
 	// ValueLecture identifies a Lecture value.
 	ValueLecture
+
+	// ValueString identifies a string value.
+	ValueString
 )
 
 // Procedure is the runtime representation of a Procedure (i.e., a Passage or a
@@ -77,6 +80,14 @@ func NewValueLecture(text string) Value {
 	}
 }
 
+// NewValueString creates a new Value of type string, representing a string with
+// the given text.
+func NewValueString(text string) Value {
+	return Value{
+		Value: text,
+	}
+}
+
 // AsProcedure returns this Value's value, assuming it is a Procedure value.
 func (v Value) AsProcedure() Procedure {
 	return v.Value.(Procedure)
@@ -85,6 +96,11 @@ func (v Value) AsProcedure() Procedure {
 // AsLecture returns this Value's value, assuming it is a Lecture value.
 func (v Value) AsLecture() Lecture {
 	return v.Value.(Lecture)
+}
+
+// AsString returns this Value's value, assuming it is a string value.
+func (v Value) AsString() string {
+	return v.Value.(string)
 }
 
 // IsProcedure checks if the value contains a Procedure value.
@@ -96,6 +112,12 @@ func (v Value) IsProcedure() bool {
 // IsLecture checks if the value contains a Lecture value.
 func (v Value) IsLecture() bool {
 	_, ok := v.Value.(Lecture)
+	return ok
+}
+
+// IsString checks if the value contains a string value.
+func (v Value) IsString() bool {
+	_, ok := v.Value.(string)
 	return ok
 }
 
@@ -115,6 +137,8 @@ func (v Value) String() string {
 		// otherwise we don't need to worry about a user-friendly representation
 		// here.
 		return fmt.Sprintf("<Lecture: %v>", romutil.FormatTextForDisplay(vv.Text))
+	case string:
+		return vv
 	default:
 		return fmt.Sprintf("<Unexpected type %T>", vv)
 	}
@@ -136,6 +160,8 @@ func (v Value) DebugString(debugInfo *DebugInfo) string {
 		// convert a Lecture to a string. So, we don't need to worry about a
 		// user-friendly representation here.
 		return fmt.Sprintf("<Lecture: %v>", romutil.FormatTextForDisplay(vv.Text))
+	case string:
+		return romutil.FormatTextForDisplay(vv)
 	default:
 		return fmt.Sprintf("<Unexpected type %T>", vv)
 	}
@@ -153,6 +179,9 @@ func ValuesEqual(a, b Value) bool {
 
 	case Lecture:
 		return va.Text == b.Value.(Lecture).Text
+
+	case string:
+		return va == b.Value.(string)
 
 	default:
 		panic(fmt.Sprintf("Unexpected Value type: %T", va))
@@ -194,6 +223,16 @@ func (v Value) Serialize(w io.Writer) errs.Error {
 		err := romutil.SerializeString(w, vv.Text)
 		return err
 
+	case string:
+		bs := []byte{cswString}
+		_, plainErr := w.Write(bs)
+		if plainErr != nil {
+			return errs.NewRomualdoTool("serializing string: %v", plainErr)
+		}
+
+		err := romutil.SerializeString(w, vv)
+		return err
+
 	default:
 		// Can't happen
 		return errs.NewICE("unexpected value type: %T", vv)
@@ -220,6 +259,12 @@ func DeserializeValue(r io.Reader) (Value, errs.Error) {
 			return v, err
 		}
 		v.Value = Lecture{text}
+	case cswString:
+		text, err := romutil.DeserializeString(r)
+		if err != nil {
+			return v, err
+		}
+		v.Value = text
 	default:
 		// Can happen with corrupted or invalid data
 		return v, errs.NewRomualdoTool("unexpected value identifier: %v", b[0])
