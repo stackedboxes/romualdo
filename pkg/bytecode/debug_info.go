@@ -64,37 +64,33 @@ var DebugInfoMagic = []byte{0x52, 0x6D, 0x6C, 0x64, 0x44, 0x62, 0x67, 0x1A}
 func (di *DebugInfo) Serialize(w io.Writer) errs.Error {
 	err := di.serializeHeader(w)
 	if err != nil {
-		return errs.NewRomualdoTool("serializing debug info header: %v", err)
+		return err
 	}
 
 	crc32, err := di.serializePayload(w)
 	if err != nil {
-		return errs.NewRomualdoTool("serializing debug info payload: %v", err)
-	}
-
-	err = di.serializeFooter(w, crc32)
-	if err != nil {
-		return errs.NewRomualdoTool("serializing debug info footer: %v", err)
-	}
-
-	return nil
-}
-
-// serializedHeader writes the header of a DebugInfo to the given io.Writer.
-func (di *DebugInfo) serializeHeader(w io.Writer) error {
-	_, err := w.Write(DebugInfoMagic)
-	if err != nil {
 		return err
 	}
 
-	err = romutil.SerializeU32(w, DebugInfoVersion)
+	err = di.serializeFooter(w, crc32)
+	return err
+}
+
+// serializedHeader writes the header of a DebugInfo to the given io.Writer.
+func (di *DebugInfo) serializeHeader(w io.Writer) errs.Error {
+	_, plainErr := w.Write(DebugInfoMagic)
+	if plainErr != nil {
+		return errs.NewRomualdoTool("serializing debug info magic: %v", plainErr)
+	}
+
+	err := romutil.SerializeU32(w, DebugInfoVersion)
 	return err
 }
 
 // serializePayload writes the payload of a CompiledStoryworld to the given
 // io.Writer. In other words, this the function doing the actual serialization.
 // Returns the CRC32 of the data written to w, and an error.
-func (di *DebugInfo) serializePayload(w io.Writer) (uint32, error) {
+func (di *DebugInfo) serializePayload(w io.Writer) (uint32, errs.Error) {
 	crc := crc32.NewIEEE()
 	mw := io.MultiWriter(w, crc)
 
@@ -130,12 +126,12 @@ func (di *DebugInfo) serializePayload(w io.Writer) (uint32, error) {
 
 // serializeFooter writes the footer of a CompiledStoryworld to the given
 // io.Writer.
-func (di *DebugInfo) serializeFooter(w io.Writer, crc32 uint32) error {
+func (di *DebugInfo) serializeFooter(w io.Writer, crc32 uint32) errs.Error {
 	err := romutil.SerializeU32(w, crc32)
 	return err
 }
 
-func (di *DebugInfo) Deserialize(r io.Reader) error {
+func (di *DebugInfo) Deserialize(r io.Reader) errs.Error {
 	err := di.deserializeHeader(r)
 	if err != nil {
 		return errs.NewRomualdoTool("deserializing debug info header: %v", err)

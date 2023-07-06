@@ -46,13 +46,13 @@ func runStoryworldFromSource(path string, out io.Writer, trace bool) errs.Error 
 	// Parse
 	swAST, err := frontend.ParseStoryworld(path)
 	if err != nil {
-		return errs.NewRomualdoTool("parsing the storyworld: %v", err)
+		return err
 	}
 
 	// Generate code
 	csw, di, err := backend.GenerateCode(swAST)
 	if err != nil {
-		return errs.NewRomualdoTool("generating code: %v", err)
+		return err
 	}
 
 	// Run
@@ -67,7 +67,7 @@ func runStoryworldFromBinary(rasFile string, out io.Writer, trace bool) errs.Err
 
 	csw, di, err := LoadCompiledStoryworldBinaries(rasFile, false)
 	if err != nil {
-		return errs.NewRomualdoTool("loading compiled storyworld: %v", err)
+		return err
 	}
 
 	theVM := New(out)

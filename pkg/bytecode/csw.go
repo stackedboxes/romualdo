@@ -82,38 +82,34 @@ func (csw *CompiledStoryworld) AddConstant(value Value) int {
 func (csw *CompiledStoryworld) Serialize(w io.Writer) errs.Error {
 	err := csw.serializeHeader(w)
 	if err != nil {
-		return errs.NewRomualdoTool("serializing compiled storyworld header: %v", err)
+		return err
 	}
 
 	crc32, err := csw.serializePayload(w)
 	if err != nil {
-		return errs.NewRomualdoTool("serializing compiled storyworld payload: %v", err)
+		return err
 	}
 
 	err = csw.serializeFooter(w, crc32)
-	if err != nil {
-		return errs.NewRomualdoTool("serializing compiled storyworld footer: %v", err)
-	}
-
-	return nil
+	return err
 }
 
 // serializedHeader writes the header of a CompiledStoryworld to the given
 // io.Writer.
-func (csw *CompiledStoryworld) serializeHeader(w io.Writer) error {
-	_, err := w.Write(CSWMagic)
-	if err != nil {
-		return err
+func (csw *CompiledStoryworld) serializeHeader(w io.Writer) errs.Error {
+	_, plainErr := w.Write(CSWMagic)
+	if plainErr != nil {
+		return errs.NewRomualdoTool("serializing compiled storyworld magic: %v", plainErr)
 	}
 
-	err = romutil.SerializeU32(w, CSWVersion)
+	err := romutil.SerializeU32(w, CSWVersion)
 	return err
 }
 
 // serializePayload writes the payload of a CompiledStoryworld to the given
 // io.Writer. In other words, this the function doing the actual serialization.
 // Returns the CRC32 of the data written to w, and an error.
-func (csw *CompiledStoryworld) serializePayload(w io.Writer) (uint32, error) {
+func (csw *CompiledStoryworld) serializePayload(w io.Writer) (uint32, errs.Error) {
 	crc := crc32.NewIEEE()
 	mw := io.MultiWriter(w, crc)
 
@@ -141,9 +137,9 @@ func (csw *CompiledStoryworld) serializePayload(w io.Writer) (uint32, error) {
 		if err != nil {
 			return 0, err
 		}
-		_, err = mw.Write(chunk.Code)
-		if err != nil {
-			return 0, err
+		_, plainErr := mw.Write(chunk.Code)
+		if plainErr != nil {
+			return 0, errs.NewRomualdoTool("serializing chunk code: %v", plainErr)
 		}
 	}
 
@@ -159,7 +155,7 @@ func (csw *CompiledStoryworld) serializePayload(w io.Writer) (uint32, error) {
 
 // serializeFooter writes the footer of a CompiledStoryworld to the given
 // io.Writer.
-func (csw *CompiledStoryworld) serializeFooter(w io.Writer, crc32 uint32) error {
+func (csw *CompiledStoryworld) serializeFooter(w io.Writer, crc32 uint32) errs.Error {
 	err := romutil.SerializeU32(w, crc32)
 	return err
 }
@@ -215,7 +211,7 @@ func (csw *CompiledStoryworld) deserializeHeader(r io.Reader) error {
 // io.Reader. In other words, this the function doing the actual
 // deserialization. Returns the CRC32 of the data read from r, and an error. It
 // updates the CompiledStoryworld with the deserialized data as it goes.
-func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, error) {
+func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, errs.Error) {
 
 	crcSummer := crc32.NewIEEE()
 	tr := io.TeeReader(r, crcSummer)
@@ -249,9 +245,9 @@ func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, error) {
 		csw.Chunks[i] = &Chunk{
 			Code: make([]byte, lenChunkCode),
 		}
-		_, err = io.ReadFull(tr, csw.Chunks[i].Code)
-		if err != nil {
-			return 0, err
+		_, plainErr := io.ReadFull(tr, csw.Chunks[i].Code)
+		if plainErr != nil {
+			return 0, errs.NewRomualdoTool("deserializing chunk code: %v", plainErr)
 		}
 	}
 

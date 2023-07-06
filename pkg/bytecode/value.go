@@ -8,11 +8,11 @@
 package bytecode
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"reflect"
 
+	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
@@ -179,34 +179,34 @@ const (
 )
 
 // Serialize serializes the Value to the given io.Writer.
-func (v Value) Serialize(w io.Writer) error {
+func (v Value) Serialize(w io.Writer) errs.Error {
 	switch vv := v.Value.(type) {
 	case Procedure:
-		return errors.New("cannot serialize procedure values")
+		return errs.NewICE("cannot serialize procedure values")
 
 	case Lecture:
 		bs := []byte{cswLecture}
-		_, err := w.Write(bs)
-		if err != nil {
-			return err
+		_, plainErr := w.Write(bs)
+		if plainErr != nil {
+			return errs.NewRomualdoTool("serializing lecture: %v", plainErr)
 		}
 
-		err = romutil.SerializeString(w, vv.Text)
+		err := romutil.SerializeString(w, vv.Text)
 		return err
 
 	default:
 		// Can't happen
-		return fmt.Errorf("unexpected value type: %T", vv)
+		return errs.NewICE("unexpected value type: %T", vv)
 	}
 }
 
 // DeserializeValue deserializes a Value from the given io.Reader.
-func DeserializeValue(r io.Reader) (Value, error) {
+func DeserializeValue(r io.Reader) (Value, errs.Error) {
 	v := Value{}
 	b := make([]byte, 1)
-	_, err := r.Read(b)
-	if err != nil {
-		return v, err
+	_, plainErr := r.Read(b)
+	if plainErr != nil {
+		return v, errs.NewRomualdoTool("deserializing value: %v", plainErr)
 	}
 
 	switch b[0] {
@@ -221,8 +221,8 @@ func DeserializeValue(r io.Reader) (Value, error) {
 		}
 		v.Value = Lecture{text}
 	default:
-		// Can't happen
-		return v, fmt.Errorf("unexpected value identifier: %v", b[0])
+		// Can happen with corrupted or invalid data
+		return v, errs.NewRomualdoTool("unexpected value identifier: %v", b[0])
 	}
 
 	return v, nil
