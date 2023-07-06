@@ -137,6 +137,12 @@ func (s *Scanner) codeModeToken() *Token {
 		return s.makeToken(TokenKindColon)
 	case ',':
 		return s.makeToken(TokenKindComma)
+	case '"':
+		// TODO: For now, strings are always double-quoted. We should probably
+		// support single-quoted and back-quoted strings as well. Maybe with
+		// different semantics, maybe just for giving choice of what must be
+		// escaped. Open design point.
+		return s.scanString()
 	}
 
 	// If we could not figure out what token that rune was supposed start, it's
@@ -379,6 +385,26 @@ func (s *Scanner) scanIdentifier() *Token {
 		}
 	}
 	return s.makeToken(s.identifierKind())
+}
+
+// scanString scans a string token.
+func (s *Scanner) scanString() *Token {
+	for s.peek() != '"' && !s.isAtEnd() {
+		if s.peek() == '\n' {
+			s.line++
+		}
+		r := s.advance()
+		s.tokenLexeme += string(r)
+	}
+
+	if s.isAtEnd() {
+		return s.errorToken("Unterminated string.")
+	}
+
+	// The closing quote.
+	r := s.advance()
+	s.tokenLexeme += string(r)
+	return s.makeToken(TokenKindString)
 }
 
 //
