@@ -15,4 +15,5 @@ const (
 	OpConstant
 	OpSay
 	OpListen
+	OpPop
 )

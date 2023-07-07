@@ -147,6 +147,26 @@ func (n *Block) Walk(v Visitor) {
 	v.Leave(n)
 }
 
+// ExpressionStmt is an AST node representing an expression when used as a
+// statement. In other words, this is an expression presumably used for its
+// side-effects, given that the expression value is discarded.
+type ExpressionStmt struct {
+	BaseNode
+
+	// Expr is the expression used as a statement.
+	Expr Node
+}
+
+func (n *ExpressionStmt) Type() TypeTag {
+	return TypeVoid
+}
+
+func (n *ExpressionStmt) Walk(v Visitor) {
+	v.Enter(n)
+	n.Expr.Walk(v)
+	v.Leave(n)
+}
+
 // Lecture is an AST node representing a Lecture.
 //
 // A Lecture is an unorthodox language construct, that looks like a literal, but
@@ -173,10 +193,7 @@ type Listen struct {
 	BaseNode
 
 	// Options contains the options for this listen expression.
-	//
-	// TODO: Temporarily using a string, which doesn't make a whole much sense
-	// as "options" but that's what I can do for now. Eventually shall be a map.
-	Options string
+	Options Node
 }
 
 func (n *Listen) Type() TypeTag {
@@ -185,6 +202,24 @@ func (n *Listen) Type() TypeTag {
 }
 
 func (n *Listen) Walk(v Visitor) {
+	v.Enter(n)
+	n.Options.Walk(v)
+	v.Leave(n)
+}
+
+// StringLiteral is an AST node representing a string literal value.
+type StringLiteral struct {
+	BaseNode
+
+	// Value is the string literal's value.
+	Value string
+}
+
+func (n *StringLiteral) Type() TypeTag {
+	return TypeString
+}
+
+func (n *StringLiteral) Walk(v Visitor) {
 	v.Enter(n)
 	v.Leave(n)
 }

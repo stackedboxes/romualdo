@@ -55,10 +55,27 @@ func (i *interpreter) interpretStatement(stmt ast.Node) errs.Error {
 	case *ast.Lecture:
 		fmt.Fprintf(i.out, n.Text)
 
+	case *ast.ExpressionStmt:
+		// Interpret the expression and discard the result.
+		return i.interpretExpression(n.Expr)
+
+	default:
+		return errs.NewRuntime("unknown statement type: %T", stmt)
+	}
+	return nil
+}
+
+// TODO: Should this return the expression value?
+func (i *interpreter) interpretExpression(expr ast.Node) errs.Error {
+	switch n := expr.(type) {
+	case *ast.StringLiteral:
+		// No-op
+
 	case *ast.Listen:
-		// TODO: Temporary handling of listen as statement; it's actually an
-		// expression, but we can't handle expressions yet.
-		fmt.Fprintf(i.out, "==> %v\n", n.Options)
+		// TODO: Currently this just assumes the argument to listen is a string
+		// literal. This will break bad once we have more complex expressions.
+		// Should do for now, though.
+		fmt.Fprintf(i.out, "==> %v\n", n.Options.(*ast.StringLiteral).Value)
 
 		// TODO: Don't read from stdin, need to be more versatile for testing
 		// and real use.
@@ -66,9 +83,7 @@ func (i *interpreter) interpretStatement(stmt ast.Node) errs.Error {
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan()
 		fmt.Fprintf(i.out, "USER INPUT: %v", scanner.Text())
-
-	default:
-		return errs.NewRuntime("unknown statement type: %T", stmt)
 	}
+
 	return nil
 }

@@ -71,9 +71,19 @@ func (cg *codeGeneratorPassTwo) Leave(node ast.Node) {
 		cg.emitConstant(bytecode.NewValueLecture(n.Text))
 		cg.emitBytes(byte(bytecode.OpSay))
 
+	case *ast.StringLiteral:
+		cg.emitConstant(bytecode.NewValueString(n.Value))
+
 	case *ast.Listen:
-		cg.emitConstant(bytecode.NewValueString(n.Options))
 		cg.emitBytes(byte(bytecode.OpListen))
+
+	case *ast.ExpressionStmt:
+		// A call to a void Procedure is still an expression statement for
+		// grammar purposes -- but one that does not push anything into the
+		// stack. Don't try to pop what isn't there.
+		if n.Expr.Type() != ast.TypeVoid {
+			cg.emitBytes(byte(bytecode.OpPop))
+		}
 
 	default:
 		cg.codeGenerator.ice("unknown node type: %T", n)

@@ -16,6 +16,42 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
+// precedence is the precedence of expressions.
+type precedence int
+
+const (
+	precNone       precedence = iota // Means: cannot be the "center" of an expression.
+	precAssignment                   // =
+	precOr                           // or
+	precAnd                          // and
+	precEquality                     // == !=
+	precComparison                   // < > <= >=
+	precTerm                         // + -
+	precFactor                       // * /
+	precBlend                        // ~ // TODO: Not sure about blend precedence or its operator
+	PrecUnary                        // not -
+	precPower                        // ^
+	precCall                         // . ()
+	precPrimary
+)
+
+// prefixParseFn is a function used to parse code for a certain kind of prefix
+// expression. canAssign tells if the expression we are parsing accepts to be
+// the target of an assignment.
+type prefixParseFn = func(c *parser, canAssign bool) ast.Node
+
+// infixParseFn is a function used to parse code for a certain kind of infix
+// expression. lhs is the left-hand side expression previously parsed. canAssign
+// tells if the expression we parsing accepts to be the target of an assignment.
+type infixParseFn = func(c *parser, lhs ast.Node, canAssign bool) ast.Node
+
+// parseRule encodes one rule of our Pratt parser.
+type parseRule struct {
+	prefix     prefixParseFn // For expressions using the token as a prefix operator.
+	infix      infixParseFn  // For expressions using the token as an infix operator.
+	precedence precedence    // When the token is used as a binary operator.
+}
+
 // parser is a parser for the Romualdo language. It converts source code into an
 // AST.
 type parser struct {
@@ -70,6 +106,33 @@ func (p *parser) parse() (*ast.SourceFile, error) {
 	}
 
 	return sf, nil
+}
+
+// parsePrecedence parses and generates the AST for expressions with a
+// precedence level equal to or greater than prec.
+func (p *parser) parsePrecedence(prec precedence) ast.Node {
+	p.advance()
+	prefixRule := rules[p.previousToken.Kind].prefix
+	if prefixRule == nil {
+		p.errorAtPrevious("Expected expression.")
+		return nil
+	}
+
+	canAssign := prec <= precAssignment
+	node := prefixRule(p, canAssign)
+
+	for prec <= rules[p.currentToken.Kind].precedence {
+		p.advance()
+		infixRule := rules[p.previousToken.Kind].infix
+		node = infixRule(p, node, canAssign)
+	}
+
+	// TODO: Not dealing with assignments yet.
+	// if canAssign && p.match(TokenKindEqual) {
+	// 	p.error("Invalid assignment target.")
+	// }
+
+	return node
 }
 
 // packagePath returns the package path of the file being parsed.
@@ -196,6 +259,25 @@ func (p *parser) passageDecl() *ast.ProcedureDecl {
 	return proc
 }
 
+// listen parses a listen expression. The "listen" token is expected to have
+// been just consumed.
+func (p *parser) listen(canAssign bool) ast.Node {
+	options := p.expression()
+
+	return &ast.Listen{
+		BaseNode: ast.BaseNode{
+			SrcFile:    p.fileName,
+			LineNumber: p.previousToken.Line,
+		},
+		Options: options,
+	}
+}
+
+// expression parses an expression.
+func (p *parser) expression() ast.Node {
+	return p.parsePrecedence(precAssignment)
+}
+
 // block parses a block of code. Whatever keyword(s) started the block should
 // have been just consumed.
 func (p *parser) block() *ast.Block {
@@ -230,10 +312,11 @@ func (p *parser) blockNoConsume() *ast.Block {
 // statement parses a statement. The current token is expected to be the first
 // token of the statement.
 func (p *parser) statement() ast.Node {
-	p.advance()
-
-	switch p.previousToken.Kind {
-	case TokenKindLecture:
+	switch {
+	case p.match(TokenKindLecture):
+		// Lectures are handled as statements because they have his dual nature
+		// of being both literals and statements ("say" statements, to be
+		// precise).
 		return &ast.Lecture{
 			BaseNode: ast.BaseNode{
 				SrcFile:    p.fileName,
@@ -242,22 +325,29 @@ func (p *parser) statement() ast.Node {
 			Text: p.previousToken.Lexeme,
 		}
 
-	// TODO: listen is really an expression, but we parse it as a statement for
-	// now. (Just to have a complete interactive thing before I add proper
-	// expressions.)
-	case TokenKindListen:
-		p.consume(TokenKindStringLiteral, "Expected a string literal after 'listen'.")
-		return &ast.Listen{
+	default:
+		expr := p.expression()
+		return &ast.ExpressionStmt{
 			BaseNode: ast.BaseNode{
-				SrcFile:    p.fileName,
 				LineNumber: p.previousToken.Line,
 			},
-			Options: p.previousToken.Lexeme,
+			Expr: expr,
 		}
+	}
+}
 
-	default:
-		p.errorAtPrevious("Expected statement.")
-		return nil
+// stringLiteral parses a string literal. The string literal token is expected
+// to have been just consumed.
+func (p *parser) stringLiteral(canAssign bool) ast.Node {
+	// TODO: Assuming strings are always quoted by one single char each side.
+	// May change in the future.
+	value := p.previousToken.Lexeme[1 : len(p.previousToken.Lexeme)-1] // remove the quotes
+
+	return &ast.StringLiteral{
+		BaseNode: ast.BaseNode{
+			LineNumber: p.previousToken.Line,
+		},
+		Value: value,
 	}
 }
 
@@ -370,4 +460,45 @@ func (p *parser) errorAt(tok *Token, format string, a ...any) {
 	}
 
 	p.errors.Add(err)
+}
+
+//
+// Rules table
+//
+
+// rules is the table of parsing rules for our Pratt parser.
+var rules []parseRule
+
+func init() {
+	initRules()
+}
+
+// initRules initializes the rules array.
+//
+// Using block comments to convince gofmt to keep things aligned is ugly as
+// hell.
+func initRules() {
+	rules = make([]parseRule, TokenKindCount)
+
+	//                                     prefix                                      infix                          precedence
+	//                                    ---------------------------------------     --------------------------     --------------
+	rules[TokenKindLeftParen] = /*     */ parseRule{nil /*                        */, nil /*                     */, precCall}
+	rules[TokenKindRightParen] = /*    */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindComma] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindColon] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindIdentifier] = /*    */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindLecture] = /*       */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindStringLiteral] = /* */ parseRule{(*parser).stringLiteral /*    */, nil /*                     */, precNone}
+	rules[TokenKindBNum] = /*          */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindBool] = /*          */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindEnd] = /*           */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindFloat] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindFunction] = /*      */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindInt] = /*           */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindListen] = /*        */ parseRule{(*parser).listen /*           */, nil /*                     */, precPrimary}
+	rules[TokenKindPassage] = /*       */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindString] = /*        */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindVoid] = /*          */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindError] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindEOF] = /*           */ parseRule{nil /*                        */, nil /*                     */, precNone}
 }

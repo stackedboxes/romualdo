@@ -137,3 +137,10 @@ program. At this point, the VM should have popped the options string from the
 stack. When the driver program resumes the VM execution, the Player choice
 string will be pushed, so that the next instruction will have access to it
 already.
+
+### `POP`
+
+**Purpose:** Pops the value on the top of the stack.  
+**Immediate Operands:** None.  
+**Pops:** One value.  
+**Pushes:** Nothing.

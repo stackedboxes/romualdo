@@ -152,6 +152,9 @@ func (vm *VM) run() errs.Error {
 			fmt.Fprintf(vm.out, "USER INPUT: %v", choice)
 			vm.push(bytecode.NewValueString(choice))
 
+		case bytecode.OpPop:
+			vm.pop()
+
 		default:
 			vm.runtimeError("Unexpected instruction: %v", instruction)
 		}
