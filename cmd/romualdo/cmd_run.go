@@ -8,9 +8,8 @@
 package main
 
 import (
-	"os"
-
 	"github.com/spf13/cobra"
+	"github.com/stackedboxes/romualdo/pkg/romutil"
 	"github.com/stackedboxes/romualdo/pkg/vm"
 )
 
@@ -25,7 +24,8 @@ Storyworld (*.ras) or a Storyworld source directory.`,
 	Args: cobra.ExactArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
-		err := vm.RunStoryworld(args[0], os.Stdout, runDebugTraceExecution)
+		mouth, ear := romutil.StdMouthAndEar()
+		err := vm.RunStoryworld(args[0], mouth, ear, runDebugTraceExecution)
 		reportAndExit(err)
 	},
 }

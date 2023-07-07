@@ -8,14 +8,13 @@
 package vm
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
 	"github.com/stackedboxes/romualdo/pkg/bytecode"
 	"github.com/stackedboxes/romualdo/pkg/errs"
+	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
 // VM is a Romualdo Virtual Machine.
@@ -24,8 +23,11 @@ type VM struct {
 	// runs through it.
 	DebugTraceExecution bool
 
-	// out is where the VM sends its output.
-	out io.Writer
+	// mouth is where the VM sends its output to.
+	mouth romutil.Mouth
+
+	// ear is where the VM gets its input from.
+	ear romutil.Ear
 
 	// csw is the compiled storyworld we are executing.
 	csw *bytecode.CompiledStoryworld
@@ -46,11 +48,13 @@ type VM struct {
 	frame *callFrame
 }
 
-// New returns a new Virtual Machine. out is where the VM sends its output.
-func New(out io.Writer) *VM {
+// New returns a new Virtual Machine. out is where the VM sends its output to,
+// in is where it gets its input from.
+func New(mouth romutil.Mouth, ear romutil.Ear) *VM {
 	return &VM{
 		stack: &Stack{},
-		out:   out,
+		mouth: mouth,
+		ear:   ear,
 	}
 }
 
@@ -135,21 +139,16 @@ func (vm *VM) run() errs.Error {
 			if !value.IsLecture() {
 				vm.runtimeError("Expected a Lecture, got %T", value.Value)
 			}
-			fmt.Fprintf(vm.out, "%v", value.AsLecture().Text)
+			vm.mouth.Say(value.AsLecture().Text)
 
 		case bytecode.OpListen:
 			options := vm.pop()
-			fmt.Fprintf(vm.out, "==> %v\n", options.AsString())
-
-			// TODO: Don't read from stdin, need to be more versatile for testing
-			// and real use.
+			vm.mouth.Say("==> " + options.AsString()) // TODO: Temporary, to see what's happening.
 
 			// TODO: Implement proper return to driver program and stuff.
-			fmt.Fprint(vm.out, "> ")
-			scanner := bufio.NewScanner(os.Stdin)
-			scanner.Scan()
-			choice := scanner.Text()
-			fmt.Fprintf(vm.out, "USER INPUT: %v", choice)
+			fmt.Fprint(os.Stdout, "> ") // TODO: Temporary, to see what's happening.
+			choice := vm.ear.Listen()
+			fmt.Fprintln(os.Stdout, "USER INPUT: "+choice) // TODO: Temporary, to see what's happening.
 			vm.push(bytecode.NewValueString(choice))
 
 		case bytecode.OpPop:

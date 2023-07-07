@@ -8,20 +8,20 @@
 package twi
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/stackedboxes/romualdo/pkg/ast"
 	"github.com/stackedboxes/romualdo/pkg/errs"
+	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
 // interpreter is a tree-walk interpreter for a Romualdo AST.
 type interpreter struct {
 	ast        ast.Node
 	procedures map[string]*ast.ProcedureDecl
-	out        io.Writer
+	mouth      romutil.Mouth
+	ear        romutil.Ear
 }
 
 // run runs ("walks"?) the Storyworld whose AST is in i.ast.
@@ -53,7 +53,7 @@ func (i *interpreter) interpretBlock(block *ast.Block) errs.Error {
 func (i *interpreter) interpretStatement(stmt ast.Node) errs.Error {
 	switch n := stmt.(type) {
 	case *ast.Lecture:
-		fmt.Fprintf(i.out, n.Text)
+		i.mouth.Say(n.Text)
 
 	case *ast.ExpressionStmt:
 		// Interpret the expression and discard the result.
@@ -75,14 +75,12 @@ func (i *interpreter) interpretExpression(expr ast.Node) errs.Error {
 		// TODO: Currently this just assumes the argument to listen is a string
 		// literal. This will break bad once we have more complex expressions.
 		// Should do for now, though.
-		fmt.Fprintf(i.out, "==> %v\n", n.Options.(*ast.StringLiteral).Value)
+		options := n.Options.(*ast.StringLiteral).Value
+		fmt.Fprintf(os.Stdout, "==> %v\n", options) // TODO: Temporary, to see what's happening.
 
-		// TODO: Don't read from stdin, need to be more versatile for testing
-		// and real use.
-		fmt.Fprint(i.out, "> ")
-		scanner := bufio.NewScanner(os.Stdin)
-		scanner.Scan()
-		fmt.Fprintf(i.out, "USER INPUT: %v", scanner.Text())
+		fmt.Fprint(os.Stdout, "> ") // TODO: Temporary, to see what's happening.
+		choice := i.ear.Listen()
+		fmt.Fprintf(os.Stdout, "USER INPUT: "+choice) // TODO: Temporary, to see what's happening.
 	}
 
 	return nil

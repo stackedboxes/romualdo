@@ -12,6 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/stackedboxes/romualdo/pkg/errs"
+	"github.com/stackedboxes/romualdo/pkg/romutil"
 	"github.com/stackedboxes/romualdo/pkg/twi"
 )
 
@@ -34,7 +35,9 @@ var walkCmd = &cobra.Command{
 			reportAndExit(buErr)
 		}
 
-		err := twi.WalkStoryworld(path, os.Stdout)
+		mouth, ear := romutil.StdMouthAndEar()
+
+		err := twi.WalkStoryworld(path, mouth, ear)
 		reportAndExit(err)
 	},
 }

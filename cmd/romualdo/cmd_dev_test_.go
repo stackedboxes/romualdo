@@ -9,7 +9,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"regexp"
@@ -27,9 +26,9 @@ type testConfig struct {
 	ExpectedOutput []string
 }
 
-// swRunnerFunc is a function that can run a Storyworld at path outputting to
-// out.
-type swRunnerFunc func(path string, out io.Writer) errs.Error
+// swRunnerFunc is a function that can run a Storyworld at path, using mouth and
+// ear for I/O.
+type swRunnerFunc func(path string, mouth romutil.Mouth, ear romutil.Ear) errs.Error
 
 var devTestCmd = &cobra.Command{
 	Use:   "test",
@@ -46,7 +45,9 @@ var devTestCmd = &cobra.Command{
 			runner = twi.WalkStoryworld
 		} else {
 			fmt.Println("Using the bytecode interpreter.")
-			runner = func(path string, out io.Writer) errs.Error { return vm.RunStoryworld(path, out, false) }
+			runner = func(path string, mouth romutil.Mouth, ear romutil.Ear) errs.Error {
+				return vm.RunStoryworld(path, mouth, ear, false)
+			}
 		}
 
 		err := romutil.ForEachMatchingFileRecursive(flagDevTestSuite, regexp.MustCompile("test.toml"),
@@ -59,14 +60,16 @@ var devTestCmd = &cobra.Command{
 
 				testPath := path.Dir(configPath)
 				srcPath := path.Join(testPath, "src")
-				output := &strings.Builder{}
+				outBuilder := &strings.Builder{}
+				mouth := romutil.NewWriterMouth(outBuilder)
+				ear := romutil.NewReaderEar(os.Stdin) // TODO: Must come from test config!
 
-				err = runner(srcPath, output)
+				err = runner(srcPath, mouth, ear)
 				if err != nil {
 					return errs.NewTestSuite(testPath, "running the storyworld: %v", err)
 				}
 
-				actualOut := output.String()
+				actualOut := outBuilder.String()
 				if actualOut != testConf.ExpectedOutput[0] {
 					errTS := errs.NewTestSuite(testPath, "expected output '%v', got '%v'.", testConf.ExpectedOutput[0], actualOut)
 					return errTS

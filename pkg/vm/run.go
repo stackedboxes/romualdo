@@ -8,7 +8,6 @@
 package vm
 
 import (
-	"io"
 	"os"
 	"path"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/bytecode"
 	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/frontend"
+	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
 // RunStoryworld interprets the Storyworld located at path using the VM-based
@@ -29,20 +29,20 @@ import (
 //     compiled and interpreted.
 //
 // trace tells if you want to debug-trace the execution of the VM.
-func RunStoryworld(path string, out io.Writer, trace bool) errs.Error {
+func RunStoryworld(path string, mouth romutil.Mouth, ear romutil.Ear, trace bool) errs.Error {
 	fileInfo, err := os.Stat(path)
 	if err != nil {
 		return errs.NewRomualdoTool("stating %v: %v", path, err)
 	}
 
 	if fileInfo.IsDir() {
-		return runStoryworldFromSource(path, out, trace)
+		return runStoryworldFromSource(path, mouth, ear, trace)
 	}
 
-	return runStoryworldFromBinary(path, out, trace)
+	return runStoryworldFromBinary(path, mouth, ear, trace)
 }
 
-func runStoryworldFromSource(path string, out io.Writer, trace bool) errs.Error {
+func runStoryworldFromSource(path string, out romutil.Mouth, in romutil.Ear, trace bool) errs.Error {
 	// Parse
 	swAST, err := frontend.ParseStoryworld(path)
 	if err != nil {
@@ -56,12 +56,12 @@ func runStoryworldFromSource(path string, out io.Writer, trace bool) errs.Error 
 	}
 
 	// Run
-	theVM := New(out)
+	theVM := New(out, in)
 	theVM.DebugTraceExecution = trace
 	return theVM.Interpret(csw, di)
 }
 
-func runStoryworldFromBinary(rasFile string, out io.Writer, trace bool) errs.Error {
+func runStoryworldFromBinary(rasFile string, out romutil.Mouth, in romutil.Ear, trace bool) errs.Error {
 	var csw *bytecode.CompiledStoryworld
 	var di *bytecode.DebugInfo
 
@@ -70,7 +70,7 @@ func runStoryworldFromBinary(rasFile string, out io.Writer, trace bool) errs.Err
 		return err
 	}
 
-	theVM := New(out)
+	theVM := New(out, in)
 	theVM.DebugTraceExecution = trace
 	return theVM.Interpret(csw, di)
 }
