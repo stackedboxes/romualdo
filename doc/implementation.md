@@ -30,7 +30,6 @@ to make a language change:
     * Generate code for this node type in `pkg/backend/pass_two.go`.
 * Maybe add some new semantic checks at `pkg/frontend/semantic_checker.go`.
 * Maybe add some new type checks at `pkg/frontend/type_checker.go`.
-    * Which doesn't exist yet!
 * Add the new AST node to the AST printer.
 * If a new opcode is needed:
     * Document it at `doc/instruction_set.md`.

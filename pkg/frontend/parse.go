@@ -107,6 +107,13 @@ func ParseFile(fileName, swRoot string) (*ast.SourceFile, errs.Error) {
 		return nil, sc.errors
 	}
 
+	// Type checking
+	tc := NewTypeChecker(fileName)
+	sfNode.Walk(tc)
+	if !tc.errors.IsEmpty() {
+		return nil, tc.errors
+	}
+
 	return sfNode, nil
 }
 

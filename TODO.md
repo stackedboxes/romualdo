@@ -1,6 +1,5 @@
 # TODO
 
-* Add a type checker, check that the argument to `listen` is a string.
 * Implement `if`.
 * Add tests for interactivity.
 
