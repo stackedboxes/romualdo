@@ -396,6 +396,53 @@ TODO: How to read a `meta`? Maybe `package.Func.metaName`. Int his case, need to
 allow the "third segment" in assignments and reads: `qualifiedIdentifier` alone
 won't do.
 
+## Ink-like Variable text?
+
+One thing I have a kind of [Ink](https://www.inklestudios.com/ink/)-envy is
+their set [variable
+text](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md#8-variable-text)
+features. Like this, taken directly from their docs:
+
+```ink
+The radio hissed into life. {"Three!"|"Two!"|"One!"|There was the white noise racket of an explosion.|But it was just static.}
+```
+
+This kind of thing is definitely not my focus with Romualdo (again, roughly
+speaking, Romualdo leans more towards programming than text generation), but I
+think these are cool features.
+
+How could I support this? Imagining something like this:
+
+```romualdo
+say
+    The radio hissed into life. { say.sequence("\"Three!\"", "\"Two!\"", "\"One!\"", "There was the white noise racket of an explosion.", "But it was just static.") }
+end
+```
+
+Two problems. First, ugly quote escaping. Second, `say.sequence()` needs to
+somehow store state *per call site.*
+
+What about an implicit *call site* argument available to every Procedure? Or
+explicitly declared by Procedures that want it, but implicitly passed. Or
+something like this:
+
+```romualdo
+function foo(): void
+    var percallsite i = 0
+    \# ...
+end
+```
+
+Could such feature be useful for other useful stuff beyond variable text?
+
+## "Multithreading"
+
+This is food for thought for a distant future. The Romualdo equivalent to
+multithreading would be a story with several parallel, well, threads, going on.
+
+Should be technically doable, but I am not so sure it is useful enough. Maybe
+there are simpler ways to achieve the same goals.
+
 ## Principles
 
 Rough and kinda conflicting, but these are some principles I am trying to
