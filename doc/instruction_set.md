@@ -105,6 +105,13 @@ pool.
 **Pushes:** One value, the value of constant taken at the index *A* of the
 constant pool.
 
+### `FALSE`
+
+**Purpose:** Loads a `false` value.  
+**Immediate Operands:** None.  
+**Pops:** Nothing.  
+**Pushes:** One Boolean value: `false`.
+
 ### `LISTEN`
 
 TODO: This string-based interface is temporary, until we support richer types.
@@ -144,3 +151,10 @@ have of `NOP` in the x86 architecture. Whatever.
 **Immediate Operands:** None.  
 **Pops:** One value, the Lecture to be said.  
 **Pushes:** Nothing.
+
+### `TRUE`
+
+**Purpose:** Loads a `true` value.  
+**Immediate Operands:** None.  
+**Pops:** Nothing.  
+**Pushes:** One Boolean value: `true`.

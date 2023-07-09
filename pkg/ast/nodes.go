@@ -207,6 +207,23 @@ func (n *Listen) Walk(v Visitor) {
 	v.Leave(n)
 }
 
+// BoolLiteral is an AST node representing a Boolean value literal.
+type BoolLiteral struct {
+	BaseNode
+
+	// Value is the bool literal's value.
+	Value bool
+}
+
+func (n *BoolLiteral) Type() TypeTag {
+	return TypeBool
+}
+
+func (n *BoolLiteral) Walk(v Visitor) {
+	v.Enter(n)
+	v.Leave(n)
+}
+
 // StringLiteral is an AST node representing a string literal value.
 type StringLiteral struct {
 	BaseNode

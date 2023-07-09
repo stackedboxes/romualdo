@@ -71,6 +71,9 @@ func (i *interpreter) interpretExpression(expr ast.Node) errs.Error {
 	case *ast.StringLiteral:
 		// No-op
 
+	case *ast.BoolLiteral:
+		// No-op
+
 	case *ast.Listen:
 		// TODO: Currently this just assumes the argument to listen is a string
 		// literal. This will break bad once we have more complex expressions.

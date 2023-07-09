@@ -71,6 +71,13 @@ func (cg *codeGeneratorPassTwo) Leave(node ast.Node) {
 		cg.emitConstant(bytecode.NewValueLecture(n.Text))
 		cg.emitBytes(byte(bytecode.OpSay))
 
+	case *ast.BoolLiteral:
+		if n.Value {
+			cg.emitBytes(byte(bytecode.OpTrue))
+		} else {
+			cg.emitBytes(byte(bytecode.OpFalse))
+		}
+
 	case *ast.StringLiteral:
 		cg.emitConstant(bytecode.NewValueString(n.Value))
 

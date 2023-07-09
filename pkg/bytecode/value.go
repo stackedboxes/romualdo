@@ -23,8 +23,11 @@ import (
 type ValueKind int
 
 const (
+	// ValueBool identifies a Boolean value.
+	ValueBool ValueKind = iota
+
 	// ValueString identifies a string value.
-	ValueString  ValueKind = iota
+	ValueString
 
 	// ValueLecture identifies a Lecture value.
 	ValueLecture
@@ -60,6 +63,14 @@ type Value struct {
 	Value interface{}
 }
 
+// NewValueBool creates a new Value of type bool, representing a Boolean with
+// the given value.
+func NewValueBool(value bool) Value {
+	return Value{
+		Value: value,
+	}
+}
+
 // NewValueString creates a new Value of type string, representing a string with
 // the given text.
 func NewValueString(text string) Value {
@@ -88,6 +99,11 @@ func NewValueProcedure(index int) Value {
 	}
 }
 
+// AsBool returns this Value's value, assuming it is a Boolean value.
+func (v Value) AsBool() bool {
+	return v.Value.(bool)
+}
+
 // AsString returns this Value's value, assuming it is a string value.
 func (v Value) AsString() string {
 	return v.Value.(string)
@@ -101,6 +117,12 @@ func (v Value) AsLecture() Lecture {
 // AsProcedure returns this Value's value, assuming it is a Procedure value.
 func (v Value) AsProcedure() Procedure {
 	return v.Value.(Procedure)
+}
+
+// IsBool checks if the value contains a Boolean value.
+func (v Value) IsBool() bool {
+	_, ok := v.Value.(bool)
+	return ok
 }
 
 // IsString checks if the value contains a string value.
@@ -125,6 +147,12 @@ func (v Value) IsProcedure() bool {
 // values to strings, so the output must be user-friendly.
 func (v Value) String() string {
 	switch vv := v.Value.(type) {
+	case bool:
+		if vv {
+			return "true"
+		}
+		return "false"
+
 	case string:
 		return vv
 
@@ -152,6 +180,12 @@ func (v Value) String() string {
 // resulting strings).
 func (v Value) DebugString(debugInfo *DebugInfo) string {
 	switch vv := v.Value.(type) {
+	case bool:
+		if vv {
+			return "true"
+		}
+		return "false"
+
 	case string:
 		return romutil.FormatTextForDisplay(vv)
 
@@ -180,6 +214,9 @@ func ValuesEqual(a, b Value) bool {
 	}
 
 	switch va := a.Value.(type) {
+	case bool:
+		return va == b.Value.(bool)
+
 	case string:
 		return va == b.Value.(string)
 
@@ -220,6 +257,19 @@ const (
 // Serialize serializes the Value to the given io.Writer.
 func (v Value) Serialize(w io.Writer) errs.Error {
 	switch vv := v.Value.(type) {
+	case bool:
+		inDiskValue := cswBoolFalse
+		if vv {
+			inDiskValue = cswBoolTrue
+		}
+
+		bs := []byte{inDiskValue}
+		_, plainErr := w.Write(bs)
+		if plainErr != nil {
+			return errs.NewRomualdoTool("serializing bool: %v", plainErr)
+		}
+		return nil
+
 	case string:
 		bs := []byte{cswString}
 		_, plainErr := w.Write(bs)

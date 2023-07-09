@@ -151,6 +151,12 @@ func (vm *VM) run() errs.Error {
 			fmt.Fprintln(os.Stdout, "USER INPUT: "+choice) // TODO: Temporary, to see what's happening.
 			vm.push(bytecode.NewValueString(choice))
 
+		case bytecode.OpTrue:
+			vm.push(bytecode.NewValueBool(true))
+
+		case bytecode.OpFalse:
+			vm.push(bytecode.NewValueBool(false))
+
 		case bytecode.OpPop:
 			vm.pop()
 

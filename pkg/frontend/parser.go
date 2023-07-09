@@ -338,6 +338,22 @@ func (p *parser) statement() ast.Node {
 	}
 }
 
+// boolLiteral parses a literal Boolean value. The corresponding keyword is
+// expected to have been just consumed.
+func (p *parser) boolLiteral(canAssign bool) ast.Node {
+	if p.previousToken.Kind != TokenKindTrue && p.previousToken.Kind != TokenKindFalse {
+		panic(fmt.Sprintf("Unexpected token type on boolLiteral: %v", p.previousToken.Kind))
+	}
+
+	return &ast.BoolLiteral{
+		BaseNode: ast.BaseNode{
+			SrcFile:    p.fileName,
+			LineNumber: p.previousToken.Line,
+		},
+		Value: p.previousToken.Kind == TokenKindTrue,
+	}
+}
+
 // stringLiteral parses a string literal. The string literal token is expected
 // to have been just consumed.
 func (p *parser) stringLiteral(canAssign bool) ast.Node {
@@ -489,6 +505,7 @@ func initRules() {
 	rules[TokenKindRightParen] = /*    */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindComma] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindColon] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindFalse] = /*         */ parseRule{(*parser).boolLiteral /*      */, nil /*                     */, precNone}
 	rules[TokenKindIdentifier] = /*    */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindLecture] = /*       */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindStringLiteral] = /* */ parseRule{(*parser).stringLiteral /*    */, nil /*                     */, precNone}
@@ -501,6 +518,7 @@ func initRules() {
 	rules[TokenKindListen] = /*        */ parseRule{(*parser).listen /*           */, nil /*                     */, precPrimary}
 	rules[TokenKindPassage] = /*       */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindString] = /*        */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindTrue] = /*          */ parseRule{(*parser).boolLiteral /*      */, nil /*                     */, precNone}
 	rules[TokenKindVoid] = /*          */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindError] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindEOF] = /*           */ parseRule{nil /*                        */, nil /*                     */, precNone}
