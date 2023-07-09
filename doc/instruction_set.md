@@ -105,24 +105,6 @@ pool.
 **Pushes:** One value, the value of constant taken at the index *A* of the
 constant pool.
 
-### `NOP`
-
-**Purpose:** Does nothing.  
-**Immediate Operands:** None.  
-**Pops:** Nothing.  
-**Pushes:** Nothing.
-
-I can't really see any purpose for a no-op instruction in the Romualdo VM, but I
-*really* wanted to have it. That's probably because of the tender memories I
-have of `NOP` in the x86 architecture. Whatever.
-
-### `SAY`
-
-**Purpose:** Sends the contents of a Lecture to the Driver Program.  
-**Immediate Operands:** None.  
-**Pops:** One value, the Lecture to be said.  
-**Pushes:** Nothing.
-
 ### `LISTEN`
 
 TODO: This string-based interface is temporary, until we support richer types.
@@ -138,9 +120,27 @@ stack. When the driver program resumes the VM execution, the Player choice
 string will be pushed, so that the next instruction will have access to it
 already.
 
+### `NOP`
+
+**Purpose:** Does nothing.  
+**Immediate Operands:** None.  
+**Pops:** Nothing.  
+**Pushes:** Nothing.
+
+I can't really see any purpose for a no-op instruction in the Romualdo VM, but I
+*really* wanted to have it. That's probably because of the tender memories I
+have of `NOP` in the x86 architecture. Whatever.
+
 ### `POP`
 
 **Purpose:** Pops the value on the top of the stack.  
 **Immediate Operands:** None.  
 **Pops:** One value.  
+**Pushes:** Nothing.
+
+### `SAY`
+
+**Purpose:** Sends the contents of a Lecture to the Driver Program.  
+**Immediate Operands:** None.  
+**Pops:** One value, the Lecture to be said.  
 **Pushes:** Nothing.
