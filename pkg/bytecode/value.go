@@ -127,18 +127,21 @@ func (v Value) String() string {
 	switch vv := v.Value.(type) {
 	case string:
 		return vv
+
 	case Lecture:
 		// There are no variables of type Lecture, so users will never manually
 		// convert a Lecture to a string. This will appear in debug traces, but
 		// otherwise we don't need to worry about a user-friendly representation
 		// here.
 		return fmt.Sprintf("<Lecture: %v>", romutil.FormatTextForDisplay(vv.Text))
+
 	case Procedure:
 		// TODO: Would be nice to include the function name if we had the debug
 		// information around. Hard to access this info from here, though. Could
 		// we easily move these string conversions to the VM or whoever has
 		// access to the debug info?
 		return fmt.Sprintf("<procedure %d>", vv.ChunkIndex)
+
 	default:
 		return fmt.Sprintf("<Unexpected type %T>", vv)
 	}
@@ -151,17 +154,20 @@ func (v Value) DebugString(debugInfo *DebugInfo) string {
 	switch vv := v.Value.(type) {
 	case string:
 		return romutil.FormatTextForDisplay(vv)
+
 	case Lecture:
 		// There are no variables of type Lecture, so users will never manually
 		// convert a Lecture to a string. So, we don't need to worry about a
 		// user-friendly representation here.
 		return fmt.Sprintf("<Lecture: %v>", romutil.FormatTextForDisplay(vv.Text))
+
 	case Procedure:
 		procName := ""
 		if debugInfo != nil {
 			procName = " (" + debugInfo.ChunksSourceFiles[vv.ChunkIndex] + ")"
 		}
 		return fmt.Sprintf("<procedure %v%v>", vv.ChunkIndex, procName)
+
 	default:
 		return fmt.Sprintf("<Unexpected type %T>", vv)
 	}
@@ -197,6 +203,10 @@ func ValuesEqual(a, b Value) bool {
 //
 
 // These are the in-disk constants that identify the type of a Romualdo value.
+//
+// TODO: Need at least a comment explaining why don't need Lecture here (in
+// summary, because they are never serialized because there are no Lecture
+// variables ever).
 const (
 	cswBoolFalse byte = 0
 	cswBoolTrue  byte = 1
