@@ -59,7 +59,7 @@ func (tc *typeChecker) Event(node ast.Node, event int) {
 func (tc *typeChecker) checkListen(node *ast.Listen) {
 	optionsType := node.Options.Type()
 	if optionsType != ast.TypeString {
-		tc.error("listen expects a string argument, got a %v.", optionsType)
+		tc.errorWithoutLine("listen expects a string argument, got a %v.", optionsType)
 	}
 }
 
@@ -67,13 +67,18 @@ func (tc *typeChecker) checkListen(node *ast.Listen) {
 func (tc *typeChecker) checkIfStmt(node *ast.IfStmt) {
 	conditionType := node.Condition.Type()
 	if conditionType != ast.TypeBool {
-		tc.error("'if' condition must be a Boolean expression, got a %v.", conditionType)
+		tc.errorAtCurrentNode("'if' condition must be a Boolean expression, got a %v.", conditionType)
 	}
 }
 
-// error reports an error.
-func (tc *typeChecker) error(format string, a ...interface{}) {
+// errorWithoutLine reports an error without a specific line number.
+func (tc *typeChecker) errorWithoutLine(format string, a ...interface{}) {
 	tc.errors.Add(errs.NewCompileTimeWithoutLine(tc.fileName, format, a...))
+}
+
+// errorAtCurrentNode reports an error at the node we are currently checking.
+func (tc *typeChecker) errorAtCurrentNode(format string, a ...interface{}) {
+	tc.errors.Add(errs.NewCompileTime(tc.fileName, tc.currentLine(), format, a...))
 }
 
 // currentLine returns the source code line corresponding to whatever we are

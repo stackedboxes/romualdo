@@ -41,6 +41,16 @@ type CompileTime struct {
 	Lexeme string
 }
 
+// NewCompileTime is a handy way to create a CompileTime error at some specific
+// line of code.
+func NewCompileTime(fileName string, line int, format string, a ...any) *CompileTime {
+	return &CompileTime{
+		Message:  fmt.Sprintf(format, a...),
+		FileName: fileName,
+		Line:     line,
+	}
+}
+
 // NewCompileTimeWithoutLine is a handy way to create a CompileTime error that
 // is not related with a specific line of code.
 func NewCompileTimeWithoutLine(fileName, format string, a ...any) *CompileTime {
