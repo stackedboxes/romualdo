@@ -28,14 +28,18 @@ const (
 	// Keywords
 	TokenKindBNum     // bnum
 	TokenKindBool     // bool
+	TokenKindElse     // else
+	TokenKindElseif   // elseif
 	TokenKindEnd      // end
 	TokenKindFloat    // float
 	TokenKindFunction // function
+	TokenKindIf       // if
 	TokenKindInt      // int
 	TokenKindFalse    // false
 	TokenKindListen   // listen
 	TokenKindPassage  // passage
 	TokenKindString   // string
+	TokenKindThen     // then
 	TokenKindTrue     // true
 	TokenKindVoid     // void
 
@@ -66,6 +70,10 @@ func (kind TokenKind) String() string {
 		return "TokenKindBNum"
 	case TokenKindBool:
 		return "TokenKindBool"
+	case TokenKindElse:
+		return "TokenKindElse"
+	case TokenKindElseif:
+		return "TokenKindElseIf"
 	case TokenKindEnd:
 		return "TokenKindEnd"
 	case TokenKindFalse:
@@ -76,6 +84,8 @@ func (kind TokenKind) String() string {
 		return "TokenKindFunction"
 	case TokenKindInt:
 		return "TokenKindInt"
+	case TokenKindIf:
+		return "TokenKindIf"
 	case TokenKindListen:
 		return "TokenKindListen"
 	case TokenKindPassage:
@@ -84,6 +94,8 @@ func (kind TokenKind) String() string {
 		return "TokenKindString"
 	case TokenKindStringLiteral:
 		return "TokenKindStringLiteral"
+	case TokenKindThen:
+		return "TokenKindThen"
 	case TokenKindTrue:
 		return "TokenKindTrue"
 	case TokenKindVoid:

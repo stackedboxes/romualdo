@@ -498,14 +498,18 @@ func (s *Scanner) identifierKind() TokenKind {
 var lexemeToTokenKind = map[string]TokenKind{
 	"bnum":     TokenKindBNum,
 	"bool":     TokenKindBool,
+	"else":     TokenKindElse,
+	"elseif":   TokenKindElseif,
 	"end":      TokenKindEnd,
 	"false":    TokenKindFalse,
 	"float":    TokenKindFloat,
 	"function": TokenKindFunction,
+	"if":       TokenKindIf,
 	"int":      TokenKindInt,
 	"listen":   TokenKindListen,
 	"passage":  TokenKindPassage,
 	"string":   TokenKindString,
+	"then":     TokenKindThen,
 	"true":     TokenKindTrue,
 	"void":     TokenKindVoid,
 }
