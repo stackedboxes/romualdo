@@ -329,6 +329,7 @@ func (p *parser) statement() ast.Node {
 		expr := p.expression()
 		return &ast.ExpressionStmt{
 			BaseNode: ast.BaseNode{
+				SrcFile:    p.fileName,
 				LineNumber: p.previousToken.Line,
 			},
 			Expr: expr,
@@ -345,6 +346,7 @@ func (p *parser) stringLiteral(canAssign bool) ast.Node {
 
 	return &ast.StringLiteral{
 		BaseNode: ast.BaseNode{
+			SrcFile:    p.fileName,
 			LineNumber: p.previousToken.Line,
 		},
 		Value: value,
