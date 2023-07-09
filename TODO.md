@@ -5,6 +5,13 @@
 
 At this point we can make interactive stuff.
 
+* Test to add:
+    * `false listen "whatever"`: I think we are trying to use `listen` as an
+      infix operator in this case, which eventually panics.
+        * And maybe the solution is just to change `listen`'s precedence from
+          `precPrimary` to `precNone`. Not sure, though, this is an area I don't
+          really grok.
+
 Older TODOs (review):
 
 * Tests cases for errors (is it failing as expected for wrong code?)
