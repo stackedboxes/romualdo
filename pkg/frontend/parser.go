@@ -260,6 +260,59 @@ func (p *parser) passageDecl() *ast.ProcedureDecl {
 	return proc
 }
 
+// ifStatement parses an if statement. The if keyword is expected to have just
+// been consumed.
+func (p *parser) ifStatement() ast.Node {
+	n := &ast.IfStmt{
+		BaseNode: ast.BaseNode{
+			SrcFile:    p.fileName,
+			LineNumber: p.previousToken.Line,
+		},
+	}
+
+	n.Condition = p.expression()
+	p.consume(TokenKindThen, "Expected 'then' after condition.")
+
+	thenBlock := &ast.Block{
+		BaseNode: ast.BaseNode{
+			SrcFile:    p.fileName,
+			LineNumber: p.previousToken.Line,
+		},
+	}
+
+	for !(p.check(TokenKindEnd) || p.check(TokenKindElse) || p.check(TokenKindElseif)) && !p.check(TokenKindEOF) {
+		stmt := p.statement()
+		thenBlock.Statements = append(thenBlock.Statements, stmt)
+	}
+	n.Then = thenBlock
+
+	switch {
+	case p.match(TokenKindEnd):
+		n.Else = nil
+
+	case p.match(TokenKindElse):
+		elseBlock := &ast.Block{
+			BaseNode: ast.BaseNode{
+				SrcFile:    p.fileName,
+				LineNumber: p.previousToken.Line,
+			},
+		}
+		for !p.check(TokenKindEnd) && !p.check(TokenKindEOF) {
+			stmt := p.statement()
+			elseBlock.Statements = append(elseBlock.Statements, stmt)
+		}
+		p.consume(TokenKindEnd, fmt.Sprintf("Expected: 'end' to close 'if' statement started at line %v.", n.LineNumber))
+		n.Else = elseBlock
+
+	case p.match(TokenKindElseif):
+		n.Else = p.ifStatement()
+
+	default:
+		p.errorAtPrevious(fmt.Sprintf("Unterminated 'if' statement at line %v.", n.LineNumber))
+	}
+	return n
+}
+
 // listen parses a listen expression. The "listen" token is expected to have
 // been just consumed.
 func (p *parser) listen(canAssign bool) ast.Node {
@@ -325,6 +378,9 @@ func (p *parser) statement() ast.Node {
 			},
 			Text: p.previousToken.Lexeme,
 		}
+
+	case p.match(TokenKindIf):
+		return p.ifStatement()
 
 	default:
 		expr := p.expression()

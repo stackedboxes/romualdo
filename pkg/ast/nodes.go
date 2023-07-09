@@ -147,6 +147,36 @@ func (n *Block) Walk(v Visitor) {
 	v.Leave(n)
 }
 
+// IfStmt is an AST node representing an if statement.
+type IfStmt struct {
+	BaseNode
+
+	// Condition is the if condition.
+	Condition Node
+
+	// Then is the block of code executed if the condition is true.
+	Then *Block
+
+	// Else is the code executed if the condition is false. Can be either a
+	// proper block or an `if` statement (in the case of an `elseif`). Might
+	// also be nil (when no `else` block is present).
+	Else Node
+}
+
+func (n *IfStmt) Type() TypeTag {
+	return TypeVoid
+}
+
+func (n *IfStmt) Walk(v Visitor) {
+	v.Enter(n)
+	n.Condition.Walk(v)
+	n.Then.Walk(v)
+	if n.Else != nil {
+		n.Else.Walk(v)
+	}
+	v.Leave(n)
+}
+
 // ExpressionStmt is an AST node representing an expression when used as a
 // statement. In other words, this is an expression presumably used for its
 // side-effects, given that the expression value is discarded.

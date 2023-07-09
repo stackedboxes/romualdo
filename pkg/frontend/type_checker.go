@@ -39,6 +39,8 @@ func (tc *typeChecker) Enter(node ast.Node) {
 	switch n := node.(type) {
 	case *ast.Listen:
 		tc.checkListen(n)
+	case *ast.IfStmt:
+		tc.checkIfStmt(n)
 	}
 }
 
@@ -57,7 +59,15 @@ func (tc *typeChecker) Event(node ast.Node, event int) {
 func (tc *typeChecker) checkListen(node *ast.Listen) {
 	optionsType := node.Options.Type()
 	if optionsType != ast.TypeString {
-		tc.error("listen expression expects a string argument, got a %v.", optionsType)
+		tc.error("listen expects a string argument, got a %v.", optionsType)
+	}
+}
+
+// checkIfStmt type checks an if statement.
+func (tc *typeChecker) checkIfStmt(node *ast.IfStmt) {
+	conditionType := node.Condition.Type()
+	if conditionType != ast.TypeBool {
+		tc.error("'if' condition must be a Boolean expression, got a %v.", conditionType)
 	}
 }
 
