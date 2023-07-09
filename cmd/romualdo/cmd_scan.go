@@ -26,7 +26,7 @@ This is only useful for testing when developing Romualdo itself.`,
 
 	// For the purposes of the testing, the scanner will run in code mode except
 	// between pairs of \passage and \end backslashed keywords (where it will
-	// run in text mode).
+	// run in lecture mode).
 	Run: func(cmd *cobra.Command, args []string) {
 		path := args[0]
 		source, err := os.ReadFile(path)

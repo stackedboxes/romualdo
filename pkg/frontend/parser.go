@@ -244,8 +244,9 @@ func (p *parser) passageDecl() *ast.ProcedureDecl {
 	proc.Parameters = p.parseParameterList()
 	p.consume(TokenKindColon, "Expected ':' after parameter list.")
 
-	// Consume the last token of the type only after switching to text mode,
-	// because we want advance() to parse the next token already in text mode.
+	// Consume the last token of the type only after switching to lecture mode,
+	// because we want advance() to parse the next token already in lecture
+	// mode.
 	proc.ReturnType = p.parseTypeNoConsume()
 	p.scanner.SetMode(ScannerModeLecture)
 	p.advance()

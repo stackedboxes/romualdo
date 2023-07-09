@@ -90,7 +90,7 @@ func (s *Scanner) Token() *Token {
 	case ScannerModeCode:
 		return s.codeModeToken()
 	case ScannerModeLecture:
-		return s.textModeToken()
+		return s.lectureModeToken()
 	default:
 		panic("Can't happen")
 	}
@@ -183,8 +183,9 @@ func (s *Scanner) skipWhitespace() {
 // Lecture Mode
 //
 
-// textModeToken returns the next Token, using the "text mode" scanning rules.
-func (s *Scanner) textModeToken() *Token {
+// lectureModeToken returns the next Token, using the "lecture mode" scanning
+// rules.
+func (s *Scanner) lectureModeToken() *Token {
 	s.tokenLine = s.line
 	s.skipHorizontalWhitespace()
 	s.start = s.current
