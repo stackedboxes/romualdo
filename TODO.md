@@ -1,6 +1,8 @@
 # TODO
 
 * Implement `if`.
+* Implement `==` (at least for using with strings, to allow using `if` with
+  `listen`).
 * Add tests for interactivity.
 
 At this point we can make interactive stuff.
