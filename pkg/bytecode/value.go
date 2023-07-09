@@ -23,15 +23,15 @@ import (
 type ValueKind int
 
 const (
-	// ValueProcedure identifies a procedure value (either a Passage or a
-	// Function).
-	ValueProcedure ValueKind = iota
+	// ValueString identifies a string value.
+	ValueString  ValueKind = iota
 
 	// ValueLecture identifies a Lecture value.
 	ValueLecture
 
-	// ValueString identifies a string value.
-	ValueString
+	// ValueProcedure identifies a procedure value (either a Passage or a
+	// Function).
+	ValueProcedure
 )
 
 // Procedure is the runtime representation of a Procedure (i.e., a Passage or a
@@ -60,13 +60,11 @@ type Value struct {
 	Value interface{}
 }
 
-// NewValueProcedure creates a new Value of type Procedure, representing a
-// Procedure that will run the code at the given Chunk index.
-func NewValueProcedure(index int) Value {
+// NewValueString creates a new Value of type string, representing a string with
+// the given text.
+func NewValueString(text string) Value {
 	return Value{
-		Value: Procedure{
-			ChunkIndex: index,
-		},
+		Value: text,
 	}
 }
 
@@ -80,22 +78,14 @@ func NewValueLecture(text string) Value {
 	}
 }
 
-// NewValueString creates a new Value of type string, representing a string with
-// the given text.
-func NewValueString(text string) Value {
+// NewValueProcedure creates a new Value of type Procedure, representing a
+// Procedure that will run the code at the given Chunk index.
+func NewValueProcedure(index int) Value {
 	return Value{
-		Value: text,
+		Value: Procedure{
+			ChunkIndex: index,
+		},
 	}
-}
-
-// AsProcedure returns this Value's value, assuming it is a Procedure value.
-func (v Value) AsProcedure() Procedure {
-	return v.Value.(Procedure)
-}
-
-// AsLecture returns this Value's value, assuming it is a Lecture value.
-func (v Value) AsLecture() Lecture {
-	return v.Value.(Lecture)
 }
 
 // AsString returns this Value's value, assuming it is a string value.
@@ -103,9 +93,19 @@ func (v Value) AsString() string {
 	return v.Value.(string)
 }
 
-// IsProcedure checks if the value contains a Procedure value.
-func (v Value) IsProcedure() bool {
-	_, ok := v.Value.(Procedure)
+// AsLecture returns this Value's value, assuming it is a Lecture value.
+func (v Value) AsLecture() Lecture {
+	return v.Value.(Lecture)
+}
+
+// AsProcedure returns this Value's value, assuming it is a Procedure value.
+func (v Value) AsProcedure() Procedure {
+	return v.Value.(Procedure)
+}
+
+// IsString checks if the value contains a string value.
+func (v Value) IsString() bool {
+	_, ok := v.Value.(string)
 	return ok
 }
 
@@ -115,9 +115,9 @@ func (v Value) IsLecture() bool {
 	return ok
 }
 
-// IsString checks if the value contains a string value.
-func (v Value) IsString() bool {
-	_, ok := v.Value.(string)
+// IsProcedure checks if the value contains a Procedure value.
+func (v Value) IsProcedure() bool {
+	_, ok := v.Value.(Procedure)
 	return ok
 }
 
@@ -125,20 +125,20 @@ func (v Value) IsString() bool {
 // values to strings, so the output must be user-friendly.
 func (v Value) String() string {
 	switch vv := v.Value.(type) {
-	case Procedure:
-		// TODO: Would be nice to include the function name if we had the debug
-		// information around. Hard to access this info from here, though. Could
-		// we easily move these string conversions to the VM or whoever has
-		// access to the debug info?
-		return fmt.Sprintf("<procedure %d>", vv.ChunkIndex)
+	case string:
+		return vv
 	case Lecture:
 		// There are no variables of type Lecture, so users will never manually
 		// convert a Lecture to a string. This will appear in debug traces, but
 		// otherwise we don't need to worry about a user-friendly representation
 		// here.
 		return fmt.Sprintf("<Lecture: %v>", romutil.FormatTextForDisplay(vv.Text))
-	case string:
-		return vv
+	case Procedure:
+		// TODO: Would be nice to include the function name if we had the debug
+		// information around. Hard to access this info from here, though. Could
+		// we easily move these string conversions to the VM or whoever has
+		// access to the debug info?
+		return fmt.Sprintf("<procedure %d>", vv.ChunkIndex)
 	default:
 		return fmt.Sprintf("<Unexpected type %T>", vv)
 	}
@@ -149,19 +149,19 @@ func (v Value) String() string {
 // resulting strings).
 func (v Value) DebugString(debugInfo *DebugInfo) string {
 	switch vv := v.Value.(type) {
+	case string:
+		return romutil.FormatTextForDisplay(vv)
+	case Lecture:
+		// There are no variables of type Lecture, so users will never manually
+		// convert a Lecture to a string. So, we don't need to worry about a
+		// user-friendly representation here.
+		return fmt.Sprintf("<Lecture: %v>", romutil.FormatTextForDisplay(vv.Text))
 	case Procedure:
 		procName := ""
 		if debugInfo != nil {
 			procName = " (" + debugInfo.ChunksSourceFiles[vv.ChunkIndex] + ")"
 		}
 		return fmt.Sprintf("<procedure %v%v>", vv.ChunkIndex, procName)
-	case Lecture:
-		// There are no variables of type Lecture, so users will never manually
-		// convert a Lecture to a string. So, we don't need to worry about a
-		// user-friendly representation here.
-		return fmt.Sprintf("<Lecture: %v>", romutil.FormatTextForDisplay(vv.Text))
-	case string:
-		return romutil.FormatTextForDisplay(vv)
 	default:
 		return fmt.Sprintf("<Unexpected type %T>", vv)
 	}
@@ -174,14 +174,14 @@ func ValuesEqual(a, b Value) bool {
 	}
 
 	switch va := a.Value.(type) {
-	case Procedure:
-		return va.ChunkIndex == b.Value.(Procedure).ChunkIndex
+	case string:
+		return va == b.Value.(string)
 
 	case Lecture:
 		return va.Text == b.Value.(Lecture).Text
 
-	case string:
-		return va == b.Value.(string)
+	case Procedure:
+		return va.ChunkIndex == b.Value.(Procedure).ChunkIndex
 
 	default:
 		panic(fmt.Sprintf("Unexpected Value type: %T", va))
@@ -210,8 +210,15 @@ const (
 // Serialize serializes the Value to the given io.Writer.
 func (v Value) Serialize(w io.Writer) errs.Error {
 	switch vv := v.Value.(type) {
-	case Procedure:
-		return errs.NewICE("cannot serialize procedure values")
+	case string:
+		bs := []byte{cswString}
+		_, plainErr := w.Write(bs)
+		if plainErr != nil {
+			return errs.NewRomualdoTool("serializing string: %v", plainErr)
+		}
+
+		err := romutil.SerializeString(w, vv)
+		return err
 
 	case Lecture:
 		bs := []byte{cswLecture}
@@ -223,15 +230,8 @@ func (v Value) Serialize(w io.Writer) errs.Error {
 		err := romutil.SerializeString(w, vv.Text)
 		return err
 
-	case string:
-		bs := []byte{cswString}
-		_, plainErr := w.Write(bs)
-		if plainErr != nil {
-			return errs.NewRomualdoTool("serializing string: %v", plainErr)
-		}
-
-		err := romutil.SerializeString(w, vv)
-		return err
+	case Procedure:
+		return errs.NewICE("cannot serialize procedure values")
 
 	default:
 		// Can't happen
@@ -251,20 +251,24 @@ func DeserializeValue(r io.Reader) (Value, errs.Error) {
 	switch b[0] {
 	case cswBoolFalse:
 		v.Value = false
+
 	case cswBoolTrue:
 		v.Value = true
-	case cswLecture:
-		text, err := romutil.DeserializeString(r)
-		if err != nil {
-			return v, err
-		}
-		v.Value = Lecture{text}
+
 	case cswString:
 		text, err := romutil.DeserializeString(r)
 		if err != nil {
 			return v, err
 		}
 		v.Value = text
+
+	case cswLecture:
+		text, err := romutil.DeserializeString(r)
+		if err != nil {
+			return v, err
+		}
+		v.Value = Lecture{text}
+
 	default:
 		// Can happen with corrupted or invalid data
 		return v, errs.NewRomualdoTool("unexpected value identifier: %v", b[0])
