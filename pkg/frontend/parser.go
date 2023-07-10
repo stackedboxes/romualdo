@@ -316,7 +316,7 @@ func (p *parser) ifStatement() ast.Node {
 // listen parses a listen expression. The "listen" token is expected to have
 // been just consumed.
 func (p *parser) listen(canAssign bool) ast.Node {
-	options := p.expression()
+	options := p.parsePrecedence(precPrimary)
 
 	return &ast.Listen{
 		BaseNode: ast.BaseNode{
