@@ -56,6 +56,16 @@ func (ap *ASTPrinter) Enter(node ast.Node) {
 		ap.builder.WriteString("Block\n")
 	case *ast.Lecture:
 		ap.builder.WriteString(fmt.Sprintf("Lecture [%v]\n", romutil.FormatTextForDisplay(n.Text)))
+	case *ast.IfStmt:
+		ap.builder.WriteString("If\n")
+	case *ast.ExpressionStmt:
+		ap.builder.WriteString("ExpressionStmt\n")
+	case *ast.Listen:
+		ap.builder.WriteString("Listen\n")
+	case *ast.BoolLiteral:
+		ap.builder.WriteString(fmt.Sprintf("BoolLiteral [%v]\n", n.Value))
+	case *ast.StringLiteral:
+		ap.builder.WriteString(fmt.Sprintf("StringLiteral [%v]\n", romutil.FormatTextForDisplay(n.Value)))
 	default:
 		panic(fmt.Sprintf("Unexpected node type: %T", n))
 	}
