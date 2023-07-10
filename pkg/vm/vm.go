@@ -161,15 +161,24 @@ func (vm *VM) run() errs.Error {
 			vm.pop()
 
 		case bytecode.OpJump:
-			jumpOffset := bytecode.DecodeInt32(vm.currentChunk().Code[vm.frame.ip:])
-			vm.frame.ip += jumpOffset + 4
+			// Jump by jumpOffset bytes. The -1 accounts for the fact that the
+			// jump offsets are (by design) in relation to the jump instruction
+			// address, but at this point the instruction pointer has already
+			// advanced one byte beyond the jump instruction.
+			jumpOffset := bytecode.DecodeInt32(vm.currentChunk().Code[vm.frame.ip:]) - 1
+			vm.frame.ip += jumpOffset
 
 		case bytecode.OpJumpIfFalse:
-			jumpOffset := bytecode.DecodeInt32(vm.currentChunk().Code[vm.frame.ip:])
-			vm.frame.ip += 4
+			// See implementation of OpJump for an explanation on the -1 here.
+			jumpOffset := bytecode.DecodeInt32(vm.currentChunk().Code[vm.frame.ip:]) - 1
 			condition := vm.pop()
 			if condition.IsBool() && !condition.AsBool() {
+				// Jump by jumpOffset bytes.
 				vm.frame.ip += jumpOffset
+			} else {
+				// No real jump, just make the IP skip over the 4-byte immediate
+				// argument.
+				vm.frame.ip += 4
 			}
 
 		default:

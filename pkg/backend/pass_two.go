@@ -81,6 +81,9 @@ func (cg *codeGeneratorPassTwo) Leave(node ast.Node) {
 	case *ast.StringLiteral:
 		cg.emitConstant(bytecode.NewValueString(n.Value))
 
+	case *ast.IfStmt:
+		break
+
 	case *ast.Listen:
 		cg.emitBytes(byte(bytecode.OpListen))
 
@@ -98,7 +101,63 @@ func (cg *codeGeneratorPassTwo) Leave(node ast.Node) {
 }
 
 func (cg *codeGeneratorPassTwo) Event(node ast.Node, event ast.EventType) {
-	// Nothing for now
+	switch n := node.(type) {
+	case *ast.IfStmt:
+		switch event {
+		case ast.EventAfterIfCondition:
+			// Right after evaluating the condition, we need to jump over the
+			// "then" block if the condition is false. We don't know yet the
+			// jump offset, so we emit a jump instruction with a dummy offset
+			// of 0 we'll patch later in the EventAfterThenBlock event.
+			n.IfJumpAddress = len(cg.currentChunk().Code)
+			cg.emitBytes(byte(bytecode.OpJumpIfFalse), 0x00, 0x00, 0x00, 0x00)
+
+		case ast.EventAfterThenBlock:
+			// At this point we just finished generating the code for the "then"
+			// block. We therefore know how large this code is, and therefore
+			// this is the moment to patch the jump instruction we emitted
+			// in the EventAfterIfCondition with the correct offset.
+			addressToPatch := n.IfJumpAddress
+			code := cg.currentChunk().Code
+			jumpOffset := len(code) - addressToPatch
+			cg.patchJump(addressToPatch, jumpOffset)
+
+		case ast.EventBeforeElse:
+			// We unconditionally jump over the "else" block as if the "if"
+			// condition was true (if it was false, we'd jump over this
+			// unconditional jump right into the actual code for the "else"
+			// block).
+			//
+			// We do the same as in EventAfterIfCondition: emit a jump
+			// instruction with a dummy offset of 0 that we'll patch later in
+			// the EventAfterElse event.
+			n.ElseJumpAddress = len(cg.currentChunk().Code)
+			cg.emitBytes(byte(bytecode.OpJump), 0x00, 0x00, 0x00, 0x00)
+
+			// Because we had an "else" block, we needed to emit that
+			// unconditional jump. So now we need to re-patch the jump
+			// instruction at IfJumpAddress to take into account this
+			// additional unconditional jump.
+			addressToPatch := n.IfJumpAddress
+			code := cg.currentChunk().Code
+			currentOffset := bytecode.DecodeInt32(code[addressToPatch+1:])
+			jumpOffset := currentOffset + 5
+			cg.patchJump(addressToPatch, jumpOffset)
+
+		case ast.EventAfterElse:
+			// At this point we just finished generating the code for the "else"
+			// block. We therefore need to patch the jump instruction we emitted
+			// in the EventBeforeElse with the correct offset. (Just like we did
+			// in EventAfterThenBlock.)
+			addressToPatch := n.ElseJumpAddress
+			code := cg.currentChunk().Code
+			jumpOffset := len(code) - addressToPatch
+			cg.patchJump(addressToPatch, jumpOffset)
+
+		default:
+			cg.codeGenerator.ice("Unexpected event while generating code for 'if' statement: %v", event)
+		}
+	}
 }
 
 //
@@ -147,6 +206,12 @@ func (cg *codeGeneratorPassTwo) makeConstant(value bytecode.Value) int {
 	}
 
 	return constantIndex
+}
+
+// patchJump patches a jump instruction, that is to say, sets the operand of the
+// jump instruction at addressToPatch to jumpOffset.
+func (cg *codeGeneratorPassTwo) patchJump(addressToPatch, jumpOffset int) {
+	bytecode.EncodeInt32(cg.currentChunk().Code[addressToPatch+1:], jumpOffset)
 }
 
 //

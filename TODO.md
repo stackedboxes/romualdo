@@ -1,6 +1,5 @@
 # TODO
 
-* Implement `if`.
 * Implement `==` (at least for using with strings, to allow using `if` with
   `listen`).
 * Add tests for interactivity.
@@ -10,9 +9,9 @@ At this point we can make interactive stuff.
 * Test to add:
     * `false listen "whatever"`: I think we are trying to use `listen` as an
       infix operator in this case, which eventually panics.
-        * And maybe the solution is just to change `listen`'s precedence from
-          `precPrimary` to `precNone`. Not sure, though, this is an area I don't
-          really grok.
+        * Similar: `if false then listen "A" elseif true listen "B" end`
+        * I changed `listen`'s precedence from `precPrimary` to `precNone` to
+          fix it. Not sure, though, this is an area I don't really grok.
 
 Older TODOs (review):
 

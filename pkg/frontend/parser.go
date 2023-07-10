@@ -571,7 +571,7 @@ func initRules() {
 	rules[TokenKindFloat] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindFunction] = /*      */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindInt] = /*           */ parseRule{nil /*                        */, nil /*                     */, precNone}
-	rules[TokenKindListen] = /*        */ parseRule{(*parser).listen /*           */, nil /*                     */, precPrimary}
+	rules[TokenKindListen] = /*        */ parseRule{(*parser).listen /*           */, nil /*                     */, precNone}
 	rules[TokenKindPassage] = /*       */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindString] = /*        */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindTrue] = /*          */ parseRule{(*parser).boolLiteral /*      */, nil /*                     */, precNone}

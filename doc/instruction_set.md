@@ -115,24 +115,35 @@ constant pool.
 ### `JUMP`
 
 **Purpose:** Jumps to a different location unconditionally.  
-**Immediate Operands:** One signed 32-bit integer, interpreted as the offset to
-jump.  
+**Immediate Operands:** One signed 32-bit integer, *A*, interpreted as the
+offset to jump.  
 **Pops:** Nothing.  
 **Pushes:** Nothing.  
-**Other Effects:** Increments the instruction pointer by the amount taken as an
-immediate operand. (The increment happens after this instruction and its operand
-were fully read.)
+**Other Effects:** Sets the instruction pointer to a value equals to the
+instruction address, plus *A*.
+
+Notice that *A* is signed, so we can jump forward or backward. If *A* is zero,
+we'll have an infinite loop.
+
+By the way, the jump offset is designed to be an offset from the instruction
+address itself because I find it easier to reason about when looking at
+disassembled code. (I mean, compared with the arguably more common alternative
+of using the address of the next instruction as the jump base).
 
 ### `JUMP_IF_FALSE`
 
 **Purpose:** Jumps to a different location maybe.  
-**Immediate Operands:** One signed 32-bit integer, interpreted as the offset to
-jump.  
+**Immediate Operands:** One signed 32-bit integer, *A*, interpreted as the
+offset to jump.  
 **Pops:** One Boolean value *A*.  
 **Pushes:** Nothing.  
-**Other Effects:** If *A* is a Boolean value and is false, increments the
-instruction pointer by the amount taken as an immediate operand. (The increment
-happens after this instruction and its operand were fully read.)
+**Other Effects:** If *A* is a Boolean value and is false, sets the instruction
+pointer to a value equals to the instruction address, plus *A*.
+
+Notice that *A* is signed, so we can jump forward or backward. *A* can
+technically be zero, but there's no obvious high-level semantic for that: the
+instruction will keep executing itself as long the stack top contains `false`
+values, then will proceed to the next instruction.
 
 ### `LISTEN`
 

@@ -7,7 +7,14 @@
 \# end
 
 function main(): void
-    listen "What's your name?"
+    if true then
+        listen "Do you like The Truth?"
+    elseif false then
+        listen "Now it's true"
+    else
+        listen "Third is a charm"
+    end
+    \# listen "The end!"
 end
 
 \# passage main(): void

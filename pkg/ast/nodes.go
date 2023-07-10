@@ -161,6 +161,21 @@ type IfStmt struct {
 	// proper block or an `if` statement (in the case of an `elseif`). Might
 	// also be nil (when no `else` block is present).
 	Else Node
+
+	//
+	// Fields used for code generation
+	//
+
+	// IfJumpAddress is the address of the jump instruction used for the "if".
+	// The moment we emit the jump instruction, we don't know yet the length of
+	// the "then" block so we can't fill in the jump offset. We keep the address
+	// here so we can fill the offset it in later.
+	IfJumpAddress int
+
+	// ElseJumpAddress is the address of the jump instruction emitted right
+	// before the "else" block. We need to store it for the same reason we store
+	// IfJumpAddress.
+	ElseJumpAddress int
 }
 
 func (n *IfStmt) Type() TypeTag {
