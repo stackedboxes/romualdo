@@ -137,6 +137,28 @@ func (s *Scanner) codeModeToken() *Token {
 		return s.makeToken(TokenKindColon)
 	case ',':
 		return s.makeToken(TokenKindComma)
+	case '^':
+		return s.makeToken(TokenKindHat)
+	case '!':
+		if s.match('=') {
+			return s.makeToken(TokenKindBangEqual)
+		}
+		return s.errorToken("'!' must be followed by '='.")
+	case '=':
+		if s.match('=') {
+			return s.makeToken(TokenKindEqualEqual)
+		}
+		return s.makeToken(TokenKindEqual)
+	case '<':
+		if s.match('=') {
+			return s.makeToken(TokenKindLessEqual)
+		}
+		return s.makeToken(TokenKindLess)
+	case '>':
+		if s.match('=') {
+			return s.makeToken(TokenKindGreaterEqual)
+		}
+		return s.makeToken(TokenKindGreater)
 	case '"':
 		// TODO: For now, strings are always double-quoted. We should probably
 		// support single-quoted and back-quoted strings as well. Maybe with
@@ -337,6 +359,24 @@ func (s *Scanner) skipComment() {
 		_, width := utf8.DecodeRuneInString(s.source[s.current:])
 		s.current += width
 	}
+}
+
+// match checks if the next rune matches the expected one. If it does, the
+// scanner consumes the rune and returns true. If not, the scanner leaves the
+// rune there (not consuming it) and returns false.
+func (s *Scanner) match(expected rune) bool {
+	if s.isAtEnd() {
+		return false
+	}
+
+	currentRune, width := utf8.DecodeRuneInString(s.source[s.current:])
+
+	if currentRune != expected {
+		return false
+	}
+
+	s.current += width
+	return true
 }
 
 // atBackslashedToken checks if we are at the start of a backslashed token.

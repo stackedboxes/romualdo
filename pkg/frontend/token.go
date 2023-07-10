@@ -19,6 +19,16 @@ const (
 	TokenKindRightParen                  // )
 	TokenKindComma                       // ,
 	TokenKindColon                       // :
+	TokenKindHat                         // ^
+
+	// One or two character tokens.
+	TokenKindEqual        // =
+	TokenKindEqualEqual   // ==
+	TokenKindBangEqual    // !=
+	TokenKindGreater      // >
+	TokenKindGreaterEqual // >=
+	TokenKindLess         // <
+	TokenKindLessEqual    // <=
 
 	// Literals
 	TokenKindIdentifier
@@ -31,11 +41,11 @@ const (
 	TokenKindElse     // else
 	TokenKindElseif   // elseif
 	TokenKindEnd      // end
+	TokenKindFalse    // false
 	TokenKindFloat    // float
 	TokenKindFunction // function
 	TokenKindIf       // if
 	TokenKindInt      // int
-	TokenKindFalse    // false
 	TokenKindListen   // listen
 	TokenKindPassage  // passage
 	TokenKindString   // string
@@ -62,6 +72,20 @@ func (kind TokenKind) String() string {
 		return "TokenKindComma"
 	case TokenKindColon:
 		return "TokenKindColon"
+	case TokenKindEqual:
+		return "TokenKindEqual"
+	case TokenKindEqualEqual:
+		return "TokenKindEqualEqual"
+	case TokenKindBangEqual:
+		return "TokenKindBangEqual"
+	case TokenKindGreater:
+		return "TokenKindGreater"
+	case TokenKindGreaterEqual:
+		return "TokenKindGreaterEqual"
+	case TokenKindLess:
+		return "TokenKindLess"
+	case TokenKindLessEqual:
+		return "TokenKindLessEqual"
 	case TokenKindIdentifier:
 		return "TokenKindIdentifier"
 	case TokenKindLecture:

@@ -561,21 +561,37 @@ func initRules() {
 	rules[TokenKindRightParen] = /*    */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindComma] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindColon] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
-	rules[TokenKindFalse] = /*         */ parseRule{(*parser).boolLiteral /*      */, nil /*                     */, precNone}
+	rules[TokenKindHat] = /*           */ parseRule{nil /*                        */, nil /*                     */, precNone}
+
+	rules[TokenKindEqual] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindEqualEqual] = /*    */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindBangEqual] = /*     */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindGreater] = /*       */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindGreater] = /*       */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindLess] = /*          */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindLessEqual] = /*     */ parseRule{nil /*                        */, nil /*                     */, precNone}
+
 	rules[TokenKindIdentifier] = /*    */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindLecture] = /*       */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindStringLiteral] = /* */ parseRule{(*parser).stringLiteral /*    */, nil /*                     */, precNone}
+
 	rules[TokenKindBNum] = /*          */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindBool] = /*          */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindElse] = /*          */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindElseif] = /*        */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindEnd] = /*           */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindFalse] = /*         */ parseRule{(*parser).boolLiteral /*      */, nil /*                     */, precNone}
 	rules[TokenKindFloat] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindFunction] = /*      */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindIf] = /*            */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindInt] = /*           */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindListen] = /*        */ parseRule{(*parser).listen /*           */, nil /*                     */, precNone}
 	rules[TokenKindPassage] = /*       */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindString] = /*        */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindThen] = /*          */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindTrue] = /*          */ parseRule{(*parser).boolLiteral /*      */, nil /*                     */, precNone}
 	rules[TokenKindVoid] = /*          */ parseRule{nil /*                        */, nil /*                     */, precNone}
+
 	rules[TokenKindError] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindEOF] = /*           */ parseRule{nil /*                        */, nil /*                     */, precNone}
 }
