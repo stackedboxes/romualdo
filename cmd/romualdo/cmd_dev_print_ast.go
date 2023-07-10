@@ -67,7 +67,8 @@ func (ap *ASTPrinter) Leave(ast.Node) {
 	ap.indentLevel--
 }
 
-func (ap *ASTPrinter) Event(node ast.Node, event int) {
+func (ap *ASTPrinter) Event(node ast.Node, event ast.EventType) {
+	// Nothing
 }
 
 // indent returns a string good for indenting code level levels deep.

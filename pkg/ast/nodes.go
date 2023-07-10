@@ -170,9 +170,13 @@ func (n *IfStmt) Type() TypeTag {
 func (n *IfStmt) Walk(v Visitor) {
 	v.Enter(n)
 	n.Condition.Walk(v)
+	v.Event(n, EventAfterIfCondition)
 	n.Then.Walk(v)
+	v.Event(n, EventAfterThenBlock)
 	if n.Else != nil {
+		v.Event(n, EventBeforeElse)
 		n.Else.Walk(v)
+		v.Event(n, EventAfterElse)
 	}
 	v.Leave(n)
 }

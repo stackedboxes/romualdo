@@ -97,7 +97,7 @@ func (cg *codeGeneratorPassTwo) Leave(node ast.Node) {
 	}
 }
 
-func (cg *codeGeneratorPassTwo) Event(node ast.Node, event int) {
+func (cg *codeGeneratorPassTwo) Event(node ast.Node, event ast.EventType) {
 	// Nothing for now
 }
 

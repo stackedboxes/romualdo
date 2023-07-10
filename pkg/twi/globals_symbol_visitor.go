@@ -48,3 +48,7 @@ func (g *globalsSymbolVisitor) Enter(node ast.Node) {
 func (g *globalsSymbolVisitor) Leave(ast.Node) {
 	g.level--
 }
+
+func (g *globalsSymbolVisitor) Event(node ast.Node, event ast.EventType) {
+	// Nothing
+}

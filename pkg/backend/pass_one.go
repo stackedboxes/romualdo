@@ -67,5 +67,6 @@ func (cg *codeGeneratorPassOne) Leave(node ast.Node) {
 	}
 }
 
-func (cg *codeGeneratorPassOne) Event(node ast.Node, event int) {
+func (cg *codeGeneratorPassOne) Event(node ast.Node, event ast.EventType) {
+	// Nothing
 }

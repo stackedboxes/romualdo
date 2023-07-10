@@ -70,7 +70,8 @@ func (sc *semanticChecker) Leave(n ast.Node) {
 	}
 }
 
-func (sc *semanticChecker) Event(node ast.Node, event int) {
+func (sc *semanticChecker) Event(node ast.Node, event ast.EventType) {
+	// Nothing
 }
 
 //
