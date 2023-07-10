@@ -25,6 +25,12 @@ type Chunk struct {
 	Code []uint8
 }
 
+// Decodes the first four bytes in bytecode into a signed 32-bit integer.
+func DecodeInt32(bytecode []byte) int {
+	v := binary.LittleEndian.Uint32(bytecode)
+	return int(v)
+}
+
 // Encodes an unsigned 31-bit integer into the four first bytes of bytecode.
 // Panics if v does not fit into 31 bits.
 func EncodeUInt31(bytecode []byte, v int) {

@@ -112,6 +112,28 @@ constant pool.
 **Pops:** Nothing.  
 **Pushes:** One Boolean value: `false`.
 
+### `JUMP`
+
+**Purpose:** Jumps to a different location unconditionally.  
+**Immediate Operands:** One signed 32-bit integer, interpreted as the offset to
+jump.  
+**Pops:** Nothing.  
+**Pushes:** Nothing.  
+**Other Effects:** Increments the instruction pointer by the amount taken as an
+immediate operand. (The increment happens after this instruction and its operand
+were fully read.)
+
+### `JUMP_IF_FALSE`
+
+**Purpose:** Jumps to a different location maybe.  
+**Immediate Operands:** One signed 32-bit integer, interpreted as the offset to
+jump.  
+**Pops:** One Boolean value *A*.  
+**Pushes:** Nothing.  
+**Other Effects:** If *A* is a Boolean value and is false, increments the
+instruction pointer by the amount taken as an immediate operand. (The increment
+happens after this instruction and its operand were fully read.)
+
 ### `LISTEN`
 
 TODO: This string-based interface is temporary, until we support richer types.

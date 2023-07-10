@@ -160,6 +160,18 @@ func (vm *VM) run() errs.Error {
 		case bytecode.OpPop:
 			vm.pop()
 
+		case bytecode.OpJump:
+			jumpOffset := bytecode.DecodeInt32(vm.currentChunk().Code[vm.frame.ip:])
+			vm.frame.ip += jumpOffset + 4
+
+		case bytecode.OpJumpIfFalse:
+			jumpOffset := bytecode.DecodeInt32(vm.currentChunk().Code[vm.frame.ip:])
+			vm.frame.ip += 4
+			condition := vm.pop()
+			if condition.IsBool() && !condition.AsBool() {
+				vm.frame.ip += jumpOffset
+			}
+
 		default:
 			vm.runtimeError("Unexpected instruction: %v", instruction)
 		}

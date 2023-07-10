@@ -65,6 +65,12 @@ func (csw *CompiledStoryworld) DisassembleInstruction(chunk *Chunk, out io.Write
 	case OpFalse:
 		return csw.disassembleSimpleInstruction(out, "FALSE", offset)
 
+	case OpJump:
+		return csw.disassembleInt32Instruction(chunk, out, "JUMP", offset)
+
+	case OpJumpIfFalse:
+		return csw.disassembleInt32Instruction(chunk, out, "JUMP_IF_FALSE", offset)
+
 	default:
 		fmt.Fprintf(out, "Unknown opcode %d\n", instruction)
 		return offset + 1
@@ -88,5 +94,13 @@ func (csw *CompiledStoryworld) disassembleSimpleInstruction(out io.Writer, name 
 func (csw *CompiledStoryworld) disassembleConstantInstruction(chunk *Chunk, out io.Writer, name string, offset int, di *DebugInfo) int {
 	index := DecodeUInt31(chunk.Code[offset+1:])
 	fmt.Fprintf(out, "%-16s %4d %v\n", name, index, csw.Constants[index].DebugString(di))
+	return offset + 5
+}
+
+// disassembleInt32Instruction disassembles an instruction that has a single
+// int32 operand.
+func (csw *CompiledStoryworld) disassembleInt32Instruction(chunk *Chunk, out io.Writer, name string, offset int) int {
+	operand := DecodeInt32(chunk.Code[offset+1:])
+	fmt.Fprintf(out, "%-16s %4d\n", name, operand)
 	return offset + 5
 }

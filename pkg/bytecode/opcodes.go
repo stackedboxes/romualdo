@@ -18,4 +18,6 @@ const (
 	OpPop
 	OpTrue
 	OpFalse
+	OpJumpIfFalse
+	OpJump
 )
