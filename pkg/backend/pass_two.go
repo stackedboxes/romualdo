@@ -95,6 +95,16 @@ func (cg *codeGeneratorPassTwo) Leave(node ast.Node) {
 			cg.emitBytes(byte(bytecode.OpPop))
 		}
 
+	case *ast.Binary:
+		switch n.Operator {
+		case "!=":
+			cg.emitBytes(byte(bytecode.OpNotEqual))
+		case "==":
+			cg.emitBytes(byte(bytecode.OpEqual))
+		default:
+			cg.codeGenerator.ice("unknown binary operator: %v", n.Operator)
+		}
+
 	default:
 		cg.codeGenerator.ice("unknown node type: %T", n)
 	}

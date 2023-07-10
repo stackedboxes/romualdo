@@ -20,4 +20,6 @@ const (
 	OpFalse
 	OpJumpIfFalse
 	OpJump
+	OpEqual
+	OpNotEqual
 )

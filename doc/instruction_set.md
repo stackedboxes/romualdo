@@ -105,6 +105,13 @@ pool.
 **Pushes:** One value, the value of constant taken at the index *A* of the
 constant pool.
 
+### `EQUAL`
+
+**Purpose:** Checks if two values are equal.  
+**Immediate Operands:** None.  
+**Pops:** Two values, *B* and *A*.  
+**Pushes:** One Boolean value telling if *A* = *B*.
+
 ### `FALSE`
 
 **Purpose:** Loads a `false` value.  
@@ -170,6 +177,15 @@ already.
 I can't really see any purpose for a no-op instruction in the Romualdo VM, but I
 *really* wanted to have it. That's probably because of the tender memories I
 have of `NOP` in the x86 architecture. Whatever.
+
+### `NOT_EQUAL`
+
+**Purpose:** Checks if two values are different.  
+**Immediate Operands:** None.  
+**Pops:** Two values, *B* and *A*.  
+**Pushes:** One Boolean value, telling if *A* ≠ *B*.
+
+Equivalent to `EQUAL` followed by `NOT`, but in a single, efficient instruction.
 
 ### `POP`
 

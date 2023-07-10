@@ -7,12 +7,10 @@
 \# end
 
 function main(): void
-    if true then
-        listen "Do you like The Truth?"
-    elseif false then
-        listen "Now it's true"
+    if listen "Type 'y' to win!" == "y" then
+        listen "That was easy, was't it?!"
     else
-        listen "Third is a charm"
+        listen "You lose!!!"
     end
     \# listen "The end!"
 end

@@ -71,6 +71,12 @@ func (csw *CompiledStoryworld) DisassembleInstruction(chunk *Chunk, out io.Write
 	case OpJumpIfFalse:
 		return csw.disassembleInt32Instruction(chunk, out, "JUMP_IF_FALSE", offset)
 
+	case OpEqual:
+		return csw.disassembleSimpleInstruction(out, "EQUAL", offset)
+
+	case OpNotEqual:
+		return csw.disassembleSimpleInstruction(out, "NOT_EQUAL", offset)
+
 	default:
 		fmt.Fprintf(out, "Unknown opcode %d\n", instruction)
 		return offset + 1

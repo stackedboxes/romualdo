@@ -181,6 +181,16 @@ func (vm *VM) run() errs.Error {
 				vm.frame.ip += 4
 			}
 
+		case bytecode.OpEqual:
+			b := vm.pop()
+			a := vm.pop()
+			vm.push(bytecode.NewValueBool(bytecode.ValuesEqual(a, b)))
+
+		case bytecode.OpNotEqual:
+			b := vm.pop()
+			a := vm.pop()
+			vm.push(bytecode.NewValueBool(!bytecode.ValuesEqual(a, b)))
+
 		default:
 			vm.runtimeError("Unexpected instruction: %v", instruction)
 		}
