@@ -141,21 +141,25 @@ func (s *Scanner) codeModeToken() *Token {
 		return s.makeToken(TokenKindHat)
 	case '!':
 		if s.match('=') {
+			s.tokenLexeme += "="
 			return s.makeToken(TokenKindBangEqual)
 		}
 		return s.errorToken("'!' must be followed by '='.")
 	case '=':
 		if s.match('=') {
+			s.tokenLexeme += "="
 			return s.makeToken(TokenKindEqualEqual)
 		}
 		return s.makeToken(TokenKindEqual)
 	case '<':
 		if s.match('=') {
+			s.tokenLexeme += "="
 			return s.makeToken(TokenKindLessEqual)
 		}
 		return s.makeToken(TokenKindLess)
 	case '>':
 		if s.match('=') {
+			s.tokenLexeme += "="
 			return s.makeToken(TokenKindGreaterEqual)
 		}
 		return s.makeToken(TokenKindGreater)
