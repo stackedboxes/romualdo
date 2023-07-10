@@ -426,6 +426,34 @@ func (p *parser) stringLiteral(canAssign bool) ast.Node {
 	}
 }
 
+// binary parses a binary operator expression. The left operand and the operator
+// token are expected to have been just consumed.
+func (p *parser) binary(lhs ast.Node, canAssign bool) ast.Node {
+	// Remember the operator.
+	operatorKind := p.previousToken.Kind
+	operatorLexeme := p.previousToken.Lexeme
+	operatorLine := p.previousToken.Line
+
+	// Parse the right operand.
+	var rhs ast.Node
+	rule := rules[operatorKind]
+	if operatorKind == TokenKindHat {
+		rhs = p.parsePrecedence(rule.precedence)
+	} else {
+		rhs = p.parsePrecedence(rule.precedence + 1)
+	}
+
+	return &ast.Binary{
+		BaseNode: ast.BaseNode{
+			SrcFile:    p.fileName,
+			LineNumber: operatorLine,
+		},
+		Operator: operatorLexeme,
+		LHS:      lhs,
+		RHS:      rhs,
+	}
+}
+
 //
 // Parsing helpers (return things other than Nodes)
 //
@@ -564,8 +592,8 @@ func initRules() {
 	rules[TokenKindHat] = /*           */ parseRule{nil /*                        */, nil /*                     */, precNone}
 
 	rules[TokenKindEqual] = /*         */ parseRule{nil /*                        */, nil /*                     */, precNone}
-	rules[TokenKindEqualEqual] = /*    */ parseRule{nil /*                        */, nil /*                     */, precNone}
-	rules[TokenKindBangEqual] = /*     */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindEqualEqual] = /*    */ parseRule{nil /*                        */, (*parser).binary /*        */, precEquality}
+	rules[TokenKindBangEqual] = /*     */ parseRule{nil /*                        */, (*parser).binary /*        */, precEquality}
 	rules[TokenKindGreater] = /*       */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindGreater] = /*       */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindLess] = /*          */ parseRule{nil /*                        */, nil /*                     */, precNone}

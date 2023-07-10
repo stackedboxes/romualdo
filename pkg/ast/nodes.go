@@ -290,6 +290,63 @@ func (n *StringLiteral) Walk(v Visitor) {
 	v.Leave(n)
 }
 
+// Binary is an AST node representing a binary operator.
+type Binary struct {
+	BaseNode
+
+	// Operator contains the lexeme used as the binary operator.
+	Operator string
+
+	// LHS is the expression on the left-hand side of the operator.
+	LHS Node
+
+	// RHS is the expression on the right-hand side of the operator.
+	RHS Node
+
+	// cachedType caches the type of this node. Used to memoize Type().
+	cachedType *TypeTag
+}
+
+func (n *Binary) Type() TypeTag {
+	if n.cachedType == nil {
+		ct := TypeTag(TypeInvalid)
+		n.cachedType = &ct
+		if n.Operator == "==" || n.Operator == "!=" {
+			*n.cachedType = TypeBool
+		} else {
+			*n.cachedType = n.LHS.Type()
+		}
+
+		// TODO: The code below is what I used to handle more complex types in a
+		// previous version of Romualdo. Should switch to it someday.
+		//
+		// switch n.Operator { case "==", "!=", "<", "<=", ">", ">=":
+		//  n.cachedType = TypeBool
+		// case "+", "-", "*":
+		//  if n.LHS.Type() == TypeString || n.LHS.Type() == TypeBNum {
+		//      t := n.LHS.Type()
+		//      n.cachedType = t
+		//  } else if n.LHS.Type() == TypeInt && n.RHS.Type() == TypeInt {
+		//      t := n.LHS.Type()
+		//      n.cachedType = t
+		//  } else {
+		//      n.cachedType = TypeFloat
+		//  }
+		// default:
+		//  n.cachedType = TypeFloat
+		// }
+	}
+
+	return *n.cachedType
+}
+
+func (n *Binary) Walk(v Visitor) {
+	v.Enter(n)
+	n.LHS.Walk(v)
+	n.RHS.Walk(v)
+	v.Leave(n)
+}
+
 //
 // Helper types
 //
