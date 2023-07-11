@@ -105,20 +105,22 @@ func runTestCase(configPath string, runner swRunnerFunc) errs.Error {
 		return err
 	}
 
-	srcPath := path.Join(testPath, "src")
-	outBuilder := &strings.Builder{}
-	mouth := romutil.NewWriterMouth(outBuilder)
-	ear := romutil.NewReaderEar(os.Stdin) // TODO: Must come from test config!
+	for _, step := range testConf.Steps {
+		srcPath := path.Join(testPath, step.SourceDir)
+		outBuilder := &strings.Builder{}
+		mouth := romutil.NewWriterMouth(outBuilder)
+		ear := romutil.NewReaderEar(os.Stdin) // TODO: Must come from test config!
 
-	err = runner(srcPath, mouth, ear)
-	if err != nil {
-		return errs.NewTestSuite(testCase, "running the storyworld: %v", err)
-	}
+		err = runner(srcPath, mouth, ear)
+		if err != nil {
+			return errs.NewTestSuite(testCase, "running the storyworld: %v", err)
+		}
 
-	actualOut := outBuilder.String()
-	if actualOut != testConf.Output[0] {
-		errTS := errs.NewTestSuite(testCase, "expected output '%v', got '%v'.", testConf.Output[0], actualOut)
-		return errTS
+		actualOut := outBuilder.String()
+		if actualOut != testConf.Output[0] {
+			errTS := errs.NewTestSuite(testCase, "expected output '%v', got '%v'.", testConf.Output[0], actualOut)
+			return errTS
+		}
 	}
 
 	fmt.Printf("Test case passed: %v.\n", testPath)
