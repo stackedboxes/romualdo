@@ -12,7 +12,6 @@ import (
 	"os"
 	"path"
 	"regexp"
-	"strings"
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
@@ -107,19 +106,21 @@ func runTestCase(configPath string, runner swRunnerFunc) errs.Error {
 
 	for _, step := range testConf.Steps {
 		srcPath := path.Join(testPath, step.SourceDir)
-		outBuilder := &strings.Builder{}
-		mouth := romutil.NewWriterMouth(outBuilder)
-		ear := romutil.NewReaderEar(os.Stdin) // TODO: Must come from test config!
+		mouth := &romutil.MemoryMouth{}
+		ear := romutil.NewFatefulEar(step.Input)
 
 		err = runner(srcPath, mouth, ear)
 		if err != nil {
 			return errs.NewTestSuite(testCase, "running the storyworld: %v", err)
 		}
 
-		actualOut := outBuilder.String()
-		if actualOut != testConf.Output[0] {
-			errTS := errs.NewTestSuite(testCase, "expected output '%v', got '%v'.", testConf.Output[0], actualOut)
-			return errTS
+		if len(testConf.Output) != len(mouth.Outputs) {
+			return errs.NewTestSuite(testCase, "got %v outputs, expected %v.", len(mouth.Outputs), len(testConf.Output))
+		}
+		for i, actualOutput := range mouth.Outputs {
+			if actualOutput != testConf.Output[i] {
+				return errs.NewTestSuite(testCase, "at index %v: expected output '%v', got '%v'.", i, testConf.Output[0], actualOutput)
+			}
 		}
 	}
 

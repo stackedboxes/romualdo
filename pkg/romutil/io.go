@@ -57,6 +57,21 @@ func (wo *writerMouth) Say(s string) {
 }
 
 //
+// memoryMouth
+//
+
+// MemoryMouth is a Mouth that stores all output in memory so we can check it
+// later. Good for testing.
+type MemoryMouth struct {
+	Outputs []string
+}
+
+// Say stores the said string in memory.
+func (mm *MemoryMouth) Say(s string) {
+	mm.Outputs = append(mm.Outputs, s)
+}
+
+//
 // readerEar
 //
 
