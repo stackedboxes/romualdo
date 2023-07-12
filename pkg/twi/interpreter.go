@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"github.com/stackedboxes/romualdo/pkg/ast"
+	"github.com/stackedboxes/romualdo/pkg/bytecode"
 	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
@@ -50,6 +51,7 @@ func (i *interpreter) interpretBlock(block *ast.Block) errs.Error {
 	return nil
 }
 
+// interpretStatement interprets the stmt statement.
 func (i *interpreter) interpretStatement(stmt ast.Node) errs.Error {
 	switch n := stmt.(type) {
 	case *ast.Lecture:
@@ -57,22 +59,46 @@ func (i *interpreter) interpretStatement(stmt ast.Node) errs.Error {
 
 	case *ast.ExpressionStmt:
 		// Interpret the expression and discard the result.
-		return i.interpretExpression(n.Expr)
+		_, err := i.interpretExpression(n.Expr)
+		return err
+
+	case *ast.IfStmt:
+		condition, err := i.interpretExpression(n.Condition)
+		if err != nil {
+			return err
+		}
+		if !condition.IsBool() {
+			return errs.NewRuntime("if condition must be a Boolean, got %T", condition.Value)
+		}
+
+		if condition.AsBool() {
+			return i.interpretBlock(n.Then)
+		}
+
+		if n.Else != nil {
+			// Else can be either a block or (in the case of an "elseif") an
+			// "if" statement.
+			if block, ok := n.Else.(*ast.Block); ok {
+				return i.interpretBlock(block)
+			}
+			return i.interpretStatement(n.Else)
+		}
 
 	default:
 		return errs.NewRuntime("unknown statement type: %T", stmt)
 	}
+
 	return nil
 }
 
-// TODO: Should this return the expression value?
-func (i *interpreter) interpretExpression(expr ast.Node) errs.Error {
+// interpretExpression interprets the expr expression and returns its value.
+func (i *interpreter) interpretExpression(expr ast.Node) (bytecode.Value, errs.Error) {
 	switch n := expr.(type) {
 	case *ast.StringLiteral:
-		// No-op
+		return bytecode.Value{Value: n.Value}, nil
 
 	case *ast.BoolLiteral:
-		// No-op
+		return bytecode.Value{Value: n.Value}, nil
 
 	case *ast.Listen:
 		// TODO: Currently this just assumes the argument to listen is a string
@@ -84,7 +110,29 @@ func (i *interpreter) interpretExpression(expr ast.Node) errs.Error {
 		fmt.Fprint(os.Stdout, "> ") // TODO: Temporary, to see what's happening.
 		choice := i.ear.Listen()
 		fmt.Fprintf(os.Stdout, "USER INPUT: "+choice) // TODO: Temporary, to see what's happening.
-	}
 
-	return nil
+		return bytecode.Value{Value: choice}, nil
+
+	case *ast.Binary:
+		lhsValue, err := i.interpretExpression(n.LHS)
+		if err != nil {
+			return bytecode.Value{}, err
+		}
+		rhsValue, err := i.interpretExpression(n.RHS)
+		if err != nil {
+			return bytecode.Value{}, err
+		}
+
+		switch n.Operator {
+		case "==":
+			return bytecode.Value{Value: bytecode.ValuesEqual(lhsValue, rhsValue)}, nil
+		case "!=":
+			return bytecode.Value{Value: !bytecode.ValuesEqual(lhsValue, rhsValue)}, nil
+		default:
+			return bytecode.Value{}, errs.NewRuntime("unknown binary operator: '%v'", n.Operator)
+		}
+
+	default:
+		return bytecode.Value{}, errs.NewRuntime("unknown expression type: %T", expr)
+	}
 }
