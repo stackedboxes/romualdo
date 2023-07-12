@@ -1,0 +1,28 @@
+#
+# The Romualdo Language
+#
+# Copyright 2020-2023 Leandro Motta Barros
+# Licensed under the MIT license (see LICENSE.txt for details)
+#
+
+[[step]]
+	output = [
+		"What's your favorite color?",
+		"You may go. Any remarks?",
+	]
+
+	input = [
+		"blue",
+		"no",
+	]
+
+[[step]]
+	output = [
+		"What's your favorite color?",
+		"Wrong. What are your last words?",
+	]
+
+	input = [
+		"blue -- no, yellow!",
+		":-(",
+	]

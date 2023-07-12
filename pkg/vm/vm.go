@@ -143,7 +143,7 @@ func (vm *VM) run() errs.Error {
 
 		case bytecode.OpListen:
 			options := vm.pop()
-			vm.mouth.Say("==> " + options.AsString()) // TODO: Temporary, to see what's happening.
+			vm.mouth.Say(options.AsString()) // TODO: Temporary, to see what's happening.
 
 			// TODO: Implement proper return to driver program and stuff.
 			fmt.Fprint(os.Stdout, "> ") // TODO: Temporary, to see what's happening.

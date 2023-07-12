@@ -142,9 +142,10 @@ completes.
 
 An array of strings, which represent the expected output from the Storyworld.
 
-`input` and `output` are used in lockstep: first an output is used, then an
-input is send, then a new output is taken, and so on. So, there must be one
-output more than inputs.
+TODO: I initially wrote the following sentence, but it's wrong and need to be
+better thought out. "`input` and `output` are used in lockstep: first an output
+is used, then an input is send, then a new output is taken, and so on. So, there
+must be one output more than inputs."
 
 ### `exitCode`
 

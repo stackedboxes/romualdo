@@ -79,7 +79,7 @@ func (i *interpreter) interpretExpression(expr ast.Node) errs.Error {
 		// literal. This will break bad once we have more complex expressions.
 		// Should do for now, though.
 		options := n.Options.(*ast.StringLiteral).Value
-		fmt.Fprintf(os.Stdout, "==> %v\n", options) // TODO: Temporary, to see what's happening.
+		fmt.Fprintf(os.Stdout, "%v\n", options) // TODO: Temporary, to see what's happening.
 
 		fmt.Fprint(os.Stdout, "> ") // TODO: Temporary, to see what's happening.
 		choice := i.ear.Listen()
