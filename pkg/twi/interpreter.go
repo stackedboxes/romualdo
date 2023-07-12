@@ -105,6 +105,9 @@ func (i *interpreter) interpretExpression(expr ast.Node) (bytecode.Value, errs.E
 		// literal. This will break bad once we have more complex expressions.
 		// Should do for now, though.
 		options := n.Options.(*ast.StringLiteral).Value
+
+		i.mouth.Say(options) // TODO: Temporary, to see what's happening.
+
 		fmt.Fprintf(os.Stdout, "%v\n", options) // TODO: Temporary, to see what's happening.
 
 		fmt.Fprint(os.Stdout, "> ") // TODO: Temporary, to see what's happening.
