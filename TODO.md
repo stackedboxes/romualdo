@@ -19,6 +19,23 @@ Would be nice to have both! 😉
         * I changed `listen`'s precedence from `precPrimary` to `precNone` to
           fix it. Not sure, though, this is an area I don't really grok.
 
+Then, the remaining "unique" Romualdo features (but see also the topics after
+them):
+
+* Save and restore state.
+* Versioning.
+
+Might make sense to work on these other features before (or along with) that:
+
+* Full support for arithmetic expressions. (Because it's a nice thing to have,
+  and will be relatively straightforward to bring from the old implementation,
+  and will be a good thing to do if I get tired of implementing the harder
+  stuff.)
+* Global variables. They are also very useful and, more importantly, they are
+  also versioned, so they affect versioning.
+* Procedure calls. Again useful *and* related to state saving (because call
+  stack).
+
 Older TODOs (review):
 
 * Eventually, will need an array of `meta`s: one per chunk, with the `meta`s
