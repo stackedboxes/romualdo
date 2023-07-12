@@ -17,13 +17,13 @@ import (
 // but instead a simple way to run our end-to-end tests and, more importantly,
 // to get code coverage reports for them.
 func TestRunSuite(t *testing.T) {
-	err := ExecuteSuite(false, "../../test")
+	err := ExecuteSuite(false, "../../test/suite")
 	if err != nil {
 		fmt.Println(os.Getwd())
 		t.Fatalf("Error running test suite: %v", err)
 	}
 
-	err = ExecuteSuite(true, "../../test")
+	err = ExecuteSuite(true, "../../test/suite")
 	if err != nil {
 		t.Fatalf("Error walking test suite: %v", err)
 	}

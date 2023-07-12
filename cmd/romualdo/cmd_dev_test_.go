@@ -32,7 +32,7 @@ var flagDevTestWalkDontRun bool
 
 func init() {
 	devTestCmd.Flags().StringVarP(&flagDevTestSuite, "suite", "s",
-		"./test", "Path to the test suite to run")
+		"./test/suite", "Path to the test suite to run")
 
 	devTestCmd.Flags().BoolVarP(&flagDevTestWalkDontRun, "walk-dont-run", "w",
 		false, "Test using the walk tree interpreter instead of the bytecode one")
