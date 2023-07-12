@@ -114,12 +114,12 @@ func runTestCase(configPath string, runner swRunnerFunc) errs.Error {
 			return errs.NewTestSuite(testCase, "running the storyworld: %v", err)
 		}
 
-		if len(testConf.Output) != len(mouth.Outputs) {
-			return errs.NewTestSuite(testCase, "got %v outputs, expected %v.", len(mouth.Outputs), len(testConf.Output))
+		if len(step.Output) != len(mouth.Outputs) {
+			return errs.NewTestSuite(testCase, "got %v outputs, expected %v.", len(mouth.Outputs), len(step.Output))
 		}
 		for i, actualOutput := range mouth.Outputs {
-			if actualOutput != testConf.Output[i] {
-				return errs.NewTestSuite(testCase, "at index %v: expected output '%v', got '%v'.", i, testConf.Output[0], actualOutput)
+			if actualOutput != step.Output[i] {
+				return errs.NewTestSuite(testCase, "at index %v: expected output '%v', got '%v'.", i, step.Output[0], actualOutput)
 			}
 		}
 	}
@@ -185,7 +185,7 @@ func canonicalizeTestConfig(testConf *testConfig) {
 	}
 
 	// Give values to all fields of all steps.
-	for _, step := range testConf.Steps {
+	for i, step := range testConf.Steps {
 		if step.Type == "" {
 			step.Type = testConf.Type
 		}
@@ -204,6 +204,8 @@ func canonicalizeTestConfig(testConf *testConfig) {
 		if step.ExitCode == 0 && testConf.ExitCode != 0 {
 			step.ExitCode = testConf.ExitCode
 		}
+
+		testConf.Steps[i] = step
 	}
 }
 
