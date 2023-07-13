@@ -93,10 +93,34 @@ func runCase(configPath string, runner swRunnerFunc) errs.Error {
 		ear := romutil.NewFatefulEar(step.Input)
 
 		err = runner(srcPath, mouth, ear)
+
+		// Check status code
 		if err != nil {
-			return errs.NewTestSuite(testCase, "running the storyworld: %v", err)
+			if err.ExitCode() != step.ExitCode {
+				return errs.NewTestSuite(testCase, "expected exit code %v, got %v.", step.ExitCode, err.ExitCode())
+			}
 		}
 
+		// Check error messages
+		stepErrs := err
+		for _, expectedErrMsg := range step.ErrorMessages {
+			re, err := regexp.Compile(expectedErrMsg)
+			if err != nil {
+				return errs.NewTestSuite(testCase, "compiling regexp '%v': %v.", expectedErrMsg, err.Error())
+			}
+
+			if !re.Match([]byte(stepErrs.Error())) {
+				return errs.NewTestSuite(testCase, "expected error message '%v', got '%v'.", expectedErrMsg, stepErrs.Error())
+			}
+		}
+
+		if stepErrs != nil {
+			// If we had errors and reached this point, it means the error was
+			// expected. The outputs don't matter, go on to the next step.
+			continue
+		}
+
+		// Check output
 		if len(step.Output) != len(mouth.Outputs) {
 			return errs.NewTestSuite(testCase, "got %v outputs, expected %v.", len(mouth.Outputs), len(step.Output))
 		}
