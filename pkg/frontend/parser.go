@@ -386,6 +386,43 @@ func (p *parser) statement() ast.Node {
 	case p.match(TokenKindIf):
 		return p.ifStatement()
 
+	case p.check(TokenKindSay):
+		// Notice the use of check() instead of match() above to avoid
+		// prematurely consuming the next token. That's because a "say" token
+		// makes us switch to lecture mode and we want the next token to be
+		// handled already in lecture mode.
+
+		// Switch the scanner to lecture mode, because a Lecture is what we
+		// expect between a `say`/`end` pair.
+		p.scanner.SetMode(ScannerModeLecture)
+
+		// Now that we are in lecture mode, we can consume the "say" token.
+		p.advance()
+
+		say := &ast.Say{
+			BaseNode: ast.BaseNode{
+				SrcFile:    p.fileName,
+				LineNumber: p.previousToken.Line,
+			},
+		}
+
+		if p.match(TokenKindLecture) {
+			say.Lectures = append(
+				say.Lectures,
+				&ast.Lecture{
+					BaseNode: ast.BaseNode{
+						SrcFile:    p.fileName,
+						LineNumber: p.previousToken.Line,
+					},
+					Text: p.previousToken.Lexeme,
+				},
+			)
+		}
+
+		p.consume(TokenKindEnd, "Expected `end` to close the `say` statement started at line %v.", say.LineNumber)
+
+		return say
+
 	default:
 		expr := p.expression()
 		return &ast.ExpressionStmt{
@@ -619,6 +656,7 @@ func initRules() {
 	rules[TokenKindInt] = /*           */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindListen] = /*        */ parseRule{(*parser).listen /*           */, nil /*                     */, precNone}
 	rules[TokenKindPassage] = /*       */ parseRule{nil /*                        */, nil /*                     */, precNone}
+	rules[TokenKindSay] = /*           */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindString] = /*        */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindThen] = /*          */ parseRule{nil /*                        */, nil /*                     */, precNone}
 	rules[TokenKindTrue] = /*          */ parseRule{(*parser).boolLiteral /*      */, nil /*                     */, precNone}

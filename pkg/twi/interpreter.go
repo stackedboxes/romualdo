@@ -57,6 +57,15 @@ func (i *interpreter) interpretStatement(stmt ast.Node) errs.Error {
 	case *ast.Lecture:
 		i.mouth.Say(n.Text)
 
+	case *ast.Say:
+		for _, lecture := range n.Lectures {
+			if err := i.interpretStatement(lecture); err != nil {
+				return err
+			}
+		}
+		// This is a no-op. The actual `say`ing is done by the Lecture nodes
+		// exist within the Say node.
+
 	case *ast.ExpressionStmt:
 		// Interpret the expression and discard the result.
 		_, err := i.interpretExpression(n.Expr)

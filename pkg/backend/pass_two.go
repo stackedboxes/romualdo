@@ -65,6 +65,10 @@ func (cg *codeGeneratorPassTwo) Leave(node ast.Node) {
 		// Leave the current chunk index invalid, as we are outside of any function.
 		cg.currentChunkIndex = -1
 
+	case *ast.Say:
+		// This is a no-op. The actual `say`ing is done by the Lecture nodes
+		// within the Say node.
+
 	case *ast.Lecture:
 		// Lectures are automatically "said". They live this double life of
 		// being like both a literal and a statement.

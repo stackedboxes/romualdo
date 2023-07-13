@@ -237,7 +237,31 @@ func (n *Lecture) Walk(v Visitor) {
 	v.Leave(n)
 }
 
-// Listen is an AST node representing a Listen expression.
+// Say is an AST node representing a "say" statement. We create Say nodes
+// because they make things more uniform and therefore easier to handle, but
+// they are really no-ops. The real `say`ing is done by the Lecture nodes.
+type Say struct {
+	BaseNode
+
+	// Lectures contains the Lectures to be `say`d`.
+	Lectures []Node
+}
+
+func (n *Say) Type() TypeTag {
+	return TypeVoid
+}
+
+func (n *Say) Walk(v Visitor) {
+	v.Enter(n)
+
+	for _, stmt := range n.Lectures {
+		stmt.Walk(v)
+	}
+
+	v.Leave(n)
+}
+
+// Listen is an AST node representing a "listen" expression.
 type Listen struct {
 	BaseNode
 

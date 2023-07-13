@@ -48,6 +48,7 @@ const (
 	TokenKindInt      // int
 	TokenKindListen   // listen
 	TokenKindPassage  // passage
+	TokenKindSay      // say
 	TokenKindString   // string
 	TokenKindThen     // then
 	TokenKindTrue     // true
