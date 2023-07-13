@@ -1,0 +1,8 @@
+passage main(): void
+\end
+
+
+
+passage main(): void
+    "Whatever," said the tester.
+end

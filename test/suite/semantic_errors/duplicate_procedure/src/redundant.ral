@@ -1,0 +1,12 @@
+
+
+
+passage main(): void
+    "Something is fishy", thought Nemo.
+end
+
+
+
+
+function main(): void
+end

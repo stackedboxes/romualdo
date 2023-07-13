@@ -207,6 +207,10 @@ func (p *parser) declaration() ast.Node {
 // been just consumed.
 func (p *parser) functionDecl() *ast.ProcedureDecl {
 	proc := &ast.ProcedureDecl{
+		BaseNode: ast.BaseNode{
+			SrcFile:    p.fileName,
+			LineNumber: p.previousToken.Line,
+		},
 		Kind:    ast.ProcKindFunction,
 		Package: p.packagePath(),
 	}

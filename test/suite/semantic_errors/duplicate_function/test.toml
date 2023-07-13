@@ -1,0 +1,11 @@
+#
+# The Romualdo Language
+#
+# Copyright 2020-2023 Leandro Motta Barros
+# Licensed under the MIT license (see LICENSE.txt for details)
+#
+
+exitCode = 1
+errorMessages = [
+	"redundant.ral:4: Duplicate procedure `main`. First definition at line 1."
+]

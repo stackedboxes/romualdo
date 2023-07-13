@@ -50,8 +50,8 @@ func (sc *semanticChecker) Enter(node ast.Node) {
 	case *ast.ProcedureDecl:
 		// TODO: Do this check at Package or Storyworld level.
 		if line, found := sc.proceduresLine[n.Name]; found {
-			sc.error("Duplicate procedure `%v` at line %v. The first one was at line %v.",
-				n.Name, n.LineNumber, line)
+			sc.errorAtCurrentNode("Duplicate procedure `%v`. First definition at line %v.",
+				n.Name, line)
 			break
 		}
 		sc.proceduresLine[n.Name] = n.LineNumber
@@ -65,7 +65,7 @@ func (sc *semanticChecker) Leave(n ast.Node) {
 	// Root Package when we have proper support for Packages.
 	if _, ok := n.(*ast.SourceFile); ok {
 		if _, found := sc.proceduresLine["main"]; !found {
-			sc.error("Procedure `main` not found.")
+			sc.errorWithoutLine("Procedure `main` not found.")
 		}
 	}
 }
@@ -75,16 +75,21 @@ func (sc *semanticChecker) Event(node ast.Node, event ast.EventType) {
 }
 
 //
-// Semantic checking
+// Error reporting
 //
 
-// error reports an error.
-func (sc *semanticChecker) error(format string, a ...interface{}) {
-	sc.errors.Add(errs.NewCompileTimeWithoutLine(sc.fileName, format, a...))
+// errorWithoutLine reports an error without a specific line number.
+func (tc *semanticChecker) errorWithoutLine(format string, a ...interface{}) {
+	tc.errors.Add(errs.NewCompileTimeWithoutLine(tc.fileName, format, a...))
+}
+
+// errorAtCurrentNode reports an error at the node we are currently checking.
+func (tc *semanticChecker) errorAtCurrentNode(format string, a ...interface{}) {
+	tc.errors.Add(errs.NewCompileTime(tc.fileName, tc.currentLine(), format, a...))
 }
 
 // currentLine returns the source code line corresponding to whatever we are
 // currently analyzing.
-func (sc *semanticChecker) currentLine() int {
-	return sc.nodeStack[len(sc.nodeStack)-1].Line()
+func (tc *semanticChecker) currentLine() int {
+	return tc.nodeStack[len(tc.nodeStack)-1].Line()
 }
