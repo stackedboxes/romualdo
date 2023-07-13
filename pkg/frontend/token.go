@@ -73,6 +73,9 @@ func (kind TokenKind) String() string {
 		return "TokenKindComma"
 	case TokenKindColon:
 		return "TokenKindColon"
+	case TokenKindHat:
+		return "TokenKindHat"
+
 	case TokenKindEqual:
 		return "TokenKindEqual"
 	case TokenKindEqualEqual:
@@ -87,10 +90,14 @@ func (kind TokenKind) String() string {
 		return "TokenKindLess"
 	case TokenKindLessEqual:
 		return "TokenKindLessEqual"
+
 	case TokenKindIdentifier:
 		return "TokenKindIdentifier"
 	case TokenKindLecture:
 		return "TokenKindLecture"
+	case TokenKindStringLiteral:
+		return "TokenKindStringLiteral"
+
 	case TokenKindBNum:
 		return "TokenKindBNum"
 	case TokenKindBool:
@@ -107,28 +114,30 @@ func (kind TokenKind) String() string {
 		return "TokenKindFloat"
 	case TokenKindFunction:
 		return "TokenKindFunction"
-	case TokenKindInt:
-		return "TokenKindInt"
 	case TokenKindIf:
 		return "TokenKindIf"
+	case TokenKindInt:
+		return "TokenKindInt"
 	case TokenKindListen:
 		return "TokenKindListen"
 	case TokenKindPassage:
 		return "TokenKindPassage"
+	case TokenKindSay:
+		return "TokenKindSay"
 	case TokenKindString:
 		return "TokenKindString"
-	case TokenKindStringLiteral:
-		return "TokenKindStringLiteral"
 	case TokenKindThen:
 		return "TokenKindThen"
 	case TokenKindTrue:
 		return "TokenKindTrue"
 	case TokenKindVoid:
 		return "TokenKindVoid"
+
 	case TokenKindError:
 		return "TokenKindError"
 	case TokenKindEOF:
 		return "TokenKindEOF"
+
 	default:
 		return fmt.Sprintf("<Unknown TokenType: %v>", int(kind))
 	}
