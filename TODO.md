@@ -1,10 +1,5 @@
 # TODO
 
-* More test kinds to add:
-    * Tests cases for errors (is it failing as expected for wrong code?)
-    * Someday: tests checking the exit code of the `romualdo` tool.
-        * Like, tests with syntax errors and such.
-
 * I need either of these to write interesting tests:
     * Explicit `say` statements in `functions`.
     * Backslashed statements in Lectures, plus support for `{1+1*3}` to allow me
