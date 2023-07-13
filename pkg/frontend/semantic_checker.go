@@ -27,18 +27,18 @@ type semanticChecker struct {
 	// one is on the top.
 	nodeStack []ast.Node
 
-	// functionsLine contains the line number where a given function was found.
-	// The function names here do not contain the package name (the semantic
-	// checker operates at one package at a time, so the package name is not
-	// relevant).
-	functionsLine map[string]int
+	// proceduresLine contains the line number where a given procedure was
+	// found. The procedure names here do not contain the package name (the
+	// semantic checker operates at one package at a time, so the package name
+	// is not relevant).
+	proceduresLine map[string]int
 }
 
 func NewSemanticChecker(fileName string) *semanticChecker {
 	return &semanticChecker{
-		fileName:      fileName,
-		errors:        &errs.CompileTimeCollection{},
-		functionsLine: make(map[string]int),
+		fileName:       fileName,
+		errors:         &errs.CompileTimeCollection{},
+		proceduresLine: make(map[string]int),
 	}
 }
 
@@ -49,12 +49,12 @@ func (sc *semanticChecker) Enter(node ast.Node) {
 	switch n := node.(type) {
 	case *ast.ProcedureDecl:
 		// TODO: Do this check at Package or Storyworld level.
-		if line, found := sc.functionsLine[n.Name]; found {
-			sc.error("Duplicate function '%v' at line %v. The first one was at line %v.",
+		if line, found := sc.proceduresLine[n.Name]; found {
+			sc.error("Duplicate procedure `%v` at line %v. The first one was at line %v.",
 				n.Name, n.LineNumber, line)
 			break
 		}
-		sc.functionsLine[n.Name] = n.LineNumber
+		sc.proceduresLine[n.Name] = n.LineNumber
 	}
 }
 
@@ -64,8 +64,8 @@ func (sc *semanticChecker) Leave(n ast.Node) {
 	// TODO: checking for `main` here for now; will need to look at the whole
 	// Root Package when we have proper support for Packages.
 	if _, ok := n.(*ast.SourceFile); ok {
-		if _, found := sc.functionsLine["main"]; !found {
-			sc.error("Function 'main' not found.")
+		if _, found := sc.proceduresLine["main"]; !found {
+			sc.error("Procedure `main` not found.")
 		}
 	}
 }
