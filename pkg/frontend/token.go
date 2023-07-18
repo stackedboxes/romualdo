@@ -15,20 +15,26 @@ type TokenKind int
 
 const (
 	// Single-character tokens
-	TokenKindLeftParen  TokenKind = iota // (
-	TokenKindRightParen                  // )
-	TokenKindComma                       // ,
-	TokenKindColon                       // :
-	TokenKindHat                         // ^
+	TokenKindLeftParen   TokenKind = iota // (
+	TokenKindRightParen                   // )
+	TokenKindLeftSquare                   // [
+	TokenKindRightSquare                  // ]
+	TokenKindComma                        // ,
+	TokenKindColon                        // :
+	TokenKindHat                          // ^
 
 	// One or two character tokens.
-	TokenKindEqual        // =
-	TokenKindEqualEqual   // ==
-	TokenKindBangEqual    // !=
-	TokenKindGreater      // >
-	TokenKindGreaterEqual // >=
-	TokenKindLess         // <
-	TokenKindLessEqual    // <=
+	TokenKindEqual            // =
+	TokenKindEqualEqual       // ==
+	TokenKindBangEqual        // !=
+	TokenKindGreater          // >
+	TokenKindGreaterEqual     // >=
+	TokenKindLess             // <
+	TokenKindLessEqual        // <=
+	TokenKindLeftCurly        // {
+	TokenKindRightCurly       // }
+	TokenKindLeftDoubleCurly  // {{
+	TokenKindRightDoubleCurly // }}
 
 	// Literals
 	TokenKindIdentifier
@@ -69,6 +75,10 @@ func (kind TokenKind) String() string {
 		return "TokenKindLeftParen"
 	case TokenKindRightParen:
 		return "TokenKindRightParen"
+	case TokenKindLeftSquare:
+		return "TokenKindLeftSquare"
+	case TokenKindRightSquare:
+		return "TokenKindRightSquare"
 	case TokenKindComma:
 		return "TokenKindComma"
 	case TokenKindColon:
@@ -90,6 +100,14 @@ func (kind TokenKind) String() string {
 		return "TokenKindLess"
 	case TokenKindLessEqual:
 		return "TokenKindLessEqual"
+	case TokenKindLeftCurly:
+		return "TokenKindLeftCurly"
+	case TokenKindRightCurly:
+		return "TokenKindRightCurly"
+	case TokenKindLeftDoubleCurly:
+		return "TokenKindLeftDoubleCurly"
+	case TokenKindRightDoubleCurly:
+		return "TokenKindRightDoubleCurly"
 
 	case TokenKindIdentifier:
 		return "TokenKindIdentifier"

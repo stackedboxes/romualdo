@@ -133,6 +133,10 @@ func (s *Scanner) codeModeToken() *Token {
 		return s.makeToken(TokenKindLeftParen)
 	case ')':
 		return s.makeToken(TokenKindRightParen)
+	case '[':
+		return s.makeToken(TokenKindLeftSquare)
+	case ']':
+		return s.makeToken(TokenKindRightSquare)
 	case ':':
 		return s.makeToken(TokenKindColon)
 	case ',':
@@ -306,6 +310,25 @@ func (s *Scanner) lectureModeToken() *Token {
 			}
 		case '\r':
 			// Ignore carriage returns
+
+		case '{':
+			s.tokenLexeme += "{"
+
+			if s.tokenLexeme != "{" {
+				// We have a `{` token ahead, but already scanned a Lecture.
+				// Let's return this Lecture and set everything up so that the
+				// `{` token is returned next.
+				s.tokenLexeme = s.tokenLexeme[0 : len(s.tokenLexeme)-1] // Ignore the `{`.
+				s.current -= 1                                          // The `{` was consumed; undo that.
+				tok := s.makeToken(TokenKindLecture)
+				return tok
+			}
+
+			// And if we got here, the `{` token is the one to return. Starting
+			// from here, we want to be in code mode.
+			s.SetMode(ScannerModeCode)
+			return s.makeToken(TokenKindLeftCurly)
+
 		default:
 			s.tokenLexeme += string(r)
 		}
