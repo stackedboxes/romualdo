@@ -371,6 +371,24 @@ func (n *Binary) Walk(v Visitor) {
 	v.Leave(n)
 }
 
+// Curlies is an AST node representing "curlies" within a Lecture.
+type Curlies struct {
+	BaseNode
+
+	// Expr is the expression within the curlies.
+	Expr Node
+}
+
+func (n *Curlies) Type() TypeTag {
+	return n.Expr.Type()
+}
+
+func (n *Curlies) Walk(v Visitor) {
+	v.Enter(n)
+	n.Expr.Walk(v)
+	v.Leave(n)
+}
+
 //
 // Helper types
 //

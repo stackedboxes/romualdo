@@ -22,4 +22,6 @@ const (
 	OpJump
 	OpEqual
 	OpNotEqual
+	OpToString
+	OpToLecture
 )

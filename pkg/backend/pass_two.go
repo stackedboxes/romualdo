@@ -109,6 +109,11 @@ func (cg *codeGeneratorPassTwo) Leave(node ast.Node) {
 			cg.codeGenerator.ice("unknown binary operator: %v", n.Operator)
 		}
 
+	case *ast.Curlies:
+		// The Curlies expression value shall be on the stack now.
+		cg.emitBytes(byte(bytecode.OpToLecture))
+		cg.emitBytes(byte(bytecode.OpSay))
+
 	default:
 		cg.codeGenerator.ice("unknown node type: %T", n)
 	}

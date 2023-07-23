@@ -93,6 +93,13 @@ func (i *interpreter) interpretStatement(stmt ast.Node) errs.Error {
 			return i.interpretStatement(n.Else)
 		}
 
+	case *ast.Curlies:
+		v, err := i.interpretExpression(n.Expr)
+		if err != nil {
+			return err
+		}
+		i.mouth.Say(v.AsString())
+
 	default:
 		return errs.NewRuntime("unknown statement type: %T", stmt)
 	}

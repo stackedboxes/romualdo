@@ -201,6 +201,24 @@ Equivalent to `EQUAL` followed by `NOT`, but in a single, efficient instruction.
 **Pops:** One value, the Lecture to be said.  
 **Pushes:** Nothing.
 
+### `TO_LECTURE`
+
+**Purpose:** Converts a value to a Lecture.  
+**Immediate Operands:** None.  
+**Pops:** One value, *A*, the value to convert to a Lecture.  
+**Pushes:** One value: *A* converted to a Lecture.
+
+This is a no-op if the value at the top of the stack is already a Lecture.
+Otherwise, this is essentially the same as `TO_STRING`, but leaving a Lecture on
+the stack (instead of a string).
+
+### `TO_STRING`
+
+**Purpose:** Converts a value to a string.  
+**Immediate Operands:** None.  
+**Pops:** One value, *A*, the value to convert to a string.  
+**Pushes:** One value: the string representation of *A*.
+
 ### `TRUE`
 
 **Purpose:** Loads a `true` value.  

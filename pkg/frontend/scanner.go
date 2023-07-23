@@ -63,6 +63,15 @@ type Scanner struct {
 
 	// tokenLine contains the line number where the current token started.
 	tokenLine int
+
+	// spacePrefix is a stack of "space prefixes". The one at the top is used in
+	// the current Lecture. A "space prefix" is the indentation common to every
+	// line of a Lecture, which is discarded by the scanner.
+	spacePrefix []string
+
+	// startNewSpacePrefix is set to true to tell the scanner that we are at a
+	// point in which we shall start a new space prefix.
+	startNewSpacePrefix bool
 }
 
 //
@@ -90,7 +99,9 @@ func (s *Scanner) Token() *Token {
 	case ScannerModeCode:
 		return s.codeModeToken()
 	case ScannerModeLecture:
-		return s.lectureModeToken()
+		ssp := s.startNewSpacePrefix
+		s.startNewSpacePrefix = false
+		return s.lectureModeToken(ssp)
 	default:
 		panic("Can't happen")
 	}
@@ -99,6 +110,12 @@ func (s *Scanner) Token() *Token {
 // SetMode sets the Scanner's scanning mode.
 func (s *Scanner) SetMode(mode ScannerMode) {
 	s.mode = mode
+}
+
+// StartNewSpacePrefix tells the scanner that we are at a point in which we
+// shall start a new space prefix.
+func (s *Scanner) StartNewSpacePrefix() {
+	s.startNewSpacePrefix = true
 }
 
 //
@@ -137,6 +154,10 @@ func (s *Scanner) codeModeToken() *Token {
 		return s.makeToken(TokenKindLeftSquare)
 	case ']':
 		return s.makeToken(TokenKindRightSquare)
+	case '}':
+		// This puts us back into Lecture mode.
+		s.SetMode(ScannerModeLecture)
+		return s.makeToken(TokenKindRightCurly)
 	case ':':
 		return s.makeToken(TokenKindColon)
 	case ',':
@@ -214,10 +235,13 @@ func (s *Scanner) skipWhitespace() {
 //
 
 // lectureModeToken returns the next Token, using the "lecture mode" scanning
-// rules.
-func (s *Scanner) lectureModeToken() *Token {
+// rules. newSpacePrefix tells if we are at a point in which we shall start a
+// new space prefix.
+func (s *Scanner) lectureModeToken(newSpacePrefix bool) *Token {
 	s.tokenLine = s.line
-	s.skipHorizontalWhitespace()
+	if newSpacePrefix {
+		s.skipHorizontalWhitespace()
+	}
 	s.start = s.current
 	if s.isAtEnd() {
 		return s.makeToken(TokenKindEOF)
@@ -239,15 +263,20 @@ func (s *Scanner) lectureModeToken() *Token {
 	// whitespace, because it will be ignored from every subsequent line. This
 	// is to allow nice indentation of source code without adding a lot of
 	// spaces to the lexemes.
-	spacePrefix := ""
 	if s.peek() == '\n' {
 		s.advance()
 		s.line += 1
 		s.tokenLine += 1
-		spacePrefix = s.skipHorizontalWhitespace()
+
+		// If we are in a point where we shall start a new space prefix, we
+		// obtain the new space prefix with `s.skipHorizontalWhitespace()` and
+		// push it onto the stack of space prefixes.
+		if newSpacePrefix {
+			s.spacePrefixPush(s.skipHorizontalWhitespace())
+		}
 	}
 
-	if ok, errToken := s.isSpacePrefixValid(spacePrefix); !ok {
+	if ok, errToken := s.isSpacePrefixValid(s.spacePrefixTop()); !ok {
 		return errToken
 	}
 
@@ -289,7 +318,7 @@ func (s *Scanner) lectureModeToken() *Token {
 			if s.isAtEnd() || s.atBackslashedToken() {
 				continue
 			}
-			if errToken := s.skipSpacePrefix(spacePrefix); errToken != nil {
+			if errToken := s.skipSpacePrefix(s.spacePrefixTop()); errToken != nil {
 				// We failed to match the space prefix. This is not necessarily
 				// an error: if the token right ahead is an `end` token, we
 				// shall use instead of erroring out.
@@ -304,6 +333,7 @@ func (s *Scanner) lectureModeToken() *Token {
 					tok := s.makeToken(TokenKindLecture)
 					s.current -= 1 // the `e` of `end` was consumed; undo that
 					s.SetMode(ScannerModeCode)
+					s.spacePrefixPop()
 					return tok
 				}
 				return errToken
@@ -353,10 +383,10 @@ func (s *Scanner) skipHorizontalWhitespace() string {
 }
 
 // isSpacePrefixValid checks if prefix is a valid space prefix. In other words,
-// checks if prefix is valid as the ignored indentation before a Text portion
-// starts. It assumes, though, that all runes in prefix were already checked to
-// be horizontal whitespace. If the result is false, it additionally returns an
-// appropriate error token.
+// checks if prefix is valid as the ignored indentation before the relevant
+// contents of a Lecture line starts. It assumes, though, that all runes in
+// prefix were already checked to be horizontal whitespace. If the result is
+// false, it additionally returns an appropriate error token.
 func (s *Scanner) isSpacePrefixValid(prefix string) (bool, *Token) {
 	if strings.Contains(prefix, " ") && strings.Contains(prefix, "\t") {
 		return false, s.errorToken("space prefix cannot contain mixed spaces and tabs.")
@@ -473,6 +503,31 @@ func (s *Scanner) scanString() *Token {
 	r := s.advance()
 	s.tokenLexeme += string(r)
 	return s.makeToken(TokenKindStringLiteral)
+}
+
+//
+// Space prefix stack
+//
+
+// spacePrefixPush pushes a new space prefix onto the stack of space prefixes.
+func (s *Scanner) spacePrefixPush(prefix string) {
+	s.spacePrefix = append(s.spacePrefix, prefix)
+}
+
+// spacePrefixPop pops the space prefix on the top of the stack of space
+// prefixes, and returns it for convenience. It soes not check for overflow.
+func (s *Scanner) spacePrefixPop() string {
+	i := len(s.spacePrefix) - 1
+	result := s.spacePrefix[i]
+	s.spacePrefix = s.spacePrefix[:i]
+	return result
+}
+
+// spacePrefixTop pops the space prefix on the top of the stack of space
+// prefixes, and returns it for convenience. It soes not check for overflow.
+func (s *Scanner) spacePrefixTop() string {
+	i := len(s.spacePrefix) - 1
+	return s.spacePrefix[i]
 }
 
 //

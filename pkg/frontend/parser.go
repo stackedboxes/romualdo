@@ -253,6 +253,7 @@ func (p *parser) passageDecl() *ast.ProcedureDecl {
 	// mode.
 	proc.ReturnType = p.parseTypeNoConsume()
 	p.scanner.SetMode(ScannerModeLecture)
+	p.scanner.StartNewSpacePrefix()
 	p.advance()
 
 	// As above, make sure we switch back to code mode before parsing the first
@@ -383,6 +384,17 @@ func (p *parser) statement() ast.Node {
 			Text: p.previousToken.Lexeme,
 		}
 
+	case p.match(TokenKindLeftCurly):
+		curlies := &ast.Curlies{
+			BaseNode: ast.BaseNode{
+				SrcFile:    p.fileName,
+				LineNumber: p.previousToken.Line,
+			},
+		}
+		curlies.Expr = p.expression()
+		p.consume(TokenKindRightCurly, "Expected `}` to close the curlies started at line %v.", curlies.LineNumber)
+		return curlies
+
 	case p.match(TokenKindIf):
 		return p.ifStatement()
 
@@ -395,6 +407,7 @@ func (p *parser) statement() ast.Node {
 		// Switch the scanner to lecture mode, because a Lecture is what we
 		// expect between a `say`/`end` pair.
 		p.scanner.SetMode(ScannerModeLecture)
+		p.scanner.StartNewSpacePrefix()
 
 		// Now that we are in lecture mode, we can consume the "say" token.
 		p.advance()

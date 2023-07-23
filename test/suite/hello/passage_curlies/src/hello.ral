@@ -1,0 +1,3 @@
+passage main(): void
+    Hello, curly {"World"}!
+end

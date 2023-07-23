@@ -12,7 +12,7 @@
             "program": "${workspaceFolder}/cmd/romualdo",
             "env": {},
             "cwd": "${workspaceFolder}",
-            "args": ["run", "test/suite/hello/function_plain/src"]
+            "args": ["run", "test/suite/hello/passage_curlies/src"]
             // "args": ["run", "--trace", "csw.ras"]
         }
     ]

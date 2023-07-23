@@ -191,6 +191,22 @@ func (vm *VM) run() errs.Error {
 			a := vm.pop()
 			vm.push(bytecode.NewValueBool(!bytecode.ValuesEqual(a, b)))
 
+		case bytecode.OpToString:
+			if vm.top().IsString() {
+				break
+			}
+			v := vm.pop()
+			s := v.String()
+			vm.push(bytecode.NewValueString(s))
+
+		case bytecode.OpToLecture:
+			if vm.top().IsLecture() {
+				break
+			}
+			v := vm.pop()
+			s := v.String()
+			vm.push(bytecode.NewValueLecture(s))
+
 		default:
 			vm.runtimeError("Unexpected instruction: %v", instruction)
 		}
