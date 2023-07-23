@@ -1,11 +1,5 @@
 # TODO
 
-* I need either of these to write interesting tests:
-    * Backslashed statements in Lectures, plus support for `{1+1*3}` to allow me
-      to output arbitrary expressions.
-
-Would be nice to have both! 😉
-
 * Test to add:
     * `false listen "whatever"`: I think we are trying to use `listen` as an
       infix operator in this case, which eventually panics.

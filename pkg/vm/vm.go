@@ -106,6 +106,7 @@ func (vm *VM) run() errs.Error {
 		// TODO: Temporary hack to detect the of end of a program. Eventually,
 		// this will be done by the return instruction.
 		if vm.frame.ip >= len(vm.currentChunk().Code) {
+			vm.mouth.Flush()
 			return nil
 		}
 
@@ -142,6 +143,7 @@ func (vm *VM) run() errs.Error {
 			vm.mouth.Say(value.AsLecture().Text)
 
 		case bytecode.OpListen:
+			vm.mouth.Flush()
 			options := vm.pop()
 			vm.mouth.Say(options.AsString()) // TODO: Temporary, to see what's happening.
 

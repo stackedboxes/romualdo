@@ -11,6 +11,7 @@ import (
 	"bufio"
 	"io"
 	"os"
+	"strings"
 )
 
 //
@@ -22,8 +23,12 @@ import (
 // never returns an error, which is technically wrong but should be true enough
 // for the uses cases that matter.
 type Mouth interface {
-	// Say outputs the given string.
+	// Say outputs the given string. In fact, it buffers the string, and only
+	// outputs it when Flush is called.
 	Say(string)
+
+	// Flush outputs all strings buffered by calls to Say.
+	Flush()
 }
 
 // An Ear is something that can receive input from Romualdo. It is the the
@@ -41,19 +46,36 @@ type Ear interface {
 
 // NewWriterMouth creates a new Mouth that outputs to the given io.Writer.
 func NewWriterMouth(w io.Writer) Mouth {
-	return &writerMouth{w}
+	return &writerMouth{w: w}
 }
 
 // writerMouth is a Mouth that outputs to an io.Writer.
 type writerMouth struct {
-	w io.Writer
+	w       io.Writer
+	buffer  strings.Builder
+	hasData bool
 }
 
 // Say outputs the given string to the underlying io.Writer.
-func (wo *writerMouth) Say(s string) {
+func (wm *writerMouth) Say(s string) {
+	// WriteString() always returns a nil error.
+	wm.buffer.WriteString(s)
+	wm.hasData = true
+}
+
+// Flush effectively outputs the strings previously Say()ed.
+func (wm *writerMouth) Flush() {
+	if !wm.hasData {
+		return
+	}
+
+	s := wm.buffer.String()
+	wm.buffer.Reset()
+
 	// Ignore errors. Hopefully this will not be too bad for the envisioned use
 	// cases (std output and in-memory buffers).
-	_, _ = wo.w.Write([]byte(s))
+	_, _ = wm.w.Write([]byte(s))
+	wm.hasData = false
 }
 
 //
@@ -64,11 +86,25 @@ func (wo *writerMouth) Say(s string) {
 // later. Good for testing.
 type MemoryMouth struct {
 	Outputs []string
+	buffer  strings.Builder
+	hasData bool
 }
 
 // Say stores the said string in memory.
 func (mm *MemoryMouth) Say(s string) {
+	mm.hasData = true
+	mm.buffer.WriteString(s)
+}
+
+// Flush outputs the buffered strings previously Say()ed.
+func (mm *MemoryMouth) Flush() {
+	if !mm.hasData {
+		return
+	}
+	s := mm.buffer.String()
+	mm.buffer.Reset()
 	mm.Outputs = append(mm.Outputs, s)
+	mm.hasData = false
 }
 
 //

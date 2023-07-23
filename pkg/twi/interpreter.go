@@ -31,7 +31,9 @@ func (i *interpreter) run() errs.Error {
 	if !ok {
 		return errs.NewRuntime("Missing '/main' procedure")
 	}
-	return i.interpretProcedure(main)
+	err := i.interpretProcedure(main)
+	i.mouth.Flush()
+	return err
 }
 
 //
@@ -117,6 +119,8 @@ func (i *interpreter) interpretExpression(expr ast.Node) (bytecode.Value, errs.E
 		return bytecode.Value{Value: n.Value}, nil
 
 	case *ast.Listen:
+		i.mouth.Flush()
+
 		// TODO: Currently this just assumes the argument to listen is a string
 		// literal. This will break bad once we have more complex expressions.
 		// Should do for now, though.
