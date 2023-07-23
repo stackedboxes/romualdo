@@ -37,3 +37,24 @@ to make a language change:
     * Emit this new opcode somewhere in `pkg/backend/pass_two.go`.
     * Add code to interpret it at `pkg/vm/vm.go`.
     * Add code to disassemble it in `pkg/bytecode/disassembler.go`.
+
+## Lecture x Code, Parser x Scanner
+
+This section should be more complete, but for now here are some quick points
+about consequences of having two different modes (Lecture and Code):
+
+* The scanner and the parser are not completely independent. The parser changes
+  the scanner behavior.
+* How this happens is not always very clear, and probably not very consistent
+  right now.
+* In this regard, there are two important points in the Scanner API:
+    * `Scanner.SetMode()`: The parser uses this to change between the two modes.
+      For example, after seeing a `say` token, the parser switches the scanning
+      mode to Lecture mode.
+    * `Scanner.StartNewSpacePrefix()`: This is a bit trickier. The scanner
+      handles the space prefix ignoring, but it doesn't know when a new space
+      prefix needs to be used. For example, we start a new space prefix after a
+      `say` statement, but not after Curlies. So, the parser tells the scanner
+      when a new space prefix is due.
+        * And notice that we have a stack of space prefixes, because we need to
+          handle nested things like `say` statements inside double curlies.
