@@ -81,9 +81,10 @@ type Scanner struct {
 // NewScanner returns a new Scanner that will scan source.
 func NewScanner(source string) *Scanner {
 	return &Scanner{
-		source: source,
-		mode:   ScannerModeCode,
-		line:   1,
+		source:      source,
+		mode:        ScannerModeCode,
+		line:        1,
+		spacePrefix: []string{""},
 	}
 }
 
@@ -276,7 +277,11 @@ func (s *Scanner) lectureModeToken(newSpacePrefix bool) *Token {
 		}
 	}
 
-	if ok, errToken := s.isSpacePrefixValid(s.spacePrefixTop()); !ok {
+	sp := ""
+	if len(s.spacePrefix) > 0 {
+		sp = s.spacePrefixTop()
+	}
+	if ok, errToken := s.isSpacePrefixValid(sp); !ok {
 		return errToken
 	}
 
