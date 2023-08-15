@@ -30,51 +30,64 @@ import (
 //
 // trace tells if you want to debug-trace the execution of the VM.
 func RunStoryworld(path string, mouth romutil.Mouth, ear romutil.Ear, trace bool) errs.Error {
+	csw, di, err := cswFromPath(path)
+	if err != nil {
+		return err
+	}
+
+	return runCSW(csw, di, mouth, ear, trace)
+}
+
+// cswFromPath loads the CompiledStoryworld and DebugInfo from the given path,
+// which can be either a compiled Storyworld (.ras) file or a directory with the
+// Storyworld source code.
+func cswFromPath(path string) (*bytecode.CompiledStoryworld, *bytecode.DebugInfo, errs.Error) {
 	fileInfo, err := os.Stat(path)
 	if err != nil {
-		return errs.NewRomualdoTool("stating %v: %v", path, err)
+		return nil, nil, errs.NewRomualdoTool("stating %v: %v", path, err)
 	}
 
 	if fileInfo.IsDir() {
-		return runStoryworldFromSource(path, mouth, ear, trace)
+		return cswFromSource(path)
 	}
 
-	return runStoryworldFromBinary(path, mouth, ear, trace)
+	return cswFromFile(path)
 }
 
-func runStoryworldFromSource(path string, out romutil.Mouth, in romutil.Ear, trace bool) errs.Error {
+// cswFromSource compiles the Storyworld source located at path and returns the
+// CompiledStoryworld and DebugInfo.
+func cswFromSource(path string) (*bytecode.CompiledStoryworld, *bytecode.DebugInfo, errs.Error) {
 	// Parse
 	swAST, err := frontend.ParseStoryworld(path)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	// Generate code
-	csw, di, err := backend.GenerateCode(swAST)
-	if err != nil {
-		return err
-	}
+	return backend.GenerateCode(swAST)
+}
 
-	// Run
+// cswFromFile loads the CompiledStoryworld and DebugInfo from the given
+// compiled Storyworld (.ras) file.
+func cswFromFile(path string) (*bytecode.CompiledStoryworld, *bytecode.DebugInfo, errs.Error) {
+	csw, di, err := LoadCompiledStoryworldBinaries(path, false)
+	if err != nil {
+		return nil, nil, err
+	}
+	return csw, di, nil
+}
+
+// runCSW interprets the given CompiledStoryworld and (potentially nil)
+// DebugInfo.
+func runCSW(csw *bytecode.CompiledStoryworld, di *bytecode.DebugInfo, out romutil.Mouth, in romutil.Ear, trace bool) errs.Error {
 	theVM := New(out, in)
 	theVM.DebugTraceExecution = trace
 	return theVM.Interpret(csw, di)
 }
 
-func runStoryworldFromBinary(rasFile string, out romutil.Mouth, in romutil.Ear, trace bool) errs.Error {
-	var csw *bytecode.CompiledStoryworld
-	var di *bytecode.DebugInfo
-
-	csw, di, err := LoadCompiledStoryworldBinaries(rasFile, false)
-	if err != nil {
-		return err
-	}
-
-	theVM := New(out, in)
-	theVM.DebugTraceExecution = trace
-	return theVM.Interpret(csw, di)
-}
-
+// LoadCompiledStoryworldBinaries loads the CompiledStoryworld from cwPath. It
+// also looks for the corresponding DebugInfo file and loads it if found. If the
+// DebugInfo file is not found, it returns an error only if diRequired is true.
 func LoadCompiledStoryworldBinaries(cswPath string, diRequired bool) (*bytecode.CompiledStoryworld, *bytecode.DebugInfo, errs.Error) {
 	// Compiled Storyworld itself
 	cswFile, err := os.Open(cswPath)

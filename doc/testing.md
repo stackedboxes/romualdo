@@ -98,7 +98,8 @@ These are the keys recognized by `romualdo dev test`.
 
 ### `type`
 
-*Default: `build-and-run`.*
+*Default: normally `build-and-run`; exception: single-step test cases with a
+non-zero `exitCode` default to `build`.*
 
 Steps can be of different types, depending on what you want the step to do. So,
 in a sense this is the most important key, as it determines even which other
@@ -108,13 +109,16 @@ Possible values are:
 
 * `build`: The step builds the source code. It can check for error codes and
   error messages.
-* `run`: The step runs the Storyworld built on a previous step. It can send
-  input, and check if it gets the expected output.
 * `build-and-run`: Equivalent to `build` followed by `run`; the `run` part is
   skipped if the build fails.
 * `save-state`: The step saves the VM state.
 * `load-state`: The step loads the VM state (assumed to have been previously
   saved).
+
+There is no support for `run` steps. This is intentional, but not a hard design
+decision. Simply, we currently don't have any use case for that. Either we want
+to `build-and-run`, or to `build` only, fail, and check if we got the expected
+errors.
 
 ### `sourceDir`
 

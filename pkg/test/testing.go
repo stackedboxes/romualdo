@@ -42,25 +42,18 @@ type step struct {
 	ErrorMessages []string
 }
 
-// swRunnerFunc is a function that can run a Storyworld at path, using mouth and
-// ear for I/O.
-type swRunnerFunc func(path string, mouth romutil.Mouth, ear romutil.Ear) errs.Error
-
 // ExecuteSuite runs the test suite at suitePath. If walkDontRun is true, the
 // tree-walk interpreter is used instead of the bytecode one.
 func ExecuteSuite(walkDontRun bool, suitePath string) errs.Error {
 	// TODO: Run tests concurrently. Like we do Storyworld parsing.
-
-	var runner swRunnerFunc = nil
+	var runner romutil.Runner = nil
 
 	if walkDontRun {
 		fmt.Println("Using the tree-walk interpreter.")
-		runner = twi.WalkStoryworld
+		runner = twi.NewRunner()
 	} else {
 		fmt.Println("Using the bytecode interpreter.")
-		runner = func(path string, mouth romutil.Mouth, ear romutil.Ear) errs.Error {
-			return vm.RunStoryworld(path, mouth, ear, false)
-		}
+		runner = vm.NewRunner(false)
 	}
 
 	err := romutil.ForEachMatchingFileRecursive(suitePath, regexp.MustCompile("test.toml"),
@@ -73,7 +66,7 @@ func ExecuteSuite(walkDontRun bool, suitePath string) errs.Error {
 }
 
 // runCase runs the test case defined in configPath using the given runner.
-func runCase(configPath string, runner swRunnerFunc) errs.Error {
+func runCase(configPath string, runner romutil.Runner) errs.Error {
 	testPath := path.Dir(configPath)
 	testCase := testPath
 
@@ -87,52 +80,98 @@ func runCase(configPath string, runner swRunnerFunc) errs.Error {
 		return err
 	}
 
-	for _, step := range testConf.Steps {
+	for i, step := range testConf.Steps {
 		srcPath := path.Join(testPath, step.SourceDir)
 		mouth := &romutil.MemoryMouth{}
 		ear := romutil.NewFatefulEar(step.Input)
 
-		err = runner(srcPath, mouth, ear)
+		var err errs.Error = nil
 
-		// Check status code
-		if err != nil {
-			if err.ExitCode() != step.ExitCode {
+		switch step.Type {
+		case "build":
+			err = stepBuild(srcPath, runner)
+
+		case "build-and-run":
+			err = stepBuild(srcPath, runner)
+			if err != nil {
+				return err
+			}
+			err = stepRun(runner, mouth, ear)
+
+		case "save-state":
+			return stepSaveState()
+
+		case "load-state":
+			return stepLoadState()
+
+		default:
+			return errs.NewTestSuite(testCase, "Unknown step type '%v'.", step.Type)
+		}
+
+		if i == len(testConf.Steps)-1 {
+			// Check status code
+			exitCode := 0
+			if err != nil {
+				exitCode = err.ExitCode()
+			}
+			if exitCode != step.ExitCode {
 				return errs.NewTestSuite(testCase, "expected exit code %v, got %v.", step.ExitCode, err.ExitCode())
 			}
-		}
 
-		// Check error messages
-		stepErrs := err
-		for _, expectedErrMsg := range step.ErrorMessages {
-			re, err := regexp.Compile(expectedErrMsg)
+			// Check error messages
+			stepErrs := err
+			for _, expectedErrMsg := range step.ErrorMessages {
+				re, err := regexp.Compile(expectedErrMsg)
+				if err != nil {
+					return errs.NewTestSuite(testCase, "compiling regexp '%v': %v.", expectedErrMsg, err.Error())
+				}
+
+				if !re.Match([]byte(stepErrs.Error())) {
+					return errs.NewTestSuite(testCase, "expected error message '%v', got '%v'.", expectedErrMsg, stepErrs.Error())
+				}
+			}
+
+			if stepErrs != nil {
+				// If we had errors and reached this point, it means the error was
+				// expected. The outputs don't matter, go on to the next step.
+				continue
+			}
+
+			// Check output
+			if len(step.Output) != len(mouth.Outputs) {
+				return errs.NewTestSuite(testCase, "got %v outputs, expected %v.", len(mouth.Outputs), len(step.Output))
+			}
+			for i, actualOutput := range mouth.Outputs {
+				if actualOutput != step.Output[i] {
+					return errs.NewTestSuite(testCase, "at index %v: expected output '%v', got '%v'.", i, step.Output[0], actualOutput)
+				}
+			}
+		} else {
+			// We are not in the last step, so we expect no errors.
 			if err != nil {
-				return errs.NewTestSuite(testCase, "compiling regexp '%v': %v.", expectedErrMsg, err.Error())
-			}
-
-			if !re.Match([]byte(stepErrs.Error())) {
-				return errs.NewTestSuite(testCase, "expected error message '%v', got '%v'.", expectedErrMsg, stepErrs.Error())
-			}
-		}
-
-		if stepErrs != nil {
-			// If we had errors and reached this point, it means the error was
-			// expected. The outputs don't matter, go on to the next step.
-			continue
-		}
-
-		// Check output
-		if len(step.Output) != len(mouth.Outputs) {
-			return errs.NewTestSuite(testCase, "got %v outputs, expected %v.", len(mouth.Outputs), len(step.Output))
-		}
-		for i, actualOutput := range mouth.Outputs {
-			if actualOutput != step.Output[i] {
-				return errs.NewTestSuite(testCase, "at index %v: expected output '%v', got '%v'.", i, step.Output[0], actualOutput)
+				return err
 			}
 		}
 	}
 
 	fmt.Printf("Test case passed: %v.\n", testPath)
 	return nil
+}
+
+func stepBuild(path string, runner romutil.Runner) errs.Error {
+	return runner.Build(path)
+}
+
+func stepRun(runner romutil.Runner, mouth romutil.Mouth, ear romutil.Ear) errs.Error {
+	return runner.Run(mouth, ear)
+}
+
+func stepSaveState() errs.Error {
+	return errs.NewICE("Step type 'save-state' not implemented yet.")
+}
+
+func stepLoadState() errs.Error {
+	return errs.NewICE("Step type 'load-state' not implemented yet.")
 }
 
 // readConfig reads a test configuration from a TOML file.
@@ -164,7 +203,11 @@ func readConfig(path string) (*config, errs.Error) {
 func canonicalizeConfig(testConf *config) {
 	// Give default values to all empty fields in the top-level config.
 	if testConf.Type == "" {
-		testConf.Type = "build-and-run"
+		if testConf.ExitCode != 0 && len(testConf.Steps) == 0 {
+			testConf.Type = "build"
+		} else {
+			testConf.Type = "build-and-run"
+		}
 	}
 	if testConf.SourceDir == "" {
 		testConf.SourceDir = "src"
@@ -219,10 +262,14 @@ func canonicalizeConfig(testConf *config) {
 // validateConfig validates a test configuration that is already in canonical
 // format. Returns nil if the configuration is valid, or an error otherwise.
 func validateConfig(testCase string, testConf *config) errs.Error {
+	var supportedTypes = map[string]bool{
+		"build":         true,
+		"build-and-run": true,
+	}
 	for _, step := range testConf.Steps {
 		// Validate step type
-		if step.Type != "build-and-run" {
-			return errs.NewTestSuite(testCase, "invalid test type '%v'; only 'build-and-run' supported for now", step.Type)
+		if !supportedTypes[step.Type] {
+			return errs.NewTestSuite(testCase, "invalid test step type `%v`", step.Type)
 		}
 	}
 	return nil
