@@ -24,8 +24,11 @@ Storyworld (*.ras) or a Storyworld source directory.`,
 	Args: cobra.ExactArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
+		runner := vm.NewRunner(runDebugTraceExecution)
 		mouth, ear := romutil.StdMouthAndEar()
-		err := vm.RunStoryworld(args[0], mouth, ear, runDebugTraceExecution)
+		err := runner.Build(args[0])
+		reportAndExitOnError(err)
+		err = runner.Run(mouth, ear)
 		reportAndExit(err)
 	},
 }

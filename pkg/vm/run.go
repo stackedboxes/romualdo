@@ -18,26 +18,6 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
-// RunStoryworld interprets the Storyworld located at path using the VM-based
-// interpreter. Sends output to out.
-//
-// The path parameter accepts two different things:
-//
-//  1. A compiled Storyworld (*.ras file). In this case, the file is loaded
-//     along with the corresponding debug info (*.rad file) and interpreted.
-//  2. A directory containing a Storyworld source. In this case, the source is
-//     compiled and interpreted.
-//
-// trace tells if you want to debug-trace the execution of the VM.
-func RunStoryworld(path string, mouth romutil.Mouth, ear romutil.Ear, trace bool) errs.Error {
-	csw, di, err := cswFromPath(path)
-	if err != nil {
-		return err
-	}
-
-	return runCSW(csw, di, mouth, ear, trace)
-}
-
 // cswFromPath loads the CompiledStoryworld and DebugInfo from the given path,
 // which can be either a compiled Storyworld (.ras) file or a directory with the
 // Storyworld source code.

@@ -36,8 +36,10 @@ var walkCmd = &cobra.Command{
 		}
 
 		mouth, ear := romutil.StdMouthAndEar()
-
-		err := twi.WalkStoryworld(path, mouth, ear)
+		runner := twi.NewRunner()
+		err := runner.Build(path)
+		reportAndExitOnError(err)
+		err = runner.Run(mouth, ear)
 		reportAndExit(err)
 	},
 }
