@@ -31,7 +31,7 @@ type Mouth interface {
 	Flush()
 }
 
-// An Ear is something that can receive input from Romualdo. It is the the
+// An Ear is something that can receive input from Romualdo. It is the
 // abstraction representing how a Romualdo interpreter gets data from the
 // outside world. An Ear never returns an error, which is technically wrong but
 // should be true enough for the uses cases that matter.
