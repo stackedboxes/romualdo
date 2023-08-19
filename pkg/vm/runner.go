@@ -20,7 +20,7 @@ type runner struct {
 	di    *bytecode.DebugInfo
 }
 
-// NewRunner creates a new TWIRunner.
+// NewRunner creates a new Runner based on the bytecode VM.
 func NewRunner(trace bool) romutil.Runner {
 	return &runner{
 		trace: trace,

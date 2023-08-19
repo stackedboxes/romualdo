@@ -15,9 +15,11 @@ import (
 // Abstract Runner interface
 //
 
-// A Runner can build and run a Storyworld. Meant to abstract away the
-// differences between the tree-walk interpreter and the bytecode VM with
+// A Runner can build and run a Storyworld. Was meant to abstract away the
+// differences between the tree-walk interpreter (RIP) and the bytecode VM with
 // regards to building and running.
+//
+// TODO: Remove! Pointless now.
 type Runner interface {
 	// Build builds the Storyworld located at path. Can be called multiple
 	// times.

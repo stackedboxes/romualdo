@@ -16,7 +16,6 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
-	"github.com/stackedboxes/romualdo/pkg/twi"
 	"github.com/stackedboxes/romualdo/pkg/vm"
 )
 
@@ -42,19 +41,10 @@ type step struct {
 	ErrorMessages []string
 }
 
-// ExecuteSuite runs the test suite at suitePath. If walkDontRun is true, the
-// tree-walk interpreter is used instead of the bytecode one.
-func ExecuteSuite(walkDontRun bool, suitePath string) errs.Error {
+// ExecuteSuite runs the test suite at suitePath.
+func ExecuteSuite(suitePath string) errs.Error {
 	// TODO: Run tests concurrently. Like we do Storyworld parsing.
-	var runner romutil.Runner = nil
-
-	if walkDontRun {
-		fmt.Println("Using the tree-walk interpreter.")
-		runner = twi.NewRunner()
-	} else {
-		fmt.Println("Using the bytecode interpreter.")
-		runner = vm.NewRunner(false)
-	}
+	runner := vm.NewRunner(false)
 
 	err := romutil.ForEachMatchingFileRecursive(suitePath, regexp.MustCompile("test.toml"),
 		func(configPath string) errs.Error {

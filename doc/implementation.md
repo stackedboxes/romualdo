@@ -26,7 +26,6 @@ to make a language change:
     * Add a new AST `Node` subtype at `pkg/ast/nodes.go`.
     * Change the parser at `pkg/frontend/parser.go`; some new function will
       return a node of this new type.
-    * Implement how to interpret this node in `pkg/twi/interpreter.go`.
     * Generate code for this node type in `pkg/backend/pass_two.go`.
 * Maybe add some new semantic checks at `pkg/frontend/semantic_checker.go`.
 * Maybe add some new type checks at `pkg/frontend/type_checker.go`.

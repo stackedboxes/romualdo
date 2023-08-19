@@ -18,7 +18,7 @@ var devTestCmd = &cobra.Command{
 	Long:  `Run a Romualdo test suite (i.e., meant to test Romualdo itself).`,
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		err := test.ExecuteSuite(flagDevTestWalkDontRun, flagDevTestSuite)
+		err := test.ExecuteSuite(flagDevTestSuite)
 		reportAndExit(err)
 	},
 }
@@ -26,14 +26,7 @@ var devTestCmd = &cobra.Command{
 // flagDevTestSuite is the value of the --suite flag of the `dev test` command.
 var flagDevTestSuite string
 
-// flagDevTestWalkDontRun is the value of the --walk-dont-run flag of the `dev
-// test` command.
-var flagDevTestWalkDontRun bool
-
 func init() {
 	devTestCmd.Flags().StringVarP(&flagDevTestSuite, "suite", "s",
 		"./test/suite", "Path to the test suite to run")
-
-	devTestCmd.Flags().BoolVarP(&flagDevTestWalkDontRun, "walk-dont-run", "w",
-		false, "Test using the walk tree interpreter instead of the bytecode one")
 }
