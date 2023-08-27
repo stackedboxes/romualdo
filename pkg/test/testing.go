@@ -97,9 +97,7 @@ func runCase(configPath string) errs.Error {
 				}
 
 				if !theVM.WaitingForInput {
-					// TODO: Get rid of this assert-like check? Or at least make it
-					// "throw" an errs.Runtime.
-					panic("Should be waiting for input, right?")
+					return errs.NewICE("Inconsistent VM state: not waiting for input after Start() or Step()")
 				}
 
 				output = theVM.Step(choice)

@@ -109,7 +109,7 @@ func (vm *VM) Start() string {
 // Must be called when VM.WaitingForInput is true, otherwise it panics.
 func (vm *VM) Step(choice string) string {
 	if !vm.WaitingForInput {
-		panic("Called Step() with the VM not waiting for input")
+		panic(errs.NewICE("VM.Step() called while not waiting for input"))
 	}
 
 	vm.push(bytecode.NewValueString(choice))
