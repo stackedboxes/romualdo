@@ -2,10 +2,6 @@
 
 Notes on the format expected by `romualdo dev test`.
 
-**Warning.** Right now, these are more musings on what to make than a
-description of the actual implementation (which is extremely bare and not very
-much like what is described here).
-
 ## Concepts
 
 A **test case** is declaratively defined in a `test.toml` file. Each test case
@@ -32,7 +28,7 @@ key3 = [
 ]
 ```
 
-The keys and values here are mde up, but the structure is real: a single-step
+The keys and values here are made up, but the structure is real: a single-step
 test case is just a bunch of key/values at the top-level of the `test.toml`
 file.
 
@@ -109,8 +105,8 @@ Possible values are:
 
 * `build`: The step builds the source code. It can check for error codes and
   error messages.
-* `build-and-run`: Equivalent to `build` followed by `run`; the `run` part is
-  skipped if the build fails.
+* `build-and-run`: The builds the code, then runs it. The build step is expected
+  to succeed.
 * `save-state`: The step saves the VM state.
 * `load-state`: The step loads the VM state (assumed to have been previously
   saved).
@@ -119,6 +115,13 @@ There is no support for `run` steps. This is intentional, but not a hard design
 decision. Simply, we currently don't have any use case for that. Either we want
 to `build-and-run`, or to `build` only, fail, and check if we got the expected
 errors.
+
+TODO: For load and save cases, we'll need a `run` step. Like, send all inputs
+from the initial `build-and-run`, then save, then send some more inputs, then
+load and send a different set of inputs.
+
+TODO: Need to define the semantics of end of story. I think it will be this:
+if the last step was a run, we expect the story to be ended.
 
 ### `sourceDir`
 
@@ -136,8 +139,7 @@ is relative to the directory where `test.toml` is.
 An array of strings, which will be send as input to the Storyworld. Each element
 in the array will be sent at a time, for each time the Storyworld `listen`s.
 
-It is expected that all elements in the array will be used when the execution
-completes.
+It is an error if the story ends before all inputs are used.
 
 ### `output`
 

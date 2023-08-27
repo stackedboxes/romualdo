@@ -12,8 +12,10 @@
             "program": "${workspaceFolder}/cmd/romualdo",
             "env": {},
             "cwd": "${workspaceFolder}",
-            "args": ["run", "test/suite/hello/passage_curlies/src"]
+            // "args": ["run", "test/suite/hello/passage_curlies/src"]
+            "args": ["run", "my-test"],
             // "args": ["run", "--trace", "csw.ras"]
+            "console": "integratedTerminal"
         }
     ]
 }

@@ -8,6 +8,8 @@
 package vm
 
 import (
+	"bufio"
+	"fmt"
 	"os"
 	"path"
 
@@ -15,13 +17,12 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/bytecode"
 	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/frontend"
-	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
-// cswFromPath loads the CompiledStoryworld and DebugInfo from the given path,
-// which can be either a compiled Storyworld (.ras) file or a directory with the
-// Storyworld source code.
-func cswFromPath(path string) (*bytecode.CompiledStoryworld, *bytecode.DebugInfo, errs.Error) {
+// CSWFromPath loads the CompiledStoryworld and DebugInfo from the given path,
+// which can be either a compiled Storyworld (*.ras) file or a directory with
+// the Storyworld source code (*.ral).
+func CSWFromPath(path string) (*bytecode.CompiledStoryworld, *bytecode.DebugInfo, errs.Error) {
 	fileInfo, err := os.Stat(path)
 	if err != nil {
 		return nil, nil, errs.NewRomualdoTool("stating %v: %v", path, err)
@@ -31,6 +32,8 @@ func cswFromPath(path string) (*bytecode.CompiledStoryworld, *bytecode.DebugInfo
 		return cswFromSource(path)
 	}
 
+	// TODO: This is a bit pointless. Could call LoadCompiledStoryworld
+	// directly.
 	return cswFromFile(path)
 }
 
@@ -57,12 +60,52 @@ func cswFromFile(path string) (*bytecode.CompiledStoryworld, *bytecode.DebugInfo
 	return csw, di, nil
 }
 
-// runCSW interprets the given CompiledStoryworld and (potentially nil)
-// DebugInfo.
-func runCSW(csw *bytecode.CompiledStoryworld, di *bytecode.DebugInfo, out romutil.Mouth, in romutil.Ear, trace bool) errs.Error {
-	theVM := New(out, in)
+// RunCSW interprets the given CompiledStoryworld and (potentially nil)
+// DebugInfo. If trace is true, it prints a trace/disassembly of the execution
+// to stdout as it goes.
+func RunCSW(csw *bytecode.CompiledStoryworld, di *bytecode.DebugInfo, trace bool) (err errs.Error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if e, ok := r.(*errs.Runtime); ok {
+				err = e
+				return
+			}
+			if e, ok := r.(error); ok {
+				err = errs.NewICE("Unexpected error: %T (%v)", r, e)
+				return
+			}
+			err = errs.NewICE("Unexpected error type: %T (%v)", r, r)
+			return
+		}
+	}()
+
+	theVM := New(csw, di)
 	theVM.DebugTraceExecution = trace
-	return theVM.Interpret(csw, di)
+
+	out := theVM.Start()
+	for {
+		fmt.Print(out)
+
+		if theVM.EndOfStory {
+			fmt.Println("-- The End --")
+			return nil
+		}
+
+		if !theVM.WaitingForInput {
+			// TODO: Get rid of this assert-like check? Or at least make it
+			// "throw" an errs.Runtime.
+			panic("Should be waiting for input, right?")
+		}
+
+		fmt.Println(theVM.Options)
+		fmt.Print("> ")
+
+		s := bufio.NewScanner(os.Stdin)
+		s.Scan()
+		input := s.Text()
+
+		out = theVM.Step(input)
+	}
 }
 
 // LoadCompiledStoryworldBinaries loads the CompiledStoryworld from cwPath. It

@@ -44,11 +44,9 @@ type step struct {
 // ExecuteSuite runs the test suite at suitePath.
 func ExecuteSuite(suitePath string) errs.Error {
 	// TODO: Run tests concurrently. Like we do Storyworld parsing.
-	runner := vm.NewRunner(false)
-
 	err := romutil.ForEachMatchingFileRecursive(suitePath, regexp.MustCompile("test.toml"),
 		func(configPath string) errs.Error {
-			return runCase(configPath, runner)
+			return runCase(configPath)
 		},
 	)
 
@@ -56,7 +54,7 @@ func ExecuteSuite(suitePath string) errs.Error {
 }
 
 // runCase runs the test case defined in configPath using the given runner.
-func runCase(configPath string, runner romutil.Runner) errs.Error {
+func runCase(configPath string) errs.Error {
 	testPath := path.Dir(configPath)
 	testCase := testPath
 
@@ -70,35 +68,59 @@ func runCase(configPath string, runner romutil.Runner) errs.Error {
 		return err
 	}
 
+	var theVM *vm.VM
+	var story []string // the VM output
+
 	for i, step := range testConf.Steps {
 		srcPath := path.Join(testPath, step.SourceDir)
-		mouth := &romutil.MemoryMouth{}
-		ear := romutil.NewFatefulEar(step.Input)
 
 		var err errs.Error = nil
 
 		switch step.Type {
 		case "build":
-			err = stepBuild(srcPath, runner)
+			_, _, err = vm.CSWFromPath(srcPath)
 
 		case "build-and-run":
-			err = stepBuild(srcPath, runner)
+			csw, di, err := vm.CSWFromPath(srcPath)
 			if err != nil {
 				return err
 			}
-			err = stepRun(runner, mouth, ear)
+			theVM = vm.New(csw, di)
+
+			output := theVM.Start()
+			if output != "" {
+				story = append(story, output)
+			}
+			for _, choice := range step.Input {
+				if theVM.EndOfStory {
+					return nil
+				}
+
+				if !theVM.WaitingForInput {
+					// TODO: Get rid of this assert-like check? Or at least make it
+					// "throw" an errs.Runtime.
+					panic("Should be waiting for input, right?")
+				}
+
+				output = theVM.Step(choice)
+				if output != "" {
+					story = append(story, output)
+				}
+			}
 
 		case "save-state":
-			return stepSaveState()
+			return errs.NewICE("Step type 'save-state' not implemented yet.")
 
 		case "load-state":
-			return stepLoadState()
+			return errs.NewICE("Step type 'load-state' not implemented yet.")
 
 		default:
 			return errs.NewTestSuite(testCase, "Unknown step type '%v'.", step.Type)
 		}
 
 		if i == len(testConf.Steps)-1 {
+			// This was the last step
+
 			// Check status code
 			exitCode := 0
 			if err != nil {
@@ -121,6 +143,9 @@ func runCase(configPath string, runner romutil.Runner) errs.Error {
 				}
 			}
 
+			// TODO: Review this. This is supposed to run only if we are on the
+			// last step, to "going on to the next step" doesn't make sense.
+			// Maybe only the comment needs to be fixed.
 			if stepErrs != nil {
 				// If we had errors and reached this point, it means the error was
 				// expected. The outputs don't matter, go on to the next step.
@@ -128,10 +153,10 @@ func runCase(configPath string, runner romutil.Runner) errs.Error {
 			}
 
 			// Check output
-			if len(step.Output) != len(mouth.Outputs) {
-				return errs.NewTestSuite(testCase, "got %v outputs, expected %v.", len(mouth.Outputs), len(step.Output))
+			if len(step.Output) != len(story) {
+				return errs.NewTestSuite(testCase, "got %v outputs, expected %v.", len(story), len(step.Output))
 			}
-			for i, actualOutput := range mouth.Outputs {
+			for i, actualOutput := range story {
 				if actualOutput != step.Output[i] {
 					return errs.NewTestSuite(testCase, "at index %v: expected output '%v', got '%v'.", i, step.Output[0], actualOutput)
 				}
@@ -146,22 +171,6 @@ func runCase(configPath string, runner romutil.Runner) errs.Error {
 
 	fmt.Printf("Test case passed: %v.\n", testPath)
 	return nil
-}
-
-func stepBuild(path string, runner romutil.Runner) errs.Error {
-	return runner.Build(path)
-}
-
-func stepRun(runner romutil.Runner, mouth romutil.Mouth, ear romutil.Ear) errs.Error {
-	return runner.Run(mouth, ear)
-}
-
-func stepSaveState() errs.Error {
-	return errs.NewICE("Step type 'save-state' not implemented yet.")
-}
-
-func stepLoadState() errs.Error {
-	return errs.NewICE("Step type 'load-state' not implemented yet.")
 }
 
 // readConfig reads a test configuration from a TOML file.
