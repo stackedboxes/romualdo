@@ -7,22 +7,18 @@
 
 [[step]]
 	output = [
-		"What's your favorite color?",
-		"You may go. Any remarks?",
+		"You may go. Any remarks?\n",
 	]
 
 	input = [
 		"blue",
-		"no",
 	]
 
 [[step]]
 	output = [
-		"What's your favorite color?",
-		"Wrong. What are your last words?",
+		"Wrong. What are your last words?\n",
 	]
 
 	input = [
 		"blue -- no, yellow!",
-		":-(",
 	]

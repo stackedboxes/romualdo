@@ -68,10 +68,10 @@ func runCase(configPath string) errs.Error {
 		return err
 	}
 
-	var theVM *vm.VM
-	var story []string // the VM output
-
 	for i, step := range testConf.Steps {
+		var theVM *vm.VM
+		var story []string // the VM output
+
 		srcPath := path.Join(testPath, step.SourceDir)
 
 		var err errs.Error = nil
@@ -93,7 +93,7 @@ func runCase(configPath string) errs.Error {
 			}
 			for _, choice := range step.Input {
 				if theVM.EndOfStory {
-					return nil
+					return errs.NewTestSuite(testCase, "Reached end of story, but there are still unused inputs.")
 				}
 
 				if !theVM.WaitingForInput {
