@@ -141,13 +141,11 @@ func runCase(configPath string) errs.Error {
 				}
 			}
 
-			// TODO: Review this. This is supposed to run only if we are on the
-			// last step, to "going on to the next step" doesn't make sense.
-			// Maybe only the comment needs to be fixed.
+			// If we had errors and reached this point, it means the error was
+			// expected for this test case. So we must skip the following
+			// checks, as the outputs don't matter.
 			if stepErrs != nil {
-				// If we had errors and reached this point, it means the error was
-				// expected. The outputs don't matter, go on to the next step.
-				continue
+				break
 			}
 
 			// Check output
