@@ -17,30 +17,45 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/errs"
 )
 
+// State represents the state of a VM.
+type State int
+
+const (
+	// StateNew is the state of a VM that has just been created. From here,
+	// you'd typically call VM.Start() or VM.LoadState().
+	StateNew State = iota
+
+	// StateWaitingForInput is the state of a VM that has started executing the
+	// Storyworld and is waiting for input from the user. The typical next
+	// action is to call either VM.Step() or VM.SaveState(). VM.LoadState() is
+	// also valid.
+	StateWaitingForInput
+
+	// StateEndOfStory is the state of a VM that has finished executing the
+	// Storyworld. From here, could simply exit, but calling VM.LoadState() or
+	// VM.Start() are also valid. VM.SaveState() is also possible, but a bit
+	// odd.
+	StateEndOfStory
+
+	// stateRunning is the state of a VM that is executing the Storyworld. Users
+	// shall never see a VM on this state (which explains why the constant is
+	// not exported), as it's used only internally by the VM. It is used to help
+	// detecting internal inconsistencies.
+	stateRunning = -1
+)
+
 // VM is a Romualdo Virtual Machine.
-//
-// TODO: Replace these state Booleans with a State enum? Probably cleaner.
 type VM struct {
-	// Started is true when the VM has started executing the Storyworld.
-	Started bool
+	// State is the current state of the VM.
+	State State
 
 	// Set DebugTraceExecution to true to make the VM disassemble the code as it
 	// runs through it.
 	DebugTraceExecution bool
 
-	// WaitingForInput is true when the VM is waiting for input from the user.
-	// VM.Options will contain the options available to the Player. You shall
-	// call VM.SendInput() once to send the input to the VM.
-	WaitingForInput bool
-
 	// Options contains the options available to the Player. It is only valid
 	// when VM.WaitingForInput is true.
 	Options string
-
-	// EndOfStory is true when the story is over and there are no more
-	// instructions to run (though there maybe output available at
-	// VM.outBuffer).
-	EndOfStory bool
 
 	// outBuffer is where the VM sends its output to during the execution of a
 	// step.
@@ -82,10 +97,10 @@ func New(csw *bytecode.CompiledStoryworld, di *bytecode.DebugInfo) *VM {
 //
 // Must be called when vm.Started is false, otherwise it panics.
 func (vm *VM) Start() string {
-	if vm.Started {
-		panic("Called Start() with the VM already started")
+	if vm.State != StateNew {
+		panic(errs.NewICE("Called Start() with the VM already started"))
 	}
-	vm.Started = true
+	vm.State = stateRunning
 
 	// Normal Procedure calls start by pushing the callable thing. Here we have
 	// an implicit call to the initial Procedure, so we push it. This keeps this
@@ -108,12 +123,12 @@ func (vm *VM) Start() string {
 //
 // Must be called when VM.WaitingForInput is true, otherwise it panics.
 func (vm *VM) Step(choice string) string {
-	if !vm.WaitingForInput {
+	if vm.State != StateWaitingForInput {
 		panic(errs.NewICE("VM.Step() called while not waiting for input"))
 	}
 
 	vm.push(bytecode.NewValueString(choice))
-	vm.WaitingForInput = false
+	vm.State = stateRunning
 
 	vm.runStep()
 	output := vm.outBuffer.String()
@@ -139,7 +154,7 @@ func (vm *VM) currentChunk() *bytecode.Chunk {
 // runStep runs the VM until it reaches either a Listen instruction or the end
 // of the story.
 func (vm *VM) runStep() {
-	for !vm.WaitingForInput && !vm.EndOfStory {
+	for vm.State != StateWaitingForInput && vm.State != StateEndOfStory {
 		vm.runInstruction()
 	}
 }
@@ -149,7 +164,7 @@ func (vm *VM) runInstruction() {
 	// TODO: Temporary hack to detect the of end of a program. Eventually,
 	// this will be done by the return instruction.
 	if vm.frame.ip >= len(vm.currentChunk().Code) {
-		vm.EndOfStory = true
+		vm.State = StateEndOfStory
 		return
 	}
 
@@ -186,7 +201,7 @@ func (vm *VM) runInstruction() {
 		vm.outBuffer.WriteString(value.AsLecture().Text)
 
 	case bytecode.OpListen:
-		vm.WaitingForInput = true
+		vm.State = StateWaitingForInput
 		vm.Options = vm.pop().AsString()
 		return
 

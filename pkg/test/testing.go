@@ -92,11 +92,11 @@ func runCase(configPath string) errs.Error {
 				story = append(story, output)
 			}
 			for _, choice := range step.Input {
-				if theVM.EndOfStory {
-					return errs.NewTestSuite(testCase, "Reached end of story, but there are still unused inputs.")
+				if theVM.State == vm.StateEndOfStory {
+					return errs.NewTestSuite(testCase, "Reached end of story but there are still unused inputs.")
 				}
 
-				if !theVM.WaitingForInput {
+				if theVM.State != vm.StateWaitingForInput {
 					return errs.NewICE("Inconsistent VM state: not waiting for input after Start() or Step()")
 				}
 

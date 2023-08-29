@@ -86,12 +86,12 @@ func RunCSW(csw *bytecode.CompiledStoryworld, di *bytecode.DebugInfo, trace bool
 	for {
 		fmt.Print(out)
 
-		if theVM.EndOfStory {
+		if theVM.State == StateEndOfStory {
 			fmt.Println("-- The End --")
 			return nil
 		}
 
-		if !theVM.WaitingForInput {
+		if theVM.State != StateWaitingForInput {
 			// TODO: Get rid of this assert-like check? Or at least make it
 			// "throw" an errs.Runtime.
 			panic("Should be waiting for input, right?")
