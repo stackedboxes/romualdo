@@ -193,7 +193,7 @@ func readConfig(path string) (*config, errs.Error) {
 //     explicit step defined, we create one with the data from the top-level
 //     fields.)
 //   - Makes sure all fields in all Steps have values: either the values
-//     explicitly set or, or the values from the top-level fields, or the
+//     explicitly set, or the values from the top-level fields, or the
 //     default values.
 func canonicalizeConfig(testConf *config) {
 	// Give default values to all empty fields in the top-level config.
