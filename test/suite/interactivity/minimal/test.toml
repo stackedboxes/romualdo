@@ -6,19 +6,19 @@
 #
 
 [[step]]
-	output = [
-		"You may go. Any remarks?\n",
-	]
-
 	input = [
 		"blue",
 	]
 
-[[step]]
 	output = [
-		"Wrong. What are your last words?\n",
+		"Right. Off you go.\n",
 	]
 
+[[step]]
 	input = [
 		"blue -- no, yellow!",
+	]
+
+	output = [
+		"Aaaaugh!\n",
 	]

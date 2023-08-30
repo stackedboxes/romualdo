@@ -1,11 +1,11 @@
 function main(): void
     if listen "What's your favorite color?" == "blue" then
         say
-            You may go. Any remarks?
+            Right. Off you go.
         end
     else
         say
-            Wrong. What are your last words?
+            Aaaaugh!
         end
     end
 end

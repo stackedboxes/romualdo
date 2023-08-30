@@ -100,9 +100,8 @@ func runCase(configPath string) errs.Error {
 			return errs.NewTestSuite(testCase, "Unknown step type '%v'.", step.Type)
 		}
 
-		if i == len(testConf.Steps)-1 {
-			// This was the last step
-
+		isLastStep := i == len(testConf.Steps)-1
+		if isLastStep {
 			// Check status code
 			exitCode := 0
 			if err != nil {
@@ -131,20 +130,20 @@ func runCase(configPath string) errs.Error {
 			if stepErrs != nil {
 				break
 			}
-
-			// Check output
-			if len(step.Output) != len(story) {
-				return errs.NewTestSuite(testCase, "got %v outputs, expected %v.", len(story), len(step.Output))
-			}
-			for i, actualOutput := range story {
-				if actualOutput != step.Output[i] {
-					return errs.NewTestSuite(testCase, "at index %v: expected output '%v', got '%v'.", i, step.Output[0], actualOutput)
-				}
-			}
 		} else {
 			// We are not in the last step, so we expect no errors.
 			if err != nil {
 				return err
+			}
+		}
+
+		// Check output
+		if len(step.Output) != len(story) {
+			return errs.NewTestSuite(testCase, "got %v outputs, expected %v.", len(story), len(step.Output))
+		}
+		for i, actualOutput := range story {
+			if actualOutput != step.Output[i] {
+				return errs.NewTestSuite(testCase, "at index %v: expected output '%v', got '%v'.", i, step.Output[0], actualOutput)
 			}
 		}
 	}
