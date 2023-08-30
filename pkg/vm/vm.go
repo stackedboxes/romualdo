@@ -140,8 +140,6 @@ func (vm *VM) SaveState(dst io.Writer) errs.Error {
 	return &errs.Runtime{Message: "Not implemented"}
 }
 
-// TODO: How to check if the current storyworld is compatible with the state
-// being loaded?
 func (vm *VM) LoadState(src io.Reader) errs.Error {
 	return &errs.Runtime{Message: "Not implemented"}
 }
