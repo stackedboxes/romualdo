@@ -66,16 +66,17 @@ func cswFromFile(path string) (*bytecode.CompiledStoryworld, *bytecode.DebugInfo
 func RunCSW(csw *bytecode.CompiledStoryworld, di *bytecode.DebugInfo, trace bool) (err errs.Error) {
 	defer func() {
 		if r := recover(); r != nil {
-			if e, ok := r.(*errs.Runtime); ok {
+			switch e := r.(type) {
+			case *errs.CompileTime:
 				err = e
 				return
-			}
-			if e, ok := r.(error); ok {
-				err = errs.NewICE("Unexpected error: %T (%v)", r, e)
+			case error:
+				err = errs.NewICE("Unexpected error: %v", e)
+				return
+			default:
+				err = errs.NewICE("unexpected error type: %T (%v)", r, r)
 				return
 			}
-			err = errs.NewICE("Unexpected error type: %T (%v)", r, r)
-			return
 		}
 	}()
 
