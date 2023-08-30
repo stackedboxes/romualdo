@@ -68,43 +68,27 @@ func runCase(configPath string) errs.Error {
 		return err
 	}
 
-	for i, step := range testConf.Steps {
-		var theVM *vm.VM
-		var story []string // the VM output
+	var theVM *vm.VM
 
+	for i, step := range testConf.Steps {
 		srcPath := path.Join(testPath, step.SourceDir)
 
+		var story []string // the VM output
 		var err errs.Error = nil
 
 		switch step.Type {
 		case "build":
-			_, _, err = vm.CSWFromPath(srcPath)
+			theVM, err = stepBuild(srcPath)
+
+		case "run":
+			err = stepRun(theVM, testCase, step.Input, &story)
 
 		case "build-and-run":
-			csw, di, err := vm.CSWFromPath(srcPath)
+			theVM, err = stepBuild(srcPath)
 			if err != nil {
 				return err
 			}
-			theVM = vm.New(csw, di)
-
-			output := theVM.Start()
-			if output != "" {
-				story = append(story, output)
-			}
-			for _, choice := range step.Input {
-				if theVM.State == vm.StateEndOfStory {
-					return errs.NewTestSuite(testCase, "Reached end of story but there are still unused inputs.")
-				}
-
-				if theVM.State != vm.StateWaitingForInput {
-					return errs.NewICE("Inconsistent VM state: not waiting for input after Start() or Step()")
-				}
-
-				output = theVM.Step(choice)
-				if output != "" {
-					story = append(story, output)
-				}
-			}
+			err = stepRun(theVM, testCase, step.Input, &story)
 
 		case "save-state":
 			return errs.NewICE("Step type 'save-state' not implemented yet.")
@@ -166,6 +150,40 @@ func runCase(configPath string) errs.Error {
 	}
 
 	fmt.Printf("Test case passed: %v.\n", testPath)
+	return nil
+}
+
+func stepBuild(srcPath string) (*vm.VM, errs.Error) {
+	csw, di, err := vm.CSWFromPath(srcPath)
+	if err != nil {
+		return nil, err
+	}
+	theVM := vm.New(csw, di)
+	return theVM, nil
+}
+
+func stepRun(theVM *vm.VM, testCase string, inputs []string, story *[]string) errs.Error {
+	if theVM.State == vm.StateNew {
+		output := theVM.Start()
+		if output != "" {
+			*story = append(*story, output)
+		}
+	}
+
+	for _, choice := range inputs {
+		if theVM.State == vm.StateEndOfStory {
+			return errs.NewTestSuite(testCase, "Reached end of story but there are still unused inputs.")
+		}
+
+		if theVM.State != vm.StateWaitingForInput {
+			return errs.NewICE("Inconsistent VM state: not waiting for input after Start() or Step()")
+		}
+
+		output := theVM.Step(choice)
+		if output != "" {
+			*story = append(*story, output)
+		}
+	}
 	return nil
 }
 

@@ -103,25 +103,32 @@ keys are relevant.
 
 Possible values are:
 
-* `build`: The step builds the source code. It can check for error codes and
-  error messages.
-* `build-and-run`: The builds the code, then runs it. The build step is expected
-  to succeed.
-* `save-state`: The step saves the VM state.
+* `build-and-run`: The step builds the code, then runs it. The build step is
+  expected to succeed (the test case will fail otherwise).
+* `build`: The step builds the source code. You'd typically used this if you are
+  expecting the build to fail (otherwise you'd use `build-and-run`). So, some
+  obvious checks here would be the error codes and error messages (i.e., you
+  want do confirm the build failed the right way).
+* `run`: The step runs the Storyworld until it uses all inputs available in the
+  `input` field. It is an error if the story ends before all inputs are used.
+  Furthermore, if a `run` step is the last step of the test case, we expect that
+  the story ends after the last input is used.
+* `save-state`: The step saves the VM state. I can't think of any check you'd
+  like to make in this step.
 * `load-state`: The step loads the VM state (assumed to have been previously
   saved).
 
-There is no support for `run` steps. This is intentional, but not a hard design
-decision. Simply, we currently don't have any use case for that. Either we want
-to `build-and-run`, or to `build` only, fail, and check if we got the expected
-errors.
+Some common testing idioms:
 
-TODO: For load and save cases, we'll need a `run` step. Like, send all inputs
-from the initial `build-and-run`, then save, then send some more inputs, then
-load and send a different set of inputs.
-
-TODO: Need to define the semantics of end of story. I think it will be this:
-if the last step was a run, we expect the story to be ended.
+* **Run my code, maybe send some input, check the output.** Use a single-step
+  test case without an explicit `type`.
+* **Run my code several times, each time with a different input, check the
+  output.** Use a multi-step test case without explicit `type` in any of them.
+* **Build my faulty code, check if it fails as expected.** Use a single-step
+  test case with the `type=build`.
+* **Test loading and saving state.** Use a multi-step test case. At some point,
+  use a `save-state` step. After that, you can use `run` steps again if desired.
+  And then you can use a `load-state` when desired.
 
 ### `sourceDir`
 
