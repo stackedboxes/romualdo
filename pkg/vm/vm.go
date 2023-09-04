@@ -9,7 +9,6 @@ package vm
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
@@ -46,38 +45,71 @@ const (
 
 // VM is a Romualdo Virtual Machine.
 type VM struct {
+	//
+	// State that is serialized
+	//
+
 	// State is the current state of the VM.
 	State State
 
-	// Set DebugTraceExecution to true to make the VM disassemble the code as it
-	// runs through it.
-	DebugTraceExecution bool
-
 	// Options contains the options available to the Player. It is only valid
-	// when VM.WaitingForInput is true.
+	// when VM.State == StateWaitingForInput.
 	Options string
-
-	// outBuffer is where the VM sends its output to during the execution of a
-	// step.
-	outBuffer strings.Builder
-
-	// csw is the compiled storyworld we are executing.
-	csw *bytecode.CompiledStoryworld
-
-	// debugInfo contains the debug information corresponding to csw.
-	// TODO: Make this optional. If nil, issue less friendly error messages,
-	// etc.
-	debugInfo *bytecode.DebugInfo
 
 	// stack is the VM stack, used for storing values during interpretation.
 	stack *Stack
 
 	// frames is the stack of call frames. It has one entry for every function
-	// that has started running bit hasn't returned yet.
+	// that has started running and hasn't returned yet.
 	frames []*callFrame
 
+	//
+	// State that is not serialized
+	//
+
 	// The current call frame (the one on top of VM.frames).
+	//
+	// Doesn't need to be serialized because it is just a handy shortcut to
+	// VM.frames[len(VM.frames)-1].
 	frame *callFrame
+
+	// outBuffer is where the VM sends its output to during the execution of a
+	// step.
+	//
+	// Doesn't need to be serialized because it is used only to hold output from
+	// Say statements until they need to be returned to the driver program. So,
+	// whenever the driver program has a chance to serialize the VM state,
+	// outBuffer is empty (because its contents have been just returned).
+	outBuffer strings.Builder
+
+	// csw is the compiled storyworld we are executing.
+	//
+	// This is not serialized along with the VM state, but instead as a separate
+	// thing. First, to avoid bloat (it's common to have many saved states for
+	// the same Storyworld). Second, because the same saved state shall be
+	// usable with a later version of the same Storyworld.
+	csw *bytecode.CompiledStoryworld
+
+	// debugInfo contains the debug information corresponding to csw.
+	//
+	// This is not serialized for the same reasons a the Storyworld (field csw)
+	// is not serialized (note that the debugInfo is directly associated with a
+	// given CompiledStoryworld).
+	//
+	// TODO: Make this optional. If nil, issue less friendly error messages,
+	// etc.
+	debugInfo *bytecode.DebugInfo
+
+	//
+	// Debug Options
+	//
+	// These are not serialized either, because if and how to debug is
+	// independent of the Storyworld being executed.
+	//
+
+	// Set DebugTraceExecution to true to make the VM disassemble the code as it
+	// runs through it.
+	DebugTraceExecution bool
 }
 
 // New returns a new Virtual Machine capable of executing the given Storyworld
@@ -134,14 +166,6 @@ func (vm *VM) Step(choice string) string {
 	output := vm.outBuffer.String()
 	vm.outBuffer.Reset()
 	return output
-}
-
-func (vm *VM) SaveState(dst io.Writer) errs.Error {
-	return &errs.Runtime{Message: "Not implemented"}
-}
-
-func (vm *VM) LoadState(src io.Reader) errs.Error {
-	return &errs.Runtime{Message: "Not implemented"}
 }
 
 // currentChunk returns the chunk currently being executed.

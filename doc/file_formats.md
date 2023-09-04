@@ -119,3 +119,16 @@ of the Storyworld.
 ### Debug Info Footer
 
 * A 32-bit CRC32 of the payload (using the IEEE polynomial)
+
+## VM Saved State
+
+### VM Saved State Header
+
+* An 8-byte "magic number" comprised of the string `RmldSav` followed by a SUB
+  character (`0x1A`, which in times long gone used to represent a "soft
+  end-of-file"). These are written to the file in this exact order, i.e., the
+  first byte on the file is `R`, the second is `m`, and so on.
+* A `uint32` with the version (currently 0).
+
+### xxxxxxxxxxxxx
+
