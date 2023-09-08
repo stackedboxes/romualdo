@@ -2,7 +2,7 @@
 
 ## Compiled Storyworld
 
-All integers are stored in little endian.
+All integers are stored in little endian. If signed, two's complement is used.
 
 ### Compiled Storyworld Header
 
@@ -117,5 +117,48 @@ of the Storyworld.
       that byte of bytecode.
 
 ### Debug Info Footer
+
+* A 32-bit CRC32 of the payload (using the IEEE polynomial)
+
+## VM Saved State
+
+### VM Saved State Header
+
+* An 8-byte "magic number" comprised of the string `RmldSav` followed by a SUB
+  character (`0x1A`, which in times long gone used to represent a "soft
+  end-of-file"). These are written to the file in this exact order, i.e., the
+  first byte on the file is `R`, the second is `m`, and so on.
+* A `uint32` with the version (currently 0).
+
+### VM Saved State Payload
+
+#### VM State
+
+* An `int32` with the VM state. The value must be:
+    * `0` for the "new" state.
+    * `1` for "waiting for input".
+    * `2` for "end of story".
+
+#### Options
+
+* One string, which looks like this:
+    * A `uint32` with the string length.
+    * The string data (UTF-8-encoded) with the options.
+
+#### Stack
+
+* One `uint32` with the stack size.
+* One Value (as described earlier) for each stack element, from bottom to top.
+
+#### Call frames
+
+* One `uint32` with the number of call frames.
+* Each of the call frames, from bottom to top. Each call frame looks like this:
+    * An `uint32` with the index of the Chunk corresponding to the call frame's Procedure.
+    * An `uint32` with the instruction pointer (IP).
+    * An `uint32` with the index into the stack corresponding to the base of the
+      stack view used by this call frame.
+
+### VM Saved State Footer
 
 * A 32-bit CRC32 of the payload (using the IEEE polynomial)

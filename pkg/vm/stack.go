@@ -7,7 +7,13 @@
 
 package vm
 
-import "github.com/stackedboxes/romualdo/pkg/bytecode"
+import (
+	"io"
+
+	"github.com/stackedboxes/romualdo/pkg/bytecode"
+	"github.com/stackedboxes/romualdo/pkg/errs"
+	"github.com/stackedboxes/romualdo/pkg/romutil"
+)
 
 // Stack implements the VM runtime stack, which is a stack of bytecode.Values.
 type Stack struct {
@@ -77,6 +83,41 @@ func (s *Stack) createView(offset int) *StackView {
 		stack: s,
 		base:  s.size() - offset,
 	}
+}
+
+// Serialize serializes the Stack to the given io.Writer.
+func (s *Stack) Serialize(w io.Writer) errs.Error {
+	err := romutil.SerializeU32(w, uint32(len(s.data)))
+	if err != nil {
+		return err
+	}
+
+	for _, v := range s.data {
+		err = v.Serialize(w)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+
+}
+
+// DeserializeStack deserializes a Stack from the given io.Reader.
+func DeserializeStack(r io.Reader) (*Stack, errs.Error) {
+	length, err := romutil.DeserializeU32(r)
+	if err != nil {
+		return nil, err
+	}
+
+	values := make([]bytecode.Value, length)
+	for i := uint32(0); i < length; i++ {
+		v, err := bytecode.DeserializeValue(r)
+		if err != nil {
+			return nil, err
+		}
+		values[i] = v
+	}
+	return &Stack{data: values}, nil
 }
 
 // StackView provides a read-write view into a Stack. It looks just like a
