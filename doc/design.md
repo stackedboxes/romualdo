@@ -27,6 +27,21 @@ a way to identify every Lecture in the compiled code.
 So, all doable with the bytecode interpreter? An therefore no tree walk
 interpreter needed?
 
+### Comments
+
+Long into the implementation and I realized I haven't written anything about
+comments yet! I am currently using `\#` to start comments, but I guess `#` alone
+should also work when in code mode, right?
+
+I recall at some point using `\ ` (i.e., backslash-space) to start a comment.
+Sounds great in theory (doesn't need to waste any extra character!), but felt
+odd. May reconsider it.
+
+Also: do I want block-comments? I guess I can live without them, but I never
+thought much about it.
+
+In summary, comments are still a TODO, surprisingly.
+
 ### Passages
 
 Tentative example:
