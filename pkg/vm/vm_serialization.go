@@ -23,7 +23,7 @@ const (
 // savedStateMagic is the "magic number" identifying a Romualdo VM saved state.
 // It is comprised of the "RmldSav" string followed by a SUB character (which in
 // times long gone used to represent a "soft end-of-file").
-var savedStateMagic = []byte{0x52, 0x6D, 0x6C, 0x64, 0x53, 0x62, 0x76, 0x1A}
+var savedStateMagic = []byte{0x52, 0x6D, 0x6C, 0x64, 0x53, 0x61, 0x76, 0x1A}
 
 // Serialize serializes the VM state to the given io.Writer.
 func (vm *VM) Serialize(w io.Writer) errs.Error {
