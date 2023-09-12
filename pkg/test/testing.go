@@ -8,6 +8,7 @@
 package test
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path"
@@ -69,6 +70,7 @@ func runCase(configPath string) errs.Error {
 	}
 
 	var theVM *vm.VM
+	var savedState []byte
 
 	for i, step := range testConf.Steps {
 		srcPath := path.Join(testPath, step.SourceDir)
@@ -91,10 +93,19 @@ func runCase(configPath string) errs.Error {
 			err = stepRun(theVM, testCase, step.Input, &story)
 
 		case "save-state":
-			return errs.NewICE("Step type 'save-state' not implemented yet.")
+			bw := &bytes.Buffer{}
+			err = theVM.Serialize(bw)
+			if err != nil {
+				return err
+			}
+			savedState = bw.Bytes()
 
 		case "load-state":
-			return errs.NewICE("Step type 'load-state' not implemented yet.")
+			br := bytes.NewReader(savedState)
+			err = theVM.Deserialize(br)
+			if err != nil {
+				return err
+			}
 
 		default:
 			return errs.NewTestSuite(testCase, "Unknown step type '%v'.", step.Type)
@@ -277,6 +288,8 @@ func validateConfig(testCase string, testConf *config) errs.Error {
 	var supportedTypes = map[string]bool{
 		"build":         true,
 		"build-and-run": true,
+		"save-state":    true,
+		"load-state":    true,
 	}
 	for _, step := range testConf.Steps {
 		// Validate step type

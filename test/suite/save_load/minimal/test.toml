@@ -1,0 +1,45 @@
+#
+# The Romualdo Language
+#
+# Copyright 2020-2023 Leandro Motta Barros
+# Licensed under the MIT license (see LICENSE.txt for details)
+#
+
+[[step]]
+	type = "build"
+
+[[step]]
+	type = "save-state"
+
+[[step]]
+	input = [
+		"blue -- no, yellow!",
+	]
+
+	output = [
+		"Aaaaugh!\n",
+	]
+
+[[step]]
+	type = "load-state"
+
+[[step]]
+	input = [
+		"blue",
+	]
+
+	output = [
+		"Right. Off you go.\n",
+	]
+
+[[step]]
+	type = "load-state"
+
+[[step]]
+	input = [
+		"I don't know!",
+	]
+
+	output = [
+		"Aaaaugh!\n",
+	]

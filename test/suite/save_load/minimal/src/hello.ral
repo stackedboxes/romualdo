@@ -1,0 +1,11 @@
+function main(): void
+    if listen "What's your favorite color?" == "blue" then
+        say
+            Right. Off you go.
+        end
+    else
+        say
+            Aaaaugh!
+        end
+    end
+end

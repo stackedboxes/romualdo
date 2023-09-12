@@ -67,24 +67,24 @@ func (vm *VM) serializePayload(w io.Writer) (uint32, errs.Error) {
 	}
 
 	// Options
-	err = romutil.SerializeString(w, vm.Options)
+	err = romutil.SerializeString(mw, vm.Options)
 	if err != nil {
 		return 0, err
 	}
 
 	// Stack
-	err = vm.stack.Serialize(w)
+	err = vm.stack.Serialize(mw)
 	if err != nil {
 		return 0, err
 	}
 
 	// Frames
-	err = romutil.SerializeU32(w, uint32(len(vm.frames)))
+	err = romutil.SerializeU32(mw, uint32(len(vm.frames)))
 	if err != nil {
 		return 0, err
 	}
 	for _, f := range vm.frames {
-		err = f.Serialize(w)
+		err = f.Serialize(mw)
 		if err != nil {
 			return 0, err
 		}
@@ -118,7 +118,10 @@ func (vm *VM) Deserialize(r io.Reader) errs.Error {
 	}
 
 	// Post-deserialization adjustments
-	vm.frame = vm.frames[len(vm.frames)-1]
+	vm.frame = nil
+	if len(vm.frames) > 0 {
+		vm.frame = vm.frames[len(vm.frames)-1]
+	}
 	vm.outBuffer.Reset()
 
 	return nil

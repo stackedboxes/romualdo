@@ -13,7 +13,7 @@
             "env": {},
             "cwd": "${workspaceFolder}",
             // "args": ["run", "test/suite/hello/passage_curlies/src"]
-            "args": ["run", "my-test"],
+            "args": ["dev", "test"],
             // "args": ["run", "--trace", "csw.ras"]
             "console": "integratedTerminal"
         }
