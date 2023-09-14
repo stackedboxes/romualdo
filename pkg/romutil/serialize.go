@@ -14,21 +14,6 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/errs"
 )
 
-// Serializer is the interface implemented by objects that can serialize
-// themselves.
-type Serializer interface {
-	// Serialize serializes the given object writing the serialized data to w.
-	Serialize(w io.Writer) errs.Error
-}
-
-// Deserializer is the interface implemented by objects that can deserialize
-// themselves.
-type Deserializer interface {
-	// Deserialize deserializes the given object reading the serialized data
-	// from r.
-	Deserialize(r io.Reader) errs.Error
-}
-
 // SerializeU32 writes a uint32 to the given io.Writer, in little endian format.
 func SerializeU32(w io.Writer, v uint32) errs.Error {
 	var u32 [4]byte
