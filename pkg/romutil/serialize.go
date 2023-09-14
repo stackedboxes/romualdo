@@ -51,6 +51,29 @@ func DeserializeU32(r io.Reader) (uint32, errs.Error) {
 	return binary.LittleEndian.Uint32(u32[:]), nil
 }
 
+// SerializeI32 writes an int32 to the given io.Writer, in little endian format,
+// two's complement.
+func SerializeI32(w io.Writer, v int32) errs.Error {
+	var u32 [4]byte
+	binary.LittleEndian.PutUint32(u32[:], uint32(v))
+	_, err := w.Write(u32[:])
+	if err != nil {
+		return errs.NewRomualdoTool("serializing int32: %v", err)
+	}
+	return nil
+}
+
+// DeserializeI32 reads an int32 from the given io.Reader, in little endian
+// format, two's complement.
+func DeserializeI32(r io.Reader) (int32, errs.Error) {
+	var u32 [4]byte
+	_, err := io.ReadFull(r, u32[:])
+	if err != nil {
+		return 0, errs.NewRomualdoTool("deserializing int32: %v", err)
+	}
+	return int32(binary.LittleEndian.Uint32(u32[:])), nil
+}
+
 // SerializeString writes a string to the given io.Writer. It first writes the
 // length of the string (as in uint32, little endian), then the string data
 // itself (UTF-8).

@@ -21,6 +21,8 @@
         "storyworld",
         "storyworlds",
         "subpackage",
-        "subpackages"
+        "subpackages",
+        "swid",
+        "swov"
     ]
 }

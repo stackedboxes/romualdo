@@ -10,7 +10,7 @@
 Then, the remaining "unique" Romualdo features (but see also the topics after
 them):
 
-* Save and restore state.
+* ~~Save and restore state.~~
 * Versioning.
     * Add some unique ID to both Storyworlds and saved states. This would be a
       crude way to detect if a saved state is compatible with the current

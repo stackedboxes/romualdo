@@ -51,6 +51,15 @@ type VM struct {
 	// State that is serialized
 	//
 
+	// Swid is the Storyworld ID. It must match the corresponding field in csw.
+	Swid string
+
+	// Swov is the Storyworld version. When loading a saved state, the
+	// serialized state must be equal to or less than the corresponding field in
+	// csw. In other words, we can deal with saved states from older versions of
+	// the Storyworld, but not from newer versions.
+	Swov int32
+
 	// State is the current state of the VM.
 	State State
 

@@ -21,6 +21,14 @@ import (
 // information that is not strictly necessary to run a Storyworld but is useful
 // for debugging, producing better error reporting, etc, belongs here.
 type DebugInfo struct {
+	// Swid is the Storyworld ID. It must match the corresponding field in
+	// CompiledStoryworld.
+	Swid string
+
+	// Swov is the Storyworld version. It must match the corresponding field in
+	// CompiledStoryworld.
+	Swov int32
+
 	// ChunksNames contains the names of the procedures on a CompiledStoryworld.
 	// There is one entry for each entry in the corresponding
 	// CompiledStoryworld.Chunks.
@@ -94,8 +102,19 @@ func (di *DebugInfo) serializePayload(w io.Writer) (uint32, errs.Error) {
 	crc := crc32.NewIEEE()
 	mw := io.MultiWriter(w, crc)
 
+	// Swid and swov
+	err := romutil.SerializeString(mw, di.Swid)
+	if err != nil {
+		return 0, err
+	}
+
+	err = romutil.SerializeI32(mw, di.Swov)
+	if err != nil {
+		return 0, err
+	}
+
 	// Number of chunks
-	err := romutil.SerializeU32(mw, uint32(len(di.ChunksNames)))
+	err = romutil.SerializeU32(mw, uint32(len(di.ChunksNames)))
 	if err != nil {
 		return 0, err
 	}
@@ -181,6 +200,19 @@ func (di *DebugInfo) deserializeHeader(r io.Reader) error {
 func (di *DebugInfo) deserializePayload(r io.Reader) (uint32, error) {
 	crcSummer := crc32.NewIEEE()
 	tr := io.TeeReader(r, crcSummer)
+
+	// Swid and swov
+	swid, err := romutil.DeserializeString(tr)
+	if err != nil {
+		return 0, err
+	}
+	di.Swid = swid
+
+	swov, err := romutil.DeserializeI32(tr)
+	if err != nil {
+		return 0, err
+	}
+	di.Swov = swov
 
 	// Number of chunks
 	chunksCount, err := romutil.DeserializeU32(tr)

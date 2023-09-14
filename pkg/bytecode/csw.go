@@ -39,6 +39,19 @@ var CSWMagic = []byte{0x52, 0x6D, 0x6C, 0x64, 0x43, 0x53, 0x57, 0x1A}
 // TODO: Use a string interner to avoid having duplicate strings in memory.
 // Make some measurements to ensure it's really beneficial.
 type CompiledStoryworld struct {
+	// Swid is the Storyworld ID. It is a free string that should uniquely
+	// identify the Storyworld.
+	Swid string
+
+	// Swov is the Storyworld version. A negative value means that this is a
+	// development version. A non-negative value means that this is a release
+	// version. For example, if the currently released version of a Storyworld
+	// is 3, the development version will be -4. When the development version
+	// becomes stable, it will be released as version 4.
+	//
+	// A version equals to zero is invalid.
+	Swov int32
+
 	// The constant values used in all Chunks.
 	Constants []Value
 
@@ -113,8 +126,19 @@ func (csw *CompiledStoryworld) serializePayload(w io.Writer) (uint32, errs.Error
 	crc := crc32.NewIEEE()
 	mw := io.MultiWriter(w, crc)
 
+	// Swid and swov
+	err := romutil.SerializeString(mw, csw.Swid)
+	if err != nil {
+		return 0, err
+	}
+
+	err = romutil.SerializeI32(mw, csw.Swov)
+	if err != nil {
+		return 0, err
+	}
+
 	// Constants
-	err := romutil.SerializeU32(mw, uint32(len(csw.Constants)))
+	err = romutil.SerializeU32(mw, uint32(len(csw.Constants)))
 	if err != nil {
 		return 0, err
 	}
@@ -215,6 +239,19 @@ func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, errs.Err
 
 	crcSummer := crc32.NewIEEE()
 	tr := io.TeeReader(r, crcSummer)
+
+	// Swid and swov
+	swid, err := romutil.DeserializeString(tr)
+	if err != nil {
+		return 0, err
+	}
+	csw.Swid = swid
+
+	swov, err := romutil.DeserializeI32(tr)
+	if err != nil {
+		return 0, err
+	}
+	csw.Swov = swov
 
 	// Constants
 	lenConstants, err := romutil.DeserializeU32(tr)
