@@ -42,6 +42,75 @@ thought much about it.
 
 In summary, comments are still a TODO, surprisingly.
 
+### Versioning
+
+(This is largely not implemented, but here's how I am planning to do this.
+Writing in tutorial-like style.)
+
+A Storyworld has two values, the Storyworld ID and the Storyworld Version
+(affectionately called swid and swov).
+
+The ID (swid) identifies the Storyworld. It should be a unique string. I suggest
+using one of those "inverted-URL" strings, like
+`com.example.little_red_riding_hood`, but anything goes really.
+
+The version (swov) identifies (surprise!) the version of that Storyworld. The
+version cannot be zero. A positive number indicates a released versions. A
+negative number indicates a development version. So, version -1 is used while
+you are developing the very first release of the Storyworld. It becomes version
+1 when you make the initial release. If you keep further working on the
+Storyworld, you'll generate version -2, which will eventually be released as
+version 2.
+
+If you are serious about the Storyworld you are creating, you shall create a
+`storyworld.toml` file at the root of your Storyworld:
+
+```toml
+swid = "com.example.little_red_ridding_hood" # The Storyworld ID
+out = "red_hoodie" # The file name to use when generating artifacts
+```
+
+If you just want to try things out, default values will be used: swid will be
+`untitled_storyworld` and `untitled` will be the output file name.
+
+Anyway, the first time you
+
+```sh
+romualdo build PATH
+```
+
+the compiler will generate a (say) `my_storyworld.csw` file with an embedded
+version of -1. In other words, you are now developing the first version. When
+you are happy and ready to release, you
+
+```sh
+romualdo release PATH
+```
+
+This is also the perfect moment to commit to your version control system and tag
+this repo state. Why? Because once you create a release, you can no longer
+change the code for that release. The compiler will complain if you try to. So
+you better have a way to revert to the pristine code just in case you change
+things by mistake.
+
+TODO: Should we have a `--force` option to the build, to warn about but
+otherwise ignore changes to released code? Perhaps this should be the default?
+Because we'll use the same binary code anyway, right? Cannot recompile, not even
+to, say, make use of better optimizations, because changes in the bytecode will
+break saved states. (And then we could have a `--picky` flag to force error if
+released code is changed).
+
+Anyway, version 1 is released. From this point on, your `.csw` file contains
+important information (hashes of compiled functions, the version number itself).
+You should add it to your repo.
+
+TODO: This is bad. The CSW will appear forever as a changed file, while you want
+to ignore it until the next release. Maybe the special info should go to a
+separate file? But then, the bytecode itself is important, as said above
+(compiled code should remain constant).
+
+Next build will be versioned as -2. And so on...
+
 ### Passages
 
 Tentative example:
