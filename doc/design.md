@@ -27,6 +27,9 @@ a way to identify every Lecture in the compiled code.
 So, all doable with the bytecode interpreter? An therefore no tree walk
 interpreter needed?
 
+Update, September 2023: the Tree-Walk Interpreter is past. I decided to remove
+it indeed. Leaving these notes for now, as things are still fluid.
+
 ### Comments
 
 Long into the implementation and I realized I haven't written anything about
