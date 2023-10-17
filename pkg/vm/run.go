@@ -146,6 +146,9 @@ func LoadCompiledStoryworldBinaries(cswPath string, diRequired bool) (*bytecode.
 	if di.Swid != csw.Swid {
 		return nil, nil, errs.NewRomualdoTool("DebugInfo swid '%v' mismatches CompiledStoryworld swid '%v'", di.Swid, csw.Swid)
 	}
+	// TODO: Actually... negative versions are not guaranteed to be compatible
+	// with themselves. They are dev versions, the code is changing all the
+	// time.
 	if romutil.Abs(di.Swov) != romutil.Abs(csw.Swov) {
 		return nil, nil, errs.NewRomualdoTool("DebugInfo swov %v mismatches CompiledStoryworld swov %v", di.Swov, csw.Swov)
 	}

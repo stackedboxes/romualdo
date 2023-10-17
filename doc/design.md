@@ -47,8 +47,17 @@ In summary, comments are still a TODO, surprisingly.
 
 ### Versioning
 
-(This is largely not implemented, but here's how I am planning to do this.
-Writing in tutorial-like style.)
+(This is largely not implemented, but here's how I am planning to do this.)
+
+#### Facts to keep in mind
+
+* We need the compiled Storyworld of version *n* to generate the *n+1* release.
+  Why? Because we need to use *exactly* the same binary code for older versions
+  of Procedures. Say we implement an optimization in a future version of the
+  compiler. This would change the bytecode of an old version of a Procedure. And
+  we can't change, because this would potentially break saved states.
+
+#### Tutorial-like description
 
 A Storyworld has two values, the Storyworld ID and the Storyworld Version
 (affectionately called swid and swov).
@@ -57,62 +66,154 @@ The ID (swid) identifies the Storyworld. It should be a unique string. I suggest
 using one of those "inverted-URL" strings, like
 `com.example.little_red_riding_hood`, but anything goes really.
 
-The version (swov) identifies (surprise!) the version of that Storyworld. The
-version cannot be zero. A positive number indicates a released versions. A
-negative number indicates a development version. So, version -1 is used while
-you are developing the very first release of the Storyworld. It becomes version
-1 when you make the initial release. If you keep further working on the
-Storyworld, you'll generate version -2, which will eventually be released as
-version 2.
+The version (swov) identifies (surprise!) the version of that Storyworld.
+Released versions of a Storyworld will have positive values. Development
+versions (that is, those you build while developing and testing) will have a
+negative value (more on that below). A version is never equals to zero.
 
-If you are serious about the Storyworld you are creating, you shall create a
-`storyworld.toml` file at the root of your Storyworld:
+If you are just trying things out, the `romualdo` tool will use some default
+swid. If you are serious about the Storyworld you are creating, you shall run
+`romualdo init`, which will create a `storyworld.toml` file at the root of your
+Storyworld:
+
+**TODO:** Will need some flag to tell the swid and other stuff we'll add to the
+file, or perhaps be interactive.
 
 ```toml
+# Generated and maintained by the romualdo tool.
+# Do not edit. (TODO: Should be OK to edit the output file name, for example.)
+# Keep under version control.
+
 swid = "com.example.little_red_ridding_hood" # The Storyworld ID
 out = "red_hoodie" # The file name to use when generating artifacts
 ```
 
-If you just want to try things out, default values will be used: swid will be
-`untitled_storyworld` and `untitled` will be the output file name.
-
-Anyway, the first time you
+The first time you
 
 ```sh
 romualdo build PATH
 ```
 
-the compiler will generate a (say) `my_storyworld.csw` file with an embedded
-version of -1. In other words, you are now developing the first version. When
-you are happy and ready to release, you
+the compiler will generate a (say) `red_hoodie.dev.csw` file with an embedded
+version of -1, meaning that this is a development build (i.e., not a final
+release) of what will become version 1.
+
+So you keep working on your Storyworld, making changes, `build`ing it, and
+testing it. All builds will remain at version -1. When you are happy and ready
+to release, you
 
 ```sh
 romualdo release PATH
 ```
 
-This is also the perfect moment to commit to your version control system and tag
-this repo state. Why? Because once you create a release, you can no longer
-change the code for that release. The compiler will complain if you try to. So
-you better have a way to revert to the pristine code just in case you change
-things by mistake.
+which will generate `red_hoodie.csw` with an internal version (swov) of 1 (a
+final releas!). This will furthermore add a bunch of information to your
+`storyworld.toml` file:
 
-TODO: Should we have a `--force` option to the build, to warn about but
-otherwise ignore changes to released code? Perhaps this should be the default?
-Because we'll use the same binary code anyway, right? Cannot recompile, not even
-to, say, make use of better optimizations, because changes in the bytecode will
-break saved states. (And then we could have a `--picky` flag to force error if
-released code is changed).
+```toml
+# Generated and maintained by the romualdo tool.
+# Do not edit. (TODO: Should be OK to edit the output file name, for example.)
+# Keep under version control.
 
-Anyway, version 1 is released. From this point on, your `.csw` file contains
-important information (hashes of compiled functions, the version number itself).
-You should add it to your repo.
+swid = "com.example.little_red_ridding_hood"
+out = "red_hoodie"
 
-TODO: This is bad. The CSW will appear forever as a changed file, while you want
-to ignore it until the next release. Maybe the special info should go to a
-separate file? But then, the bytecode itself is important, as said above
-(compiled code should remain constant).
+[[release]]
+hash = 757893
+last_procedure = 2
+last_globals = 0
 
-Next build will be versioned as -2. And so on...
+[[procedure]]
+name = "/main@1"
+version = 1
+hash = 345252
+
+[[procedure]]
+name = "/fully/qualified/name@1"
+hash = 673023
+
+[[procedure]]
+name = "/fully/qualified/name@2"
+hash = 568342
+
+[[globals]]
+package="/@1"
+hash = 386224
+```
+
+What we have here is, first, one release: version 1, implicit because it's the
+first array element. For each release we have its hash (which is a function of
+all other hashes it depends upon), and also the indices of the last element of
+the `procedure` and `globals` arrays that follow. This reads as "when the first
+release was made, we had Procedures 0, 1, and 2; and we had the `globals` block
+0." (`last_globals` could be -1 if no `globals` block was defined anywhere.)
+
+Then we have the hashes of every Procedure in the Storyworld. In this case, it
+may seem odd that we have already two releases of the `/fully/qualified/name`
+Procedure. That's OK. This `/fully/qualified` Package could be some third-party
+dependency that already had several versions.
+
+**TODO:** This is cumbersome. Any reusable library would need to contain the
+whole code of all releases ever made, even though a new Storyworld using it
+would require only the versions starting at the one they initially depended
+upon. (At least, I think we can avoid generating code for unused releases. And
+at least, we can move the old implementation to a separate file on the same
+Package.)
+
+Likewise, the `storyworld.toml` file also includes the hashes for each `globals`
+block appearing in thw Storyworld -- in the example, only one (at the Root
+Package).
+
+Now you should **commit your `red_hoodie.csw` to version control**: you'll need
+it to create future releases! This is actually the perfect moment to commit all
+your source code to your version control system and tag this repo state. Why?
+Because once you create a release, you can no longer change the code for that
+release. The compiler will complain if you try to. So you better have a way to
+revert to the pristine code just in case you change things by mistake.
+
+Then you decide to change or add something. You update the code (including
+`@whatever_new_version` version tags to new Procedures) and run
+
+```sh
+romualdo build PATH
+```
+
+The `romualdo` tool will create a new `red_hoodie.dev.csw` file, with version
+-2: we are back to a test build! (Not to something that will eventually become
+version 2.)
+
+Next time you `romualdo release`, you'll get `red_hoodie.csw` version 2, with
+the corresponding updates to `storyworld.toml`. The `romualdo` tool will bark if
+there are no changes from the last release. It will also bark if the previous
+`red_hoodie.csw` (version 1) is not available (I said to version control it!) If
+the release succeeds, the `red_hoodie.csw` file will be updated to the new
+version. (And if some catastrophe happens and `romualdo` corrupts your file, you
+have it under version control anyway!)
+
+One final note about compatibility of saved states. Every saved state will
+include the swid and swov of the compiled Storyworld from which it was created.
+
+| CSW version | State version | Compatible?                                                             |
+|-------------|---------------|-------------------------------------------------------------------------|
+| 1           | 1             | Yes, trivial case.                                                      |
+| 1           | 2             | No, the state may depend on things not available in the CSW.            |
+| 2           | 1             | Yes, backward compatibility is guaranteed.                              |
+| -2          | 1             | Yes, still a case of backwards compatibility.                           |
+| -2          | -1            | No, cannot guarantee compatibility with saved states from dev versions. |
+| -2          | -2            | TODO! Cannot guarantee compatibility, but would be useful when testing. |
+
+#### Consequences of this scheme
+
+* The versions of the released Storyworld don't have a direct relationship to
+  the versions of anything else on the Storyworld. Not even to the Root Package:
+  if you update a Subpackage and create a new release, the versions at the Root
+  Package haven't changed.
+* In fact, in source code, versions are now per Procedure/`globals` block! There
+  is no concept of the version of a Package as a whole.
+    **TODO:** Is not having a Package version confusing?
+* This workflow is tightly integrated with version control. In principle, the
+  `romualdo` tool will not help with proper version control usage -- but I guess
+  we could make it smarter if desired.
 
 ### Passages
 

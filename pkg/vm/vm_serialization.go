@@ -198,6 +198,9 @@ func (vm *VM) deserializePayload(r io.Reader) (uint32, errs.Error) {
 	if err != nil {
 		return 0, err
 	}
+	// TODO: Actually... negative versions are not guaranteed to be compatible
+	// with themselves. They are dev versions, the code is changing all the
+	// time.
 	if romutil.Abs(swov) > romutil.Abs(vm.Swov) {
 		return 0, errs.NewRomualdoTool("saved state swov %v is greater than VM swov %v", swov, vm.Swov)
 	}

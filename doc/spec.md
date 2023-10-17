@@ -279,7 +279,7 @@ globals
     artifactsCount: int = 0
 end
 
-\# Here we are explicitly saying this version 2.
+\# Here we are explicitly saying this is version 2.
 globals@2
     EndGame: bool = false              \# Fine, same as version 1
     artifactsCount: int = 1            \# Fine, just initialization changed
