@@ -34,6 +34,13 @@ Might make sense to work on these other features before (or along with) that:
 
 Older TODOs (review):
 
+* Consider compressing strings and lectures on the bytecode. Complicates the VM,
+  but may be worth it. Could use a simple algorithm like
+  [shoco](https://ed-von-schleck.github.io/shoco/), or gzip. Again, not super
+  happy about complicating the VM (but then, GDScript can gzip. Can "normal
+  browser Javascript" do it, too without extra dependencies?). Also to consider:
+  someone wanting smaller size could compress the whole compiled Storyworld at
+  once, right? Even better compression, and more control to users.
 * Eventually, will need an array of `meta`s: one per chunk, with the `meta`s
   defined for each chunk. Or maybe this could be a map, because most
   procedures will not have `meta`s.
