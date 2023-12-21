@@ -107,7 +107,7 @@ romualdo release PATH
 ```
 
 which will generate `red_hoodie.csw` with an internal version (swov) of 1 (a
-final releas!). This will furthermore add a bunch of information to your
+final release!). This will furthermore add a bunch of information to your
 `storyworld.toml` file:
 
 ```toml
@@ -161,7 +161,7 @@ at least, we can move the old implementation to a separate file on the same
 Package.)
 
 Likewise, the `storyworld.toml` file also includes the hashes for each `globals`
-block appearing in thw Storyworld -- in the example, only one (at the Root
+block appearing in the Storyworld -- in the example, only one (at the Root
 Package).
 
 Now you should **commit your `red_hoodie.csw` to version control**: you'll need
@@ -179,7 +179,7 @@ romualdo build PATH
 ```
 
 The `romualdo` tool will create a new `red_hoodie.dev.csw` file, with version
--2: we are back to a test build! (Not to something that will eventually become
+-2: we are back to a test build! (Now to something that will eventually become
 version 2.)
 
 Next time you `romualdo release`, you'll get `red_hoodie.csw` version 2, with
