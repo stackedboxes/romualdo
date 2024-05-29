@@ -6,7 +6,6 @@
 #
 
 name: Run Tests
-run-name: ${{ github.actor }} is running tests
 on: [push]
 jobs:
   unit-tests:
