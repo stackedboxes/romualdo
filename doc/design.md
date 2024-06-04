@@ -125,7 +125,7 @@ last_globals = 0
 
 [[procedure]]
 name = "/main@1"
-version = 1
+version = 1       # <--- remove this, right?!
 hash = 345252
 
 [[procedure]]
@@ -190,8 +190,36 @@ the release succeeds, the `red_hoodie.csw` file will be updated to the new
 version. (And if some catastrophe happens and `romualdo` corrupts your file, you
 have it under version control anyway!)
 
-One final note about compatibility of saved states. Every saved state will
-include the swid and swov of the compiled Storyworld from which it was created.
+Finally, let's talk about the compatibility between a saved state and a given
+compiled Storyworld. First off, the saved state includes the swid and swov of
+the compiled Storyworld from which it was created.
+
+Then, when loading a saved state, the loader checks for compatibility between
+the saved state and the compiled Storyworld being used. The algorithm for that
+is the following.
+
+* If the swids don't match, they are incompatible.
+* For each procedure `p` in the call stack of the saved state:
+    * If `p.version` does not appear in `storyworld.toml` (i.e., is not in a
+      released version), they are incompatible.
+* If we reach this point, they are compatible!
+
+**TODO:** What about global blocks? What if the call stack is compatible, but at
+some point we called some unreleased procedure that changed the unreleased
+global state? This could break future calls of other unreleased procedures that
+depend on that global state.
+
+**TODO:** So, maybe add a first step to the algorithm: no new global state must
+have been added. (We can maybe make this less strict in the future.)
+
+**TODO:** I can actually save the hashes of the "temporary" (unreleased) new
+versions of procedures somewhere. Then I can also check for the hash. Not a
+problem to have an unreleased procedure on the stack as long the code didn't
+change. (Well, and we are using the same version of the compiler! Or the
+compiler is smart enough to not recompile things already on the csw. There must
+be some corner cases here. Perhaps safer to just check for compiler version.)
+
+Old, kinda outdated diagram:
 
 | CSW version | State version | Compatible?                                                             |
 |-------------|---------------|-------------------------------------------------------------------------|
