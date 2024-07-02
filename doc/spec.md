@@ -254,12 +254,15 @@ TODO: User-defined types: type `alias`es and `struct`s (`class`es?).
 Global variables must be declared in a `globals` block.
 
 ```ebnf
-globalsBlock = "globals" [ "@" INTEGER ]
+globalsBlock = "globals"
                varDecl*
                "end" ;
 
 varDecl = IDENTIFIER [ ":" type ] [ "=" expression ] ;
 ```
+
+**TODO:** Define versioning restrictions of global blocks. The discussion below
+is outdated, based on an older design that ois being phased out.
 
 Each `globals` block has a version (if omitted, it is assumed to be 1). There
 can be only one `globals` block of any given version in any given Package.
@@ -325,7 +328,7 @@ generate certain events for an ongoing Story: you'd want to use functions to
 implement this simulation.
 
 ```ebnf
-functionDecl =  "function" [ "@" INTEGER ] IDENTIFIER "(" [ parameters ] ")" ":" type
+functionDecl =  "function" IDENTIFIER "(" [ parameters ] ")" ":" type
                 statement*
                 "end" ;
 
@@ -338,7 +341,7 @@ parameter = IDENTIFIER ":" type ;
 when you are effectively *telling* the Story, you'll want to use Passages.
 
 ```ebnf
-passageDecl =  "passage" [ "@" INTEGER ] IDENTIFIER "(" [ parameters ] ")" ":" type
+passageDecl =  "passage" IDENTIFIER "(" [ parameters ] ")" ":" type
                LECTURE
                "end" ;
 ```
@@ -493,19 +496,6 @@ Notes about expressions:
 **TODO**, but in summary:
 
 * The problem we are solving here is allowing to upgrade or patch a Storyworld
-  without breaking saved ongoing stories.
-* Every Procedure and `globals` block has a version.
-* If omitted, version is implicitly assumed to be 1.
 * Things cannot be changed between releases of a Storyworld, only added.
-* So, it's OK to add a new version of a Procedure or `globals` block.
-* All new stuff added to a Package in a release must have the same version, that
-  is one higher than the previously highest version.
-* This may generate holes in versioning, but that's fine. It's assumed that
-  those are the same as the highest defined version that is lower than the
-  missing version. (Shouldn't make diference to the backend; it's a check made
-  on the frontend to make sure things are a bit easier to understand, because
-  versions will match with a release *within a Package*.)
-* We can call a specific version of a Procedure: `proc@3()`. Omitting the
-  version causes the latest version to be called.
-* See also the descriptions of `globals` blocks and Procedures for the details
-  on versioning specific to them.
+* So, it's OK to add a new version of a Procedure or a new global variable.
+* See `design.md` for details on the current (still evolving) design.

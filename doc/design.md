@@ -53,71 +53,52 @@ In summary, comments are still a TODO, surprisingly.
 
 (This is largely not implemented, but here's how I am planning to do this.)
 
-#### Things I am juggling with
+Imagine you released a Storyworld that takes a while to play through. Someone
+plays it for hours and then saves their current progress. At this point you
+release an update to the Storyworld and your player, mouth watering for the
+shiny new features, immediately updates -- only to find that the saved progress
+is not compatible with the new release and he needs to start from the beginning.
+How frustrating!
 
-* Sane versioning system (e.g., whole Storyworld at the same version)
-* Third-party libraries
-* Development releases x "released released"
-* Compatibility between saved states and releases
+Versioning exists to avoid this kind of scenario. It enables compatibility
+between old saved states and new Storyworld releases.
 
-#### A new idea: file-based versions
+Versioning is a feature of the Romualdo tool, not of the Romualdo language. In
+other words, it's all about how you invoke the `romualdo` tool -- you don't need
+to change anything to the code you write. (Though, I guess the way you write
+your code may affect how the user "perceives" versioning. TODO: Explore this,
+add examples! Like, a long main procedure with a hardcoded ending versus a short
+one calling and `end()` procedure; the first case will not see an updated
+ending; the second will.)
 
-* `foo.1.ral` contains version 1 (released) stuff.
-* `foo.2.ral` contains version 2 (released) stuff.
-* `foo.ral` contains development stuff; would be version -3 in this example.
-* `romualdo release` would be a command to copy/rename files and update
-  `storyworld.toml`.
+#### Technical overview
 
-Is this any better? Sounds confusing actually.
+Under the hood, what we do is conceptually simple. We keep the code for all
+released versions of all procedures in the Storyworld. So, if a saved state
+refers to an old version, it can still run it because the code is there! But
+whenever a procedure is called, it's the latest version that gets executed.
 
-#### Or...
+I think this is not too different from what Erlang does to support hot updates
+(i.e., to deploy a new version while the old version is running). In the case of
+Erlang, they can dispose the old executable code once nobody is running it on
+the VM anymore, while Romualdo needs to keep the old code around forever,
+because old saved states are eternal. (I never used Erlang seriously, and the
+one time I used it was some 20 years ago, so my recollection might be a bit
+off!)
 
-A SW version is a "stamp" you put in a set of source files (or versions of
-procedures and global blocks).
+#### Open points
 
-Just ignore tge thing about third-party libs. Pretend they effectively do not
-exist.
-
-(Isn't it what the original design was about?)
-
-#### Facts to keep in mind
-
-* We need the compiled Storyworld of version *n* to generate the *n+1* release.
-  Why? Because we need to use *exactly* the same binary code for older versions
-  of Procedures. Say we implement an optimization in a future version of the
-  compiler. This would change the bytecode of an old version of a Procedure. And
-  we can't change, because this would potentially break saved states.
+**TODO:** How to deal nicely with changing signatures? Probably just forbid for
+now. Old code may need to call new procedures, and for that to be possible they
+need to have the same signature. I guess it could be OK to add arguments with
+default values (if I ever support that). And: completely changing the meaning of
+arguments in a new version of a procedure will break the semantic of saved
+states!
 
 #### Tutorial-like description
 
-A Storyworld has two values, the Storyworld ID and the Storyworld Version
-(affectionately called swid and swov).
-
-The ID (swid) identifies the Storyworld. It should be a unique string. I suggest
-using one of those "inverted-URL" strings, like
-`com.example.little_red_riding_hood`, but anything goes really.
-
-The version (swov) identifies (surprise!) the version of that Storyworld.
-Released versions of a Storyworld will have positive values. Development
-versions (that is, those you build while developing and testing) will have a
-negative value (more on that below). A version is never equals to zero.
-
-If you are just trying things out, the `romualdo` tool will use some default
-swid. If you are serious about the Storyworld you are creating, you shall run
-`romualdo init`, which will create a `storyworld.toml` file at the root of your
-Storyworld:
-
-**TODO:** Will need some flag to tell the swid and other stuff we'll add to the
-file, or perhaps be interactive.
-
-```toml
-# Generated and maintained by the romualdo tool.
-# Do not edit. (TODO: Should be OK to edit the output file name, for example.)
-# Keep under version control.
-
-swid = "com.example.little_red_ridding_hood" # The Storyworld ID
-out = "red_hoodie" # The file name to use when generating artifacts
-```
+[This is tutorial-like but I am adding some notes about the internals in square
+brackets.]
 
 The first time you
 
@@ -125,190 +106,132 @@ The first time you
 romualdo build PATH
 ```
 
-the compiler will generate a (say) `red_hoodie.dev.csw` file with an embedded
-version of -1, meaning that this is a development build (i.e., not a final
-release) of what will become version 1.
+the compiler generates a (say) `red_hoodie.csw` file in which everything is
+internally marked as being unreleased. In other words, all this compiled code is
+considered a development version, not something players should put their hands
+on.
+
+[Internally, things are marked as release `-1`; real releases index an array of
+releases, so a negative value means that these things aren't really part of a
+real release.]
+
+[Also, internally, every procedure is hashed, and the hash is saved to the
+`.csw` file. This allows to check for compatibility when loading a saved state.
+As we'll soon see, this also allows us to check if we need to create a new
+version of something when creating new releases.]
 
 So you keep working on your Storyworld, making changes, `build`ing it, and
-testing it. All builds will remain at version -1. When you are happy and ready
-to release, you
+testing it. Everything will remain internally marked as unreleased. When you are
+happy and ready to release, you
 
 ```sh
-romualdo release PATH
+romualdo release PATH VERSION
 ```
 
-which will generate `red_hoodie.csw` with an internal version (swov) of 1 (a
-final release!). This will furthermore add a bunch of information to your
-`storyworld.toml` file:
+which still generates a `red_hoodie.csw` file, but this one will be your first
+release: everything in it is marked as being part of the version you passed as
+argument. And it will be a proper release that you can give to your players.
 
-```toml
-# Generated and maintained by the romualdo tool.
-# Do not edit. (TODO: Should be OK to edit the output file name, for example.)
-# Keep under version control.
+The `VERSION` argument can be any string without spaces.
 
-swid = "com.example.little_red_ridding_hood"
-out = "red_hoodie"
+[At this point we create the first release internally: `0`. We create the
+association between this internal release number `0` and the passed `VERSION`,
+and mark everything as being on version `0`.]
 
-[[release]]
-hash = 757893
-last_procedure = 2
-last_globals = 0
-
-[[procedure]]
-name = "/main@1"
-version = 1       # <--- remove this, right?!
-hash = 345252
-
-[[procedure]]
-name = "/fully/qualified/name@1"
-hash = 673023
-
-[[procedure]]
-name = "/fully/qualified/name@2"
-hash = 568342
-
-[[globals]]
-package="/@1"
-hash = 386224
-```
-
-What we have here is, first, one release: version 1, implicit because it's the
-first array element. For each release we have its hash (which is a function of
-all other hashes it depends upon), and also the indices of the last element of
-the `procedure` and `globals` arrays that follow. This reads as "when the first
-release was made, we had Procedures 0, 1, and 2; and we had the `globals` block
-0." (`last_globals` could be -1 if no `globals` block was defined anywhere.)
-
-Then we have the hashes of every Procedure in the Storyworld. In this case, it
-may seem odd that we have already two releases of the `/fully/qualified/name`
-Procedure. That's OK. This `/fully/qualified` Package could be some third-party
-dependency that already had several versions.
-
-**TODO:** This is cumbersome. Any reusable library would need to contain the
-whole code of all releases ever made, even though a new Storyworld using it
-would require only the versions starting at the one they initially depended
-upon. (At least, I think we can avoid generating code for unused releases. And
-at least, we can move the old implementation to a separate file on the same
-Package.)
-
-Likewise, the `storyworld.toml` file also includes the hashes for each `globals`
-block appearing in the Storyworld -- in the example, only one (at the Root
-Package).
+[A release basically marks things in the `.csw` as immutable. Subsequent
+releases will not overwrite any binary code that has a non-negative release
+number. These need to be kept forever because some user may have a saved state
+referring to it.]
 
 Now you should **commit your `red_hoodie.csw` to version control**: you'll need
 it to create future releases! This is actually the perfect moment to commit all
-your source code to your version control system and tag this repo state. Why?
-Because once you create a release, you can no longer change the code for that
-release. The compiler will complain if you try to. So you better have a way to
-revert to the pristine code just in case you change things by mistake.
+your source code to your version control system and tag this repo state with the
+same `VERSION` you passed to `romualdo release`. Why? Because otherwise you'll
+not be able to check the source code that corresponds to this release. You may
+need to look into the code for an old release only rarely, but when you do need
+it, you need it! (And it also adds a layer of protection against Romualdo bugs.
+If the `romualdo` tool corrupts you `.csw` file, you can roll-back to a known
+good state.)
 
-Then you decide to change or add something. You update the code (including
-`@whatever_new_version` version tags to new Procedures) and run
+Time passes, and you decide to change or add something. You update the code and
+run
 
 ```sh
 romualdo build PATH
 ```
 
-The `romualdo` tool will create a new `red_hoodie.dev.csw` file, with version
--2: we are back to a test build! (Now to something that will eventually become
-version 2.)
+The `romualdo` tool will produce a new `red_hoodie.csw` file that you can use
+normally for testing, but which you shouldn't distribute to your players,
+because all the new stuff added to it is internally marked as unreleased.
 
-Next time you `romualdo release`, you'll get `red_hoodie.csw` version 2, with
-the corresponding updates to `storyworld.toml`. The `romualdo` tool will bark if
-there are no changes from the last release. It will also bark if the previous
-`red_hoodie.csw` (version 1) is not available (I said to version control it!) If
-the release succeeds, the `red_hoodie.csw` file will be updated to the new
-version. (And if some catastrophe happens and `romualdo` corrupts your file, you
-have it under version control anyway!)
+[Internally, things that have been released in release `0` remain unchanged and
+marked as release `0`. But changed stuff will get a new copy internally, marked
+as version `-1`. Likewise, new stuff is added as version `-1`.]
+
+Next time you `romualdo release`, you'll get an updated `red_hoodie.csw` with
+nothing marked as unreleased. That will be a new release (with the version you
+passed in) that is ready to be shipped to players.
+
+The `romualdo` tool will bark if there are no changes from the last release. It
+will also bark if the previous `red_hoodie.csw` is not available (I said to
+version control it!). It can't really know if the `red_hoodie.csw` available is
+the right one; it is your responsibility to guarantee that it contains
+everything from the last released version. (It can contain unreleased stuff in
+addition to that -- that's not a problem.)
+
+And there you have it, your second release! Users can update to it, and their
+old save states will keep working normally. (Fine print: limitations may apply!)
+
+[As always, after a `romualdo release` everything on your `.csw` file will be
+associated with a released version. No `-1` versions there!]
+
+#### Compatibility between saved states and compiled Storyworlds
 
 Finally, let's talk about the compatibility between a saved state and a given
-compiled Storyworld. First off, the saved state includes the swid and swov of
-the compiled Storyworld from which it was created.
+compiled Storyworld.
 
-Then, when loading a saved state, the loader checks for compatibility between
-the saved state and the compiled Storyworld being used. The algorithm for that
-is the following.
+First off the entries in the call stack (which ends up replicated in a saved
+state) must include (directly or indirectly) the hash of the version of each
+running procedure. This is what allow us to use an old version if that was what
+the user was running.
 
-* If the swids don't match, they are incompatible.
+When loading a saved state, the loader checks for compatibility between the
+saved state and the compiled Storyworld being used. The algorithm for that is
+the following.
+
 * For each procedure `p` in the call stack of the saved state:
-    * If `p.version` does not appear in `storyworld.toml` (i.e., is not in a
-      released version), they are incompatible.
+    * If `p.hash` does not appear in the compiled Storyworld, they are
+      incompatible.
 * If we reach this point, they are compatible!
 
-**TODO:** What about global blocks? What if the call stack is compatible, but at
-some point we called some unreleased procedure that changed the unreleased
-global state? This could break future calls of other unreleased procedures that
-depend on that global state. [But how exactly? The compiler will not allow any
-procedure that depends on an nonexisting global. The semantics of the Storyworld
-can go nuts with some creative loading and saving and changes to unreleased
-code... but I am not trying to avoid *this*.]
+Since this is all based on hashes of the actual code of the procedures, this
+algorithm works both for:
+
+1. Released cases. For example, I send a saved state to a friend, but the friend
+   is still using an older version of the Storyworld. They need to update the
+   Storyworld, otherwise loading will (rightly) fail.
+2. Unreleased cases. This is useful for testing. If I am testing an unreleased
+   version of the Storyworld I can save the state and load it multiple times to
+   test different things, even with changes to the Storyworld -- as long as I
+   don't change any of the unreleased procedures currently on the call stack.
+
+**TODO:** What about global blocks? Take this case. I am playing an unreleased
+version and save it. This version contains a global variable `X`. Then I change
+the Storyworld, and remove this global `X`. Then I try to load the saved state
+while using this updated Storyworld. The loader will notice that the saved state
+refers to a global variable `X` that does not exist. What does it do? It needs
+to fail, right? Because an older version of some procedure may refer to it (and
+be present in some saved call stack.)
+
+**TODO:** Or, what if I change the type of a global in a new (even released)
+version? There may be versions of the old code (expecting the old type) on the
+call stack of some saved state. **We need to prevent type changes of globals**
+(and `meta`s?). Maybe hashing globals is enough? Ignoring the initializer for
+hashing purposes should be OK.
 
 **TODO:** So, maybe add a first step to the algorithm: no new global state must
-have been added. (We can maybe make this less strict in the future.)
-
-**TODO:** I can actually save the hashes of the "temporary" (unreleased) new
-versions of procedures somewhere. Then I can also check for the hash. Not a
-problem to have an unreleased procedure on the stack as long the code didn't
-change. (Well, and we are using the same version of the compiler! Or the
-compiler is smart enough to not recompile things already on the csw. There must
-be some corner cases here. Perhaps safer to just check for compiler version.)
-
-Old, kinda outdated diagram:
-
-| CSW version | State version | Compatible?                                                             |
-|-------------|---------------|-------------------------------------------------------------------------|
-| 1           | 1             | Yes, trivial case.                                                      |
-| 1           | 2             | No, the state may depend on things not available in the CSW.            |
-| 2           | 1             | Yes, backward compatibility is guaranteed.                              |
-| -2          | 1             | Yes, still a case of backwards compatibility.                           |
-| -2          | -1            | No, cannot guarantee compatibility with saved states from dev versions. |
-| -2          | -2            | TODO! Cannot guarantee compatibility, but would be useful when testing. |
-
-#### Oooooor...
-
-* Hashes per proc and global, stored in the csw.
-* Versions are a snapshot of hashes. Or sort of a flag, that when enabled sets
-  that version in stone.
-* Radical thought: do I need to keep those versions in the source file? What
-  about this: `romualdo` release just "appends" the new version to the csw file.
-  If the user wants to keep a reference to older source code versions, use
-  version control! Ok, let's see how this could work.
-    * `romualdo release v1.2`, where "v1.2" is really just an arbitrary string.
-    * Highly recommended to `git tag v1.2` or whatever at this point. Otherwise
-      the user will not be able to keep track of what code corresponds to a
-      given version. (And, really, that's how any software works, right?) In the
-      future I can add something like "I see you ware in a Git repo; wanna tag
-      in Git, too?" Adding the CSW to the repo is desirable, too!
-    * Internally, we keep a table of releases, associating each of these strings
-      to an internal index. Like release 1 is `v1.0-beta`, 2 is `v1.0`, 3 is
-      `v1.2`, etc.
-        * This string tag would ben used only for informational purposes, and to
-          help users to keep some reference to the versioning of their product.
-    * Things marked as release `0` are work-in-progress. They are not set into
-      stone. A `romualdo release` command will not leave anything with release
-      `0` in the CSW.
-    * Compatibility is checked by looking at hashes in the call stack.
-        * TODO: Hmm, except for global blocks, right? -- Maybe not...
-    * For each procedure and globals block, we keep the association
-      name-version-hash. Like procedure `onceUponATime` version `3` has the hash
-      `12b7da2`.
-    * ~~And what if the procedure in the CSW is identified by a 128-bit integer
-      (its hash) and the names only go to the debug info? Nah... makes it hard
-      to implement VMs for languages without support for integers this large.~~
-    * ..... WHAT ELSE?
-
-#### Consequences of this scheme
-
-* The versions of the released Storyworld don't have a direct relationship to
-  the versions of anything else on the Storyworld. Not even to the Root Package:
-  if you update a Subpackage and create a new release, the versions at the Root
-  Package haven't changed.
-* In fact, in source code, versions are now per Procedure/`globals` block! There
-  is no concept of the version of a Package as a whole.
-    **TODO:** Is not having a Package version confusing?
-* This workflow is tightly integrated with version control. In principle, the
-  `romualdo` tool will not help with proper version control usage -- but I guess
-  we could make it smarter if desired.
+have been added. (We can maybe make this less strict in the future.) Better to
+think a bit more about hashing globals.
 
 ### Passages
 
@@ -612,29 +535,6 @@ Each Module can be implemented in a single or in multiple files. Splitting a
 Module into multiple files is just a matter of convenience: it makes no
 difference from the perspective of the language.
 
-### Subroutine versioning
-
-TODO!
-
-```romualdo
-function foo@2(): void
-  \# ...
-end
-```
-
-Version `@1` is the default and can be omitted. Hmm, or the latest is the
-default and one must mark the older one with the right version? Nope, this would
-be confusing. So, @1 is the default and can be omitted -- but it is also fine to
-later on add the @1 that was initially omitted (so that the code looks
-consistent).
-
-**An almost good idea:** All versions must match the version of the Storyworld.
-This is great because it makes it much simpler to understand, say, that function
-v3 was introduced at the same time as globals v3. The problem is: what about
-external Packages, or reuse of Packages? Copy and paste and some manual editing
-of versions would work, but is bad. Hey... maybe limit this rule to Packages? We
-lose some benefits, but maybe keep the most important.
-
 ### Meta blocks
 
 For top-level procedures, needed because they act as static vars. So, I need a
@@ -645,16 +545,6 @@ function f(): void
     meta
         var v: bool = true
     end
-end
-
-function f@2(): void
-    meta
-        var v: bool = false
-    end
-    return f@1()  \# Call a specific version. For cases like this, in which
-                  \# only the meta changed.
-                  \#
-                  \# Update, July 2024: Probably getting rid of in-code versions!
 end
 
 passage p(): void
