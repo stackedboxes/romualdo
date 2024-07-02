@@ -60,19 +60,8 @@ func (vm *VM) serializePayload(w io.Writer) (uint32, errs.Error) {
 	crc := crc32.NewIEEE()
 	mw := io.MultiWriter(w, crc)
 
-	// Swid and swov
-	err := romutil.SerializeString(mw, vm.Swid)
-	if err != nil {
-		return 0, err
-	}
-
-	err = romutil.SerializeI32(mw, vm.Swov)
-	if err != nil {
-		return 0, err
-	}
-
 	// VM State
-	err = romutil.SerializeU32(mw, uint32(vm.State))
+	err := romutil.SerializeU32(mw, uint32(vm.State))
 	if err != nil {
 		return 0, err
 	}
@@ -179,32 +168,13 @@ func (vm *VM) deserializeHeader(r io.Reader) errs.Error {
 // deserializePayload reads the payload of a VM saved state from the given
 // io.Reader. In other words, this the function doing the actual
 // deserialization. Returns the CRC32 of the data read from r, and an error. It
-// updates the VM saved state with the deserialized data as it goes.
+// updates the VM state with the deserialized data as it goes.
 func (vm *VM) deserializePayload(r io.Reader) (uint32, errs.Error) {
 	crcSummer := crc32.NewIEEE()
 	tr := io.TeeReader(r, crcSummer)
 
-	// Swid and swov
-	swid, err := romutil.DeserializeString(tr)
-	if err != nil {
-		return 0, err
-	}
-	if swid != vm.Swid {
-		return 0, errs.NewRomualdoTool("saved state swid '%v' mismatches VM swid '%v'", swid, vm.Swid)
-	}
-	vm.Swid = swid
-
-	swov, err := romutil.DeserializeI32(tr)
-	if err != nil {
-		return 0, err
-	}
-	// TODO: Actually... negative versions are not guaranteed to be compatible
-	// with themselves. They are dev versions, the code is changing all the
-	// time.
-	if romutil.Abs(swov) > romutil.Abs(vm.Swov) {
-		return 0, errs.NewRomualdoTool("saved state swov %v is greater than VM swov %v", swov, vm.Swov)
-	}
-	vm.Swov = swov
+	// TODO: Check for compatibility between the saved state and the Storyworld
+	// loaded into the VM.
 
 	// VM State
 	vmState, err := romutil.DeserializeU32(tr)

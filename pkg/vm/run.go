@@ -17,7 +17,6 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/bytecode"
 	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/frontend"
-	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
 // CSWFromPath loads the CompiledStoryworld and DebugInfo from the given path,
@@ -142,16 +141,8 @@ func LoadCompiledStoryworldBinaries(cswPath string, diRequired bool) (*bytecode.
 		return nil, nil, errs.NewRomualdoTool("reading debug info from %v: %v", diPath, err)
 	}
 
-	// Swid and swov mismatches are always errors, regardless of diRequired.
-	if di.Swid != csw.Swid {
-		return nil, nil, errs.NewRomualdoTool("DebugInfo swid '%v' mismatches CompiledStoryworld swid '%v'", di.Swid, csw.Swid)
-	}
-	// TODO: Actually... negative versions are not guaranteed to be compatible
-	// with themselves. They are dev versions, the code is changing all the
-	// time.
-	if romutil.Abs(di.Swov) != romutil.Abs(csw.Swov) {
-		return nil, nil, errs.NewRomualdoTool("DebugInfo swov %v mismatches CompiledStoryworld swov %v", di.Swov, csw.Swov)
-	}
+	// TODO: Check for compatibility between the CompiledStoryworld and the
+	// DebugInfo.
 
 	return csw, di, nil
 }

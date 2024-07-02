@@ -14,11 +14,6 @@ All integers are stored in little endian. If signed, two's complement is used.
 
 ### Compiled Storyworld Payload
 
-#### Compiled Storyworld Payload Swid and Swov
-
-* A string with the Storyworld ID ("swid").
-* An `int32` with the Storyworld version ("swov").
-
 #### Constants
 
 * A `uint32` with the number of constants
@@ -96,11 +91,6 @@ Booleans are always represented by one single byte:
 
 ### Debug Info Payload
 
-#### Debug Info Swid and Swov
-
-* A string with the Storyworld ID ("swid").
-* An `int32` with the Storyworld version ("swov").
-
 #### Number of Chunks
 
 * An `uint32` with the number of Chunks. (This is sort of redundant, because we
@@ -143,11 +133,6 @@ of the Storyworld.
 * A `uint32` with the version (currently 0).
 
 ### VM Saved State Payload
-
-#### VM Saved State Swid and Swov
-
-* A string with the Storyworld ID ("swid").
-* An `int32` with the Storyworld version ("swov").
 
 #### VM State
 
