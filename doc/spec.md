@@ -48,23 +48,29 @@ that a given Package is a Subpackage of another one is usually irrelevant, so we
 normally simply call everything a Package. (Except when we want to emphasize the
 hierarchical relationship for some reason.)
 
-The Package at the root directory of a Storyworld as a whole is called the
-**Root Package**. Other Packages have names matching the directory name where
-they reside. The full name of a Package is like a directory path. Something like
-`/package/subpackage/my_package`.
+Packages have names matching the directory where they reside. The full name of a
+Package is like a directory path, something like
+`/package/subpackage/my_package`. The Package at the root directory of a
+Storyworld as a whole is named simply `/`, but we often call it the **Root
+Package**.
+
+When referring to global identifiers like procedure names or global variables,
+we sometimes may refer to its **Fully Qualified Name (FQN)**, which is simply
+it's name including the full package name (for example,
+`/package/subpackage/my_package/myProcedure`).
 
 A Package name must be a valid Romualdo identifier. It can't be `std`, though,
 which is reserved for the Romualdo standard library.
 
-Restricting Package and file names to the ASCII character set can avoid
-headaches (e.g., when exchanging files with other people), but Romualdo doesn't
-enforce this.
+Restricting Package and file names to the ASCII character set and using
+`snake_case` names can avoid headaches (e.g., when exchanging files with other
+people), but Romualdo doesn't enforce this.
 
 ### The `main` Procedure
 
 The execution of a Storyworld starts from a Procedure called `main` located at
 the Root Package (in other words, the entry point of a Storyworld has a Fully
-Qualified name of `/main`).
+Qualified Name of `/main`).
 
 ## Source file
 
