@@ -49,6 +49,33 @@ In summary, comments are still a TODO, surprisingly.
 
 (This is largely not implemented, but here's how I am planning to do this.)
 
+#### Things I am juggling with
+
+* Sane versioning system (e.g., whole Storyworld at the same version)
+* Third-party libraries
+* Development releases x "released released"
+* Compatibility between saved states and releases
+
+#### A new idea: file-based versions
+
+* `foo.1.ral` contains version 1 (released) stuff.
+* `foo.2.ral` contains version 2 (released) stuff.
+* `foo.ral` contains development stuff; would be version -3 in this example.
+* `romualdo release` would be a command to copy/rename files and update
+  `storyworld.toml`.
+
+Is this any better? Sounds confusing actually.
+
+#### Or...
+
+A SW version is a "stamp" you put in a set of source files (or versions of
+procedures and global blocks).
+
+Just ignore tge thing about third-party libs. Pretend they effectively do not
+exist.
+
+(Isn't it what the original design was about?)
+
 #### Facts to keep in mind
 
 * We need the compiled Storyworld of version *n* to generate the *n+1* release.
@@ -207,7 +234,10 @@ is the following.
 **TODO:** What about global blocks? What if the call stack is compatible, but at
 some point we called some unreleased procedure that changed the unreleased
 global state? This could break future calls of other unreleased procedures that
-depend on that global state.
+depend on that global state. [But how exactly? The compiler will not allow any
+procedure that depends on an nonexisting global. The semantics of the Storyworld
+can go nuts with some creative loading and saving and changes to unreleased
+code... but I am not trying to avoid *this*.]
 
 **TODO:** So, maybe add a first step to the algorithm: no new global state must
 have been added. (We can maybe make this less strict in the future.)
@@ -229,6 +259,39 @@ Old, kinda outdated diagram:
 | -2          | 1             | Yes, still a case of backwards compatibility.                           |
 | -2          | -1            | No, cannot guarantee compatibility with saved states from dev versions. |
 | -2          | -2            | TODO! Cannot guarantee compatibility, but would be useful when testing. |
+
+#### Oooooor...
+
+* Hashes per proc and global, stored in the csw.
+* Versions are a snapshot of hashes. Or sort of a flag, that when enabled sets
+  that version in stone.
+* Radical thought: do I need to keep those versions in the source file? What
+  about this: `romualdo` release just "appends" the new version to the csw file.
+  If the user wants to keep a reference to older source code versions, use
+  version control! Ok, let's see how this could work.
+    * `romualdo release v1.2`, where "v1.2" is really just an arbitrary string.
+    * Highly recommended to `git tag v1.2` or whatever at this point. Otherwise
+      the user will not be able to keep track of what code corresponds to a
+      given version. (And, really, that's how any software works, right?) In the
+      future I can add something like "I see you ware in a Git repo; wanna tag
+      in Git, too?" Adding the CSW to the repo is desirable, too!
+    * Internally, we keep a table of releases, associating each of these strings
+      to an internal index. Like release 1 is `v1.0-beta`, 2 is `v1.0`, 3 is
+      `v1.2`, etc.
+        * This string tag would ben used only for informational purposes, and to
+          help users to keep some reference to the versioning of their product.
+    * Things marked as release `0` are work-in-progress. They are not set into
+      stone. A `romualdo release` command will not leave anything with release
+      `0` in the CSW.
+    * Compatibility is checked by looking at hashes in the call stack.
+        * TODO: Hmm, except for global blocks, right? -- Maybe not...
+    * For each procedure and globals block, we keep the association
+      name-version-hash. Like procedure `onceUponATime` version `3` has the hash
+      `12b7da2`.
+    * ~~And what if the procedure in the CSW is identified by a 128-bit integer
+      (its hash) and the names only go to the debug info? Nah... makes it hard
+      to implement VMs for languages without support for integers this large.~~
+    * ..... WHAT ELSE?
 
 #### Consequences of this scheme
 
@@ -586,6 +649,8 @@ function f@2(): void
     end
     return f@1()  \# Call a specific version. For cases like this, in which
                   \# only the meta changed.
+                  \#
+                  \# Update, July 2024: Probably getting rid of in-code versions!
 end
 
 passage p(): void
