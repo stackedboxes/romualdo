@@ -40,6 +40,10 @@ I recall at some point using `\ ` (i.e., backslash-space) to start a comment.
 Sounds great in theory (doesn't need to waste any extra character!), but felt
 odd. May reconsider it.
 
+A silly advantage of `\ ` to start a comment is that nobody will be allowed to
+do the common (but aesthetically wrong!) thing which is not leaving any space
+between the comment marker and the comment itself.
+
 Also: do I want block-comments? I guess I can live without them, but I never
 thought much about it.
 
