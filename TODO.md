@@ -12,14 +12,10 @@ them):
 
 * ~~Save and restore state.~~
 * Versioning.
-    * Add some unique ID to both Storyworlds and saved states. This would be a
-      crude way to detect if a saved state is compatible with the current
-      Storyworld (the ID must match and the versions must be compatible). Not
-      great, but better than nothing.
-        * Can we do better than this? Well, at state loading we could check if
-          all procedures/versions at the call stack exist in the Storyworld.
-          Same for global variables. And heck, even for local variables for the
-          procedures/versions on the call stack.
+    * Define how globals will be handled.
+    * Define how to hash a procedure.
+    * Implement procedure hashing.
+    * ...next step for implemented versioning...
 
 Might make sense to work on these other features before (or along with) that:
 
