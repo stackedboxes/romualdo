@@ -185,6 +185,62 @@ old save states will keep working normally. (Fine print: limitations may apply!)
 [As always, after a `romualdo release` everything on your `.csw` file will be
 associated with a released version. No `-1` versions there!]
 
+What about **globals and versioning**?
+
+Well, because of versioning, the Romualdo tool will not allow you to make
+certain changes to globals between releases:
+
+1. Cannot remove global variables.
+2. Cannot rename global variables.
+3. Cannot change the type of global variables.
+
+That's because Procedures in old releases (that may be still used because of
+saved states) may depend on the old definitions.
+
+Note that changing the initialization expression of a global variable is fine,
+because it is used only when starting a new Story, or initializing a global just
+added to a new release.
+
+**TODO:** This is bad for external libraries. The whole control of globals is
+made at the Storyworld level, so an external library cannot ever remove globals
+without this being a breaking change. Reusable libraries would need to release
+new major versions whenever they want to remove old globals that aren't used
+anymore. And old Storyworlds depending on that library would not be able to
+update without breaking compatibility with old saved states. Not great, but I
+think I can live with that for now.
+
+So, let's say the first release of the Storyworld had this on a certain package:
+
+```romualdo
+globals
+    EndGame: bool = false
+    artifactsCount: int = 0
+end
+```
+
+Then a second release does this:
+
+```romualdo
+globals
+    EndGame: bool = false              \# Fine, same as the first release
+    artifactsCount: int = 1            \# Fine, just initialization changed
+    favoriteColor: string = "blue"     \# Fine, a brand new global variable
+end
+```
+
+And we try this on a third release:
+
+```romualdo
+globals
+    EndGame: string = "sure!"          \# Error! Changed the type
+                                       \# Error! Removed some existing globals
+end
+```
+
+[Internally, along with each global we store it's hash, which is based on its
+FQN and type. When releasing, every global hash in the CSW must still be present
+on the source.]
+
 #### Compatibility between saved states and compiled Storyworlds
 
 Finally, let's talk about the compatibility between a saved state and a given
@@ -202,10 +258,13 @@ the following.
 * For each procedure `p` in the call stack of the saved state:
     * If `p.hash` does not appear in the compiled Storyworld, they are
       incompatible.
+* For each global variable `g` in the saved state:
+    * If `g.hash` does not appear in the compiled Storyworld, they are
+      incompatible.
 * If we reach this point, they are compatible!
 
-Since this is all based on hashes of the actual code of the procedures, this
-algorithm works both for:
+Since this is all based on hashes of the actual code of the procedures adn
+globals, this algorithm works both for:
 
 1. Released cases. For example, I send a saved state to a friend, but the friend
    is still using an older version of the Storyworld. They need to update the
@@ -214,24 +273,6 @@ algorithm works both for:
    version of the Storyworld I can save the state and load it multiple times to
    test different things, even with changes to the Storyworld -- as long as I
    don't change any of the unreleased procedures currently on the call stack.
-
-**TODO:** What about global blocks? Take this case. I am playing an unreleased
-version and save it. This version contains a global variable `X`. Then I change
-the Storyworld, and remove this global `X`. Then I try to load the saved state
-while using this updated Storyworld. The loader will notice that the saved state
-refers to a global variable `X` that does not exist. What does it do? It needs
-to fail, right? Because an older version of some procedure may refer to it (and
-be present in some saved call stack.)
-
-**TODO:** Or, what if I change the type of a global in a new (even released)
-version? There may be versions of the old code (expecting the old type) on the
-call stack of some saved state. **We need to prevent type changes of globals**
-(and `meta`s?). Maybe hashing globals is enough? Ignoring the initializer for
-hashing purposes should be OK.
-
-**TODO:** So, maybe add a first step to the algorithm: no new global state must
-have been added. (We can maybe make this less strict in the future.) Better to
-think a bit more about hashing globals.
 
 ### Passages
 

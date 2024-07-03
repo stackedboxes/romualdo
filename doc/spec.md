@@ -248,59 +248,30 @@ difficulties in implementing VMs in certain languages.
 ## Declarations
 
 ```ebnf
-declaration = globalsBlock
+declaration = varDecl
             | functionDecl
             | passageDecl ;
 ```
 
 TODO: User-defined types: type `alias`es and `struct`s (`class`es?).
 
-### Globals
+### Global variables
 
-Global variables must be declared in a `globals` block.
+As far as the grammar goes, a global variable is simply a variable declaration
+appearing at the top-level of a source file
 
 ```ebnf
-globalsBlock = "globals"
-               varDecl*
-               "end" ;
-
-varDecl = IDENTIFIER [ ":" type ] [ "=" expression ] ;
+varDecl = "var" IDENTIFIER [ ":" type ] [ "=" expression ] ;
 ```
 
-**TODO:** Define versioning restrictions of global blocks. The discussion below
-is outdated, based on an older design that ois being phased out.
+**TODO:** Actually there may be a gotcha here. For globals, the initialization
+cannot be any expression, because it can't depend on other globals. I don't want
+to go to complex rules on initialization order. Probably better to just limit
+the allowed expression types for globals. Must think more about it and adjust
+the grammar accordingly.
 
-Each `globals` block has a version (if omitted, it is assumed to be 1). There
-can be only one `globals` block of any given version in any given Package.
-
-A `globals` block of a latter version must redeclare all globals declared in the
-previous version, using the same type as before. The initialization expression
-can be different, though: it will be used instead of the old one only when
-starting a new Story.
-
-Of course, it also valid to add new globals to a new version of a `globals`
-block.
-
-```romualdo
-\# No explicit version provided, so 1 is used.
-globals
-    EndGame: bool = false
-    artifactsCount: int = 0
-end
-
-\# Here we are explicitly saying this is version 2.
-globals@2
-    EndGame: bool = false              \# Fine, same as version 1
-    artifactsCount: int = 1            \# Fine, just initialization changed
-    favoriteColor: string = "blue"     \# Fine, a brand new global variable
-end
-
-\# One more version!
-globals@3
-    EndGame: string = "sure!"          \# Error! Changed the type
-                                       \# Error! Didn't redeclare all globals
-end
-```
+In other words, every global variable has a name, a type, and an initialization
+expression.
 
 The initialization expression is optional. If omitted, each variable is
 initialized by the default value of it's corresponding type.
@@ -309,16 +280,11 @@ The type can be omitted if it can be inferred from the initialization
 expression:
 
 ```romualdo
-globals
-    EndGame = false      \# Fine, `EndGame` is a bool because `false` is a bool
-    artifactsCount       \# Error! Type not informed and can't be inferred
-end
+var EndGame = false      \# Fine, `EndGame` is a bool because `false` is a bool
+var artifactsCount       \# Error! Type not informed and can't be inferred
 ```
 
-*Note:* We don't allow removing or changing types of globals from one version to
-another because this could potentially break ongoing Stories. And we require all
-variables to be redeclared to avoid having globals confusingly scattered over
-different `globals` blocks.
+TODO: Document versioning constraints.
 
 ### Procedures
 
@@ -362,7 +328,7 @@ a Lecture. TODO: Point to the section in which we describe Lectures.
 Statements are language constructs that do stuff. They don't have a value.
 
 ```ebnf
-statement = varDeclStmt
+statement = varDecl
           | assignmentStmt
           | blockStmt
           | whileStmt
@@ -370,8 +336,6 @@ statement = varDeclStmt
           | returnStmt
           | sayStmt
           | expression ;
-
-varDeclStmt = "var" varDecl ;
 
 assignment = [ call "." ] IDENTIFIER "=" expression ;
 
