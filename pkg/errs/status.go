@@ -31,6 +31,9 @@ const (
 	// isn't expected to happen, and should indicate a bug in the compiler or in
 	// the language. (Well, ideally. As of July 2023 I cannot promise this is
 	// valid!)
+	//
+	// TODO: This must be removed eventually. There should be no Runtime errors
+	// in Romualdo!
 	statusCodeRuntimeError = 100
 
 	// statusCodeICE indicates an Internal Compiler Error.
