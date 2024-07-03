@@ -94,8 +94,8 @@ These are the keys recognized by `romualdo dev test`.
 
 ### `type`
 
-*Default: normally `build-and-run`; exception: single-step test cases with a
-non-zero `exitCode` default to `build`.*
+*Default:* normally `build-and-run`; exception: single-step test cases with a
+non-zero `exitCode` default to `build`.
 
 Steps can be of different types, depending on what you want the step to do. So,
 in a sense this is the most important key, as it determines even which other
@@ -143,7 +143,7 @@ is relative to the directory where `test.toml` is.
 *Valid for:* `run`, `build-and-run`.  
 *Default:* `[]`
 
-An array of strings, which will be send as input to the Storyworld. Each element
+An array of strings, which will be sent as input to the Storyworld. Each element
 in the array will be sent at a time, for each time the Storyworld `listen`s.
 
 It is an error if the story ends before all inputs are used.

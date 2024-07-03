@@ -46,7 +46,7 @@ The encoding of a value depends on its type.
 
 Booleans are always represented by one single byte:
 
-* A byte with the vaule `0` (if `false`,) `1` (if `true`).
+* A byte with the value `0` (if `false`), or `1` (if `true`).
 
 ##### Int
 

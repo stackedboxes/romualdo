@@ -62,7 +62,8 @@ func (sc *semanticChecker) Leave(n ast.Node) {
 	sc.nodeStack = sc.nodeStack[:len(sc.nodeStack)-1]
 
 	// TODO: checking for `main` here for now; will need to look at the whole
-	// Root Package when we have proper support for Packages.
+	// Root Package when we have proper support for Packages. At which point
+	// we'll want to use `/main` in the message.
 	if _, ok := n.(*ast.SourceFile); ok {
 		if _, found := sc.proceduresLine["main"]; !found {
 			sc.errorWithoutLine("Procedure `main` not found.")

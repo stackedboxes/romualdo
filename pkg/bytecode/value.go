@@ -243,7 +243,8 @@ func ValuesEqual(a, b Value) bool {
 //
 // TODO: Need at least a comment explaining why don't need Lecture here (in
 // summary, because they are never serialized because there are no Lecture
-// variables ever).
+// variables ever). [Update: Turns out we do have a cswLecture here, and it *is*
+// used! Need to figure this out!]
 const (
 	cswBoolFalse byte = 0
 	cswBoolTrue  byte = 1
