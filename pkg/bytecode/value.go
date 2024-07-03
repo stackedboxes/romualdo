@@ -270,6 +270,9 @@ func (v Value) Serialize(w io.Writer) errs.Error {
 		}
 		return nil
 
+	// TODO: When serializing floats, remember to do the proper endianness
+	// handling, as shown in https://pkg.go.dev/encoding/binary#example-Write
+
 	case string:
 		bs := []byte{cswString}
 		_, plainErr := w.Write(bs)

@@ -2,7 +2,8 @@
 
 ## Compiled Storyworld
 
-All integers are stored in little endian. If signed, two's complement is used.
+All integers and floating-point numbers are stored in little endian byte order.
+For signed integers, two's complement is used.
 
 ### Compiled Storyworld Header
 
@@ -59,9 +60,6 @@ Booleans are always represented by one single byte:
 * Eight bytes containing an IEEE 754 binary64 number (AKA [double precision
   floating
   point](https://en.wikipedia.org/wiki/Double-precision_floating-point_format)).
-  We don't mess with endianness in this case: the most significant bit of the
-  first byte is the sign, the next ones contain the exponent and the significand
-  (mantissa) comes in the later bytes.
 
 ##### Bounded Number
 
