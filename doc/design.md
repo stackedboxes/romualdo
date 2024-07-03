@@ -274,6 +274,54 @@ globals, this algorithm works both for:
    test different things, even with changes to the Storyworld -- as long as I
    don't change any of the unreleased procedures currently on the call stack.
 
+#### Hashing Procedures and global variables
+
+The hash of a procedure is computed like this:
+
+* Initialize an MD5 hash computation.
+* For each token of the procedure, from `function` or `passage` to `end`
+  (inclusive at both ends):
+    * Add to the hash computation the token lexeme (that is exactly what we have
+      in `frontend.Token.Lexeme`, which may already include some cleaning,
+      especially for Lectures).
+    * Add the a zero byte to the hash computation. This a single byte with all
+      bits set to zero, not a string with an ASCII "0" character.
+
+Note that by taking into account only the tokens, we allow changes to formatting
+and comments (which do not affect the generated code).
+
+MD5 should be a good choice here. It should be fast enough and security is not a
+concern here.
+
+For global variables, it's similar in concept, but with one tricky detail. We
+want to take into account the variable name and type and ignore the initializer
+-- but the type can be syntactically omitted if there is an initializer, and in
+this case we need to "manually" include the inferred type, because we really
+need to have the type as part of the hash.
+
+Alternative: compute on the parser would be significantly more complex (with
+tokens getting asked for everywhere throughout the parser)
+
+Alternative: compute on the AST. Main issue here is that we'd lose the ability
+to change the grammar, as that would change the hash. Worth checking if the AST
+gives us enough info (and, more than that, in a convenient format) to compute
+what would be effectively the same thing as the scanner-based approach.
+
+**TODO:** We are ignoring the package imports, which is fine. But then, suppose
+someone changes a package import to rename the imported name. They need to
+change the code accordingly. But this also doesn't change the generated code,
+because it's all resolving to the FQN under the hood. So, we could consider this
+kind of change as non-breaking. This is not a terrible problem, really, but
+could be a pro for an approach based on hashing the AST (at an early stage,
+before transformations or lowerings.)
+
+Implementation-wise, for Procedures we'll let the scanner do the actual hash
+computation, with the parser telling the scanner when to reset the computation.
+The parser is also the one asking the scanner for the hash, whenever it needs
+it. For global variables it's probably much, much simpler to do at the AST level
+(at scanner level we don't know about inferred types). **TODO:** I hate the
+difference in handling of Procedures and globals.
+
 ### Passages
 
 Tentative example:
