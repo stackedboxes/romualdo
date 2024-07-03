@@ -374,7 +374,7 @@ func (p *parser) blockNoConsume() *ast.Block {
 func (p *parser) statement() ast.Node {
 	switch {
 	case p.match(TokenKindLecture):
-		// Lectures are handled as statements because they have his dual nature
+		// Lectures are handled as statements because they have this dual nature
 		// of being both literals and statements ("say" statements, to be
 		// precise).
 		return &ast.Lecture{
