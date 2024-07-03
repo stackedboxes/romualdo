@@ -19,6 +19,7 @@ import (
 // precedence is the precedence of expressions.
 type precedence int
 
+// TODO: Need to explain, and probably understand, precNone better.
 const (
 	precNone       precedence = iota // Means: cannot be the "center" of an expression.
 	precAssignment                   // =

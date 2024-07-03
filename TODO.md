@@ -28,6 +28,12 @@ Might make sense to work on these other features before (or along with) that:
 * Procedure calls. Again useful *and* related to state saving (because call
   stack).
 
+To consider:
+
+* Rename "space prefix" to "indentation"? Do I really need to roll my own term
+  here? At least, something like "lecture indentation" if I want to be more
+  specific.
+
 Older TODOs (review):
 
 * Consider compressing strings and lectures on the bytecode. Complicates the VM,
