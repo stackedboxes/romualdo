@@ -48,28 +48,30 @@ func (ap *ASTPrinter) Enter(node ast.Node) {
 	ap.builder.WriteString(indent(ap.indentLevel))
 
 	switch n := node.(type) {
-	case *ast.SourceFile:
-		ap.builder.WriteString("SourceFile\n")
-	case *ast.ProcedureDecl:
-		ap.builder.WriteString(fmt.Sprintf("ProcDecl [%v %v(%v):%v]\n", n.Kind, n.Name, n.Parameters, n.ReturnType))
-	case *ast.Block:
-		ap.builder.WriteString("Block\n")
-	case *ast.Say:
-		ap.builder.WriteString("Say\n")
-	case *ast.Lecture:
-		ap.builder.WriteString(fmt.Sprintf("Lecture [%v]\n", romutil.FormatTextForDisplay(n.Text)))
-	case *ast.IfStmt:
-		ap.builder.WriteString("If\n")
-	case *ast.ExpressionStmt:
-		ap.builder.WriteString("ExpressionStmt\n")
-	case *ast.Listen:
-		ap.builder.WriteString("Listen\n")
-	case *ast.BoolLiteral:
-		ap.builder.WriteString(fmt.Sprintf("BoolLiteral [%v]\n", n.Value))
-	case *ast.StringLiteral:
-		ap.builder.WriteString(fmt.Sprintf("StringLiteral [%v]\n", romutil.FormatTextForDisplay(n.Value)))
 	case *ast.Binary:
 		ap.builder.WriteString(fmt.Sprintf("Binary [%v]\n", n.Operator))
+	case *ast.Block:
+		ap.builder.WriteString("Block\n")
+	case *ast.BoolLiteral:
+		ap.builder.WriteString(fmt.Sprintf("BoolLiteral [%v]\n", n.Value))
+	case *ast.Curlies:
+		ap.builder.WriteString("Curlies\n")
+	case *ast.ExpressionStmt:
+		ap.builder.WriteString("ExpressionStmt\n")
+	case *ast.IfStmt:
+		ap.builder.WriteString("If\n")
+	case *ast.Lecture:
+		ap.builder.WriteString(fmt.Sprintf("Lecture [%v]\n", romutil.FormatTextForDisplay(n.Text)))
+	case *ast.Listen:
+		ap.builder.WriteString("Listen\n")
+	case *ast.ProcedureDecl:
+		ap.builder.WriteString(fmt.Sprintf("ProcDecl [%v %v(%v):%v]\n", n.Kind, n.Name, n.Parameters, n.ReturnType))
+	case *ast.Say:
+		ap.builder.WriteString("Say\n")
+	case *ast.SourceFile:
+		ap.builder.WriteString("SourceFile\n")
+	case *ast.StringLiteral:
+		ap.builder.WriteString(fmt.Sprintf("StringLiteral [%v]\n", romutil.FormatTextForDisplay(n.Value)))
 	default:
 		panic(fmt.Sprintf("Unexpected node type: %T", n))
 	}
