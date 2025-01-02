@@ -11,6 +11,7 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/ast"
 	"github.com/stackedboxes/romualdo/pkg/bytecode"
 	"github.com/stackedboxes/romualdo/pkg/errs"
+	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
 // GenerateCode generates the bytecode for a given AST. The file name is used
@@ -42,7 +43,7 @@ func GenerateCode(root ast.Node) (
 	// here, before we generate (binary) code. When running the test suite, this
 	// shall catch any Node type we forgot to handle -- but we don't do anything
 	// useful with the hashes for now.
-	codeHasher := newCodeHasher()
+	codeHasher := romutil.NewCodeHasher()
 	root.Walk(codeHasher)
 
 	// Now we have the actual code generation.

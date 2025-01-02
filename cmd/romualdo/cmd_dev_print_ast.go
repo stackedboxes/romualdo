@@ -19,7 +19,7 @@ import (
 )
 
 var devPrintASTCmd = &cobra.Command{
-	Use:   "print-ast",
+	Use:   "print-ast <path>",
 	Short: "Parse the source code, print the AST",
 	Long: `Parse the source code, print the AST. AST stands for "Abstract Syntax Tree",
 and if you want to see it, that's your command.`,

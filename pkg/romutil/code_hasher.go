@@ -5,7 +5,7 @@
 * Licensed under the MIT license (see LICENSE.txt for details)                 *
 \******************************************************************************/
 
-package backend
+package romutil
 
 import (
 	"crypto/sha256"
@@ -15,10 +15,10 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/ast"
 )
 
-// codeHash can store the hash of some code bit.
-type codeHash [sha256.Size]byte
+// CodeHash can store the hash of some code bit.
+type CodeHash [sha256.Size]byte
 
-// codeHasher is a node visitor that computes the hash of procedures and
+// CodeHasher is a node visitor that computes the hash of procedures and
 // globals.
 //
 // Hashing is used to detect meaningful changes to code -- changes that require
@@ -26,29 +26,29 @@ type codeHash [sha256.Size]byte
 //
 // TODO: This operates at source file level. It should operate at package level,
 // or storyworld level.
-type codeHasher struct {
+type CodeHasher struct {
 	// hash is the Hash object used to hash the code contents.
 	hash hash.Hash
 
-	// procedureHashes stores the code hashes for the procedures. Maps the
+	// ProcedureHashes stores the code hashes for the procedures. Maps the
 	// fully-qualified procedure names to their hashes.
-	procedureHashes map[string]codeHash
+	ProcedureHashes map[string]CodeHash
 
-	// globalHashes stores the code hashes for the globals. Maps the
+	// GlobalHashes stores the code hashes for the globals. Maps the
 	// fully-qualified global names to their hashes.
-	globalHashes map[string]codeHash
+	GlobalHashes map[string]CodeHash
 }
 
-func newCodeHasher() *codeHasher {
-	return &codeHasher{
+func NewCodeHasher() *CodeHasher {
+	return &CodeHasher{
 		hash:            sha256.New(),
-		procedureHashes: make(map[string]codeHash),
-		globalHashes:    make(map[string]codeHash),
+		ProcedureHashes: make(map[string]CodeHash),
+		GlobalHashes:    make(map[string]CodeHash),
 	}
 }
 
 // The Visitor interface
-func (ch *codeHasher) Enter(node ast.Node) {
+func (ch *CodeHasher) Enter(node ast.Node) {
 	switch n := node.(type) {
 
 	case *ast.Binary:
@@ -101,7 +101,7 @@ func (ch *codeHasher) Enter(node ast.Node) {
 	}
 }
 
-func (ch *codeHasher) Leave(node ast.Node) {
+func (ch *CodeHasher) Leave(node ast.Node) {
 	switch n := node.(type) {
 
 	case *ast.Binary:
@@ -116,10 +116,10 @@ func (ch *codeHasher) Leave(node ast.Node) {
 	case *ast.ProcedureDecl:
 		ch.writeToken("end")
 		fqn := n.Package + n.Name
-		if _, exists := ch.procedureHashes[fqn]; exists {
+		if _, exists := ch.ProcedureHashes[fqn]; exists {
 			panic(fmt.Sprintf("Duplicate procedure: `%v`", fqn))
 		}
-		ch.procedureHashes[fqn] = codeHash(ch.hash.Sum(nil))
+		ch.ProcedureHashes[fqn] = CodeHash(ch.hash.Sum(nil))
 
 	case *ast.Block, *ast.BoolLiteral, *ast.Lecture, *ast.Listen, *ast.Say,
 		*ast.SourceFile, *ast.Storyworld, *ast.StringLiteral:
@@ -131,7 +131,7 @@ func (ch *codeHasher) Leave(node ast.Node) {
 	}
 }
 
-func (ch *codeHasher) Event(node ast.Node, event ast.EventType) {
+func (ch *CodeHasher) Event(node ast.Node, event ast.EventType) {
 	switch event {
 	case ast.EventAfterIfCondition:
 		ch.writeToken("then")
@@ -156,7 +156,7 @@ func (ch *codeHasher) Event(node ast.Node, event ast.EventType) {
 // sequence of tokens "else" and "if" to have the same hash as the single token
 // "elseif". (The codeHasher doesn't generate "elseif" tokens, only separate
 // "else" and "if" ones that's why this case can't happen in practice.)
-func (ch *codeHasher) writeToken(token string) {
+func (ch *CodeHasher) writeToken(token string) {
 	_, err := ch.hash.Write([]byte(token))
 	if err != nil {
 		panic(err)

@@ -21,7 +21,7 @@ of Interactive Storytelling.`,
 }
 
 func init() {
-	devCmd.AddCommand(devScanCmd, devPrintASTCmd, devTestCmd, devDisassembleCmd)
+	devCmd.AddCommand(devScanCmd, devPrintASTCmd, devTestCmd, devDisassembleCmd, devHashCmd)
 	rootCmd.AddCommand(buildCmd, runCmd, devCmd)
 
 	runCmd.Flags().BoolVarP(&runDebugTraceExecution, "trace", "t", false, "debug trace execution")
