@@ -17,7 +17,7 @@ import (
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
-var scanCmd = &cobra.Command{
+var devScanCmd = &cobra.Command{
 	Use:   "scan <path>",
 	Short: "Scan the source code and print the tokens",
 	Long: `Scan the source code and print the tokens.
