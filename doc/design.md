@@ -91,9 +91,15 @@ off!)
 **TODO:** How to deal nicely with changing signatures? Probably just forbid for
 now. Old code may need to call new procedures, and for that to be possible they
 need to have the same signature. I guess it could be OK to add arguments with
-default values (if I ever support that). And: completely changing the meaning of
-arguments in a new version of a procedure will break the semantic of saved
-states!
+default values (if I ever support that). And (nasty trap!): completely changing
+the meaning of arguments in a new version of a procedure will break the semantic
+of saved states!
+
+**TODO:** Hey, can't globals and procedures be internally represented by their
+hash only? (With the debug info file providing a mapping to user-friendly
+names.) *Counterpoint:* I will want to have some way to filter/select Passages
+based on signature and meta/static variables; would it be interesting to filter
+also by name?
 
 #### Tutorial-like description
 
@@ -263,7 +269,7 @@ the following.
       incompatible.
 * If we reach this point, they are compatible!
 
-Since this is all based on hashes of the actual code of the procedures adn
+Since this is all based on hashes of the actual code of the procedures and
 globals, this algorithm works both for:
 
 1. Released cases. For example, I send a saved state to a friend, but the friend
@@ -284,8 +290,15 @@ The hash of a procedure is computed like this:
     * Add to the hash computation the token lexeme (that is exactly what we have
       in `frontend.Token.Lexeme`, which may already include some cleaning,
       especially for Lectures).
-    * Add the a zero byte to the hash computation. This a single byte with all
-      bits set to zero, not a string with an ASCII "0" character.
+        * NEW COMMENT, 2024-11-29. But a lexeme referring to a name
+          (`package.name`) may be ambiguous, because different packages can be
+          imported such that they are referred to by the same name! So, I guess
+          that for hashing purposes, all names should be the FQN.
+            * The scanner doesn't know about those, though! Looking like an
+              AST-based approach would be better here, too!
+
+    * Add a zero byte to the hash computation. This a single byte with all bits
+      set to zero, not a string with an ASCII "0" character.
 
 Note that by taking into account only the tokens, we allow changes to formatting
 and comments (which do not affect the generated code).
@@ -319,8 +332,25 @@ Implementation-wise, for Procedures we'll let the scanner do the actual hash
 computation, with the parser telling the scanner when to reset the computation.
 The parser is also the one asking the scanner for the hash, whenever it needs
 it. For global variables it's probably much, much simpler to do at the AST level
-(at scanner level we don't know about inferred types). **TODO:** I hate the
-difference in handling of Procedures and globals.
+(at scanner level we don't know about inferred types).
+
+**TODO:** I hate the difference in handling of Procedures and globals.
+
+*Idea:* What if globals were also handled in the scanner. I would need to forbid
+any changes to globals, including adding or changing an initializer. Would this
+be OK? One can always have a custom initialization function to "re-initialize"
+the global at Story start. *Or,* make the type required in all global
+declarations (no inference for globals); a bit annoying, but then we'd always
+have access to the type at scanner level, so we could always get the hash right.
+
+**Except...** the hash must use the var FQN! Otherwise there may be clashes. In
+fact, same for procedures, right? If I move a procedure to a different Package,
+the hash must change! Or does it?
+
+**So...** maybe two stages? "Partial" hash in the scanner, then a second step
+triggered from the parser e concatenate this partial hash with the package name
+and re-hash -- and *this* is the final hash. Could work, but *so* convoluted!
+AST looking like the simpler way...
 
 ### Passages
 

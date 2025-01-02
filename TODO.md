@@ -16,6 +16,9 @@ them):
     * Define how to hash a procedure.
     * Implement procedure hashing.
     * ...next step for implemented versioning...
+    * IDEA: Try to create a visitor that reconstructs the token stream from the
+      AST. Bonus points: replace all names with their FQN. This would be the
+      ideal tool to hash procs and globals.
 
 Might make sense to work on these other features before (or along with) that:
 
@@ -33,6 +36,13 @@ To consider:
 * Rename "space prefix" to "indentation"? Do I really need to roll my own term
   here? At least, something like "lecture indentation" if I want to be more
   specific.
+
+Optimizations:
+
+* Procedures that don't call `listen` (must check transitively!) can't possibly
+  appear on the call stack of a saved sate. So they don't have to be retained
+  between versions. Maybe there's even a possibility of faster calls for those,
+  since versioning is out of the table.
 
 Older TODOs (review):
 
