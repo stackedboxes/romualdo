@@ -38,6 +38,14 @@ func GenerateCode(root ast.Node) (
 		}
 	}()
 
+	// For the lack of better place at the moment, we'll hash the (source) code
+	// here, before we generate (binary) code. When running the test suite, this
+	// shall catch any Node type we forgot to handle -- but we don't do anything
+	// useful with the hashes for now.
+	codeHasher := newCodeHasher()
+	root.Walk(codeHasher)
+
+	// Now we have the actual code generation.
 	passOne := &codeGeneratorPassOne{
 		codeGenerator: &codeGenerator{
 			csw:                &bytecode.CompiledStoryworld{},

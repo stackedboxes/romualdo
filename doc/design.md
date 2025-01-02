@@ -296,15 +296,32 @@ The hash of a procedure is computed like this:
           that for hashing purposes, all names should be the FQN.
             * The scanner doesn't know about those, though! Looking like an
               AST-based approach would be better here, too!
+    * Add a zero byte to the hash computation (this is a single byte with all
+      bits set to zero, not a string with an ASCII "0" character!).
+        * This zero byte is there to disambiguate between two consecutive tokens
+          that could be interpreted as a single different token. For example,
+          this makes sure tokens `else` and `if` are hashed to a different value
+          than the single token `elseif`. (My implementation of `codeHasher`
+          always generates separate "else" and "if" tokens, so this example is
+          more theoretical than practical!)
 
-    * Add a zero byte to the hash computation. This a single byte with all bits
-      set to zero, not a string with an ASCII "0" character.
+**Notes from my `codeHasher` implementation:**
+
+* We always generate separate "else" and "if" tokens (with the corresponding
+  "end" tokens for each "if").
+* Binary operators always emit "(" before and ")" after them, so that the right
+  precedence is maintained. Notice that the parentheses in the source code are
+  not represented in the AST, so we need to do that when reconstructing the
+  source code for hashing. A side effect is that removing or adding redundant
+  parentheses to the source code does not change the hash (quite nice if works
+  as I hope; kinda scary, too).
 
 Note that by taking into account only the tokens, we allow changes to formatting
 and comments (which do not affect the generated code).
 
 MD5 should be a good choice here. It should be fast enough and security is not a
-concern here.
+concern here. (**IDK**, probably going with SHA-256 just for ultra-paranoia
+about collisions).
 
 For global variables, it's similar in concept, but with one tricky detail. We
 want to take into account the variable name and type and ignore the initializer

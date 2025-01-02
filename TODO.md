@@ -6,6 +6,8 @@
         * Similar: `if false then listen "A" elseif true listen "B" end`
         * I changed `listen`'s precedence from `precPrimary` to `precNone` to
           fix it. Not sure, though, this is an area I don't really grok.
+    * Expressions: literal Boolean false; string; empty string; string with line
+      breaks; string with emojis and international characters.
 
 Then, the remaining "unique" Romualdo features (but see also the topics after
 them):
@@ -16,9 +18,9 @@ them):
     * Define how to hash a procedure.
     * Implement procedure hashing.
     * ...next step for implemented versioning...
-    * IDEA: Try to create a visitor that reconstructs the token stream from the
+    * ~~IDEA: Try to create a visitor that reconstructs the token stream from the
       AST. Bonus points: replace all names with their FQN. This would be the
-      ideal tool to hash procs and globals.
+      ideal tool to hash procs and globals.~~
 
 Might make sense to work on these other features before (or along with) that:
 
@@ -30,6 +32,14 @@ Might make sense to work on these other features before (or along with) that:
   also versioned, so they affect versioning.
 * Procedure calls. Again useful *and* related to state saving (because call
   stack).
+
+Bug:
+
+* Test `test/suite/expressions/bool_literal_true/src/expr.ral` fails if I remove
+  the trailing `!`. Can't end Lecture with curly, it seems.
+    * And more: the error is reported as an ICE (even though the error message
+      is right). See also `test/suite/README.md`, which also reports a similar
+      issue with an ICE.
 
 To consider:
 

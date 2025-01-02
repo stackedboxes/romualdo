@@ -30,6 +30,10 @@ const (
 	// statement. This is not emitted for "if" statements that don't have an
 	// "else".
 	EventAfterElse
+
+	// EventAfterBinaryLHS is emitted right after we visit the left-hand side
+	// (LHS) of a binary operator.
+	EventAfterBinaryLHS
 )
 
 // A Visitor has all the methods needed to traverse a Romualdo AST.

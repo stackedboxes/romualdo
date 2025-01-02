@@ -367,6 +367,7 @@ func (n *Binary) Type() TypeTag {
 func (n *Binary) Walk(v Visitor) {
 	v.Enter(n)
 	n.LHS.Walk(v)
+	v.Event(n, EventAfterBinaryLHS)
 	n.RHS.Walk(v)
 	v.Leave(n)
 }
