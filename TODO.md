@@ -8,6 +8,10 @@
           fix it. Not sure, though, this is an area I don't really grok.
     * Expressions: literal Boolean false; string; empty string; string with line
       breaks; string with emojis and international characters.
+    * For code hashing: multiple tests cases with variations of the same
+      function that don't alter the hash. Like, spacing, indentation, parens
+      (possibly redundant) around binary expressions, comments, escaped
+      keywords. (Need more language features to make a nice one!)
 
 Then, the remaining "unique" Romualdo features (but see also the topics after
 them):
