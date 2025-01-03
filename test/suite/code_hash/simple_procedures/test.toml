@@ -1,0 +1,13 @@
+#
+# The Romualdo Language
+#
+# Copyright 2020-2025 Leandro Motta Barros
+# Licensed under the MIT license (see LICENSE.txt for details)
+#
+
+type = "hash"
+
+[hashes]
+"/main" = "7b0a3426b42b1b5309cea22fa81afcc839f3985fa3b6505a8bb3d242ece6158e"
+"/foo" = "2eeb9ebafbfbbb3f78b5f9626cc3abe8a33fedca96608190b3ef2c975e6f0185"
+"/bar" = "c8a9396b0f4cc4b20861cd19e997f4d20f7741bc31a229f8e0615b19d57d1bba"

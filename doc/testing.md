@@ -117,6 +117,8 @@ Possible values are:
   like to make in this step.
 * `load-state`: The step loads the VM state (assumed to have been previously
   saved).
+* `hash`: The step computes the code hashes of the code and checks if the
+  expected hashes match.
 
 Some common testing idioms:
 
@@ -129,6 +131,8 @@ Some common testing idioms:
 * **Test loading and saving state.** Use a multi-step test case. At some point,
   use a `save-state` step. After that, you can use `run` steps again if desired.
   And then you can use a `load-state` when desired.
+* **Test code hashes.** Use a single-step test case with `type=hash` and the
+  expected symbol/hash pairs in a `[hashes]` key.
 
 ### `sourceDir`
 
@@ -137,6 +141,22 @@ Some common testing idioms:
 
 Defines the directory where the Storyworld source code will be looked for. This
 is relative to the directory where `test.toml` is.
+
+### `hashes`
+
+*Valid for:* `hash`.  
+*Default:* empty.
+
+This is a table with the symbol/hash pairs to be checked. The symbol must be the
+fully-qualified name of the procedure or global variable (and hence, needs to be
+quoted, because TOML doesn't like keys starting or otherwise containing
+slashes). So, the `hashes` key will look something like this:
+
+`toml
+[hashes]
+"/main" = "7b0a3426b42b1b5309cea22fa81afcc839f3985fa3b6505a8bb3d242ece6158e"
+"/something/different" = "969d0e3e4184d019ed31bed757012fed8b100c3877ee05b8cf45430ef41537f2"
+`
 
 ### `input`
 

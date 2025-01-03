@@ -16,6 +16,7 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/stackedboxes/romualdo/pkg/errs"
+	"github.com/stackedboxes/romualdo/pkg/frontend"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 	"github.com/stackedboxes/romualdo/pkg/vm"
 )
@@ -28,6 +29,7 @@ type config struct {
 	Output        []string
 	ExitCode      int
 	ErrorMessages []string
+	Hashes        map[string]string
 
 	Steps []step `toml:"step"`
 }
@@ -40,6 +42,7 @@ type step struct {
 	Output        []string
 	ExitCode      int
 	ErrorMessages []string
+	Hashes        map[string]string
 }
 
 // ExecuteSuite runs the test suite at suitePath.
@@ -103,6 +106,12 @@ func runCase(configPath string) errs.Error {
 		case "load-state":
 			br := bytes.NewReader(savedState)
 			err = theVM.Deserialize(br)
+			if err != nil {
+				return err
+			}
+
+		case "hash":
+			err = stepHash(srcPath, testCase, step.Hashes)
 			if err != nil {
 				return err
 			}
@@ -197,6 +206,32 @@ func stepRun(theVM *vm.VM, testCase string, inputs []string, story *[]string) er
 	return nil
 }
 
+func stepHash(srcPath, testCase string, expectedHashes map[string]string) errs.Error {
+	// Parse.
+	swAST, err := frontend.ParseStoryworld(srcPath)
+	if err != nil {
+		return err
+	}
+
+	// Hash.
+	ch := romutil.NewCodeHasher()
+	swAST.Walk(ch)
+
+	// Check.
+	for sym, expHash := range expectedHashes {
+		actualHash, found := ch.ProcedureHashes[sym]
+		actualHashHex := fmt.Sprintf("%x", actualHash)
+		if !found {
+			return errs.NewTestSuite(testCase, "Symbol %v not found", sym)
+		}
+		if expHash != actualHashHex {
+			return errs.NewTestSuite(testCase, "Wrong hash for %v: got %v, expected %v", sym, actualHashHex, expHash)
+		}
+	}
+
+	return nil
+}
+
 // readConfig reads a test configuration from a TOML file.
 func readConfig(path string) (*config, errs.Error) {
 	tomlSource, err := os.ReadFile(path)
@@ -244,6 +279,9 @@ func canonicalizeConfig(testConf *config) {
 	if testConf.ErrorMessages == nil {
 		testConf.ErrorMessages = []string{}
 	}
+	if testConf.Hashes == nil {
+		testConf.Hashes = map[string]string{}
+	}
 
 	// Make sure we have one step.
 	if len(testConf.Steps) == 0 {
@@ -254,6 +292,7 @@ func canonicalizeConfig(testConf *config) {
 			Output:        testConf.Output,
 			ExitCode:      testConf.ExitCode,
 			ErrorMessages: testConf.ErrorMessages,
+			Hashes:        testConf.Hashes,
 		})
 	}
 
@@ -277,6 +316,9 @@ func canonicalizeConfig(testConf *config) {
 		if step.ExitCode == 0 && testConf.ExitCode != 0 {
 			step.ExitCode = testConf.ExitCode
 		}
+		if step.Hashes == nil && testConf.Hashes != nil {
+			step.Hashes = testConf.Hashes
+		}
 
 		testConf.Steps[i] = step
 	}
@@ -290,6 +332,7 @@ func validateConfig(testCase string, testConf *config) errs.Error {
 		"build-and-run": true,
 		"save-state":    true,
 		"load-state":    true,
+		"hash":          true,
 	}
 	for _, step := range testConf.Steps {
 		// Validate step type

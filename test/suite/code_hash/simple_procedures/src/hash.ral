@@ -1,0 +1,8 @@
+function main(): void
+end
+
+function foo(): void
+end
+
+passage bar(): void
+\end
