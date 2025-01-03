@@ -48,71 +48,71 @@ func NewCodeHasher() *CodeHasher {
 }
 
 // The Visitor interface
-func (ch *CodeHasher) Enter(node ast.Node) {
+func (hasher *CodeHasher) Enter(node ast.Node) {
 	switch n := node.(type) {
 
 	case *ast.Binary:
-		ch.writeToken("(")
+		hasher.writeToken("(")
 
 	case *ast.BoolLiteral:
 		if n.Value {
-			ch.writeToken("true")
+			hasher.writeToken("true")
 		} else {
-			ch.writeToken("false")
+			hasher.writeToken("false")
 		}
 
 	case *ast.Curlies:
-		ch.writeToken("}")
+		hasher.writeToken("}")
 
 	case *ast.IfStmt:
-		ch.writeToken("if")
+		hasher.writeToken("if")
 
 	case *ast.Lecture:
-		ch.writeToken(n.Text)
+		hasher.writeToken(n.Text)
 
 	case *ast.Listen:
-		ch.writeToken("listen")
+		hasher.writeToken("listen")
 
 	case *ast.ProcedureDecl:
 		// Entering a brand new procedure, so reset the hash object.
-		ch.hash.Reset()
+		hasher.hash.Reset()
 
 		// Start by writing the "function" or "passage" token.
 		switch n.Kind {
 		case ast.ProcKindFunction:
-			ch.writeToken("function")
+			hasher.writeToken("function")
 		case ast.ProcKindPassage:
-			ch.writeToken("passage")
+			hasher.writeToken("passage")
 		default:
 			panic("Unexpected procedure type")
 		}
 
 		// The procedure name.
-		ch.writeToken(n.Name)
+		hasher.writeToken(n.Name)
 
 		// Then the parameters.
-		ch.writeToken("(")
+		hasher.writeToken("(")
 		for i, param := range n.Parameters {
 			if i > 0 {
-				ch.writeToken(",")
+				hasher.writeToken(",")
 			}
 
-			ch.writeToken(param.Name)
-			ch.writeToken(":")
-			ch.writeToken(typeStringFromTag(param.Type))
+			hasher.writeToken(param.Name)
+			hasher.writeToken(":")
+			hasher.writeToken(typeStringFromTag(param.Type))
 		}
 
-		ch.writeToken(")")
+		hasher.writeToken(")")
 
 		// And finally, the return type.
-		ch.writeToken(":")
-		ch.writeToken(typeStringFromTag(n.ReturnType))
+		hasher.writeToken(":")
+		hasher.writeToken(typeStringFromTag(n.ReturnType))
 
 	case *ast.Say:
-		ch.writeToken("say")
+		hasher.writeToken("say")
 
 	case *ast.StringLiteral:
-		ch.writeToken("\"" + n.Value + "\"")
+		hasher.writeToken("\"" + n.Value + "\"")
 
 	case *ast.Block, *ast.SourceFile, *ast.Storyworld:
 		// Nothing to do!
@@ -123,26 +123,26 @@ func (ch *CodeHasher) Enter(node ast.Node) {
 	}
 }
 
-func (ch *CodeHasher) Leave(node ast.Node) {
+func (hasher *CodeHasher) Leave(node ast.Node) {
 	switch n := node.(type) {
 
 	case *ast.Binary:
-		ch.writeToken(")")
+		hasher.writeToken(")")
 
 	case *ast.Curlies:
-		ch.writeToken("}")
+		hasher.writeToken("}")
 
 	case *ast.IfStmt:
-		ch.writeToken("end")
+		hasher.writeToken("end")
 
 	case *ast.ProcedureDecl:
-		ch.writeToken("end")
+		hasher.writeToken("end")
 
 		fqn := n.Package + n.Name
-		if _, exists := ch.ProcedureHashes[fqn]; exists {
+		if _, exists := hasher.ProcedureHashes[fqn]; exists {
 			panic(fmt.Sprintf("Duplicate procedure: `%v`", fqn))
 		}
-		ch.ProcedureHashes[fqn] = CodeHash(ch.hash.Sum(nil))
+		hasher.ProcedureHashes[fqn] = CodeHash(hasher.hash.Sum(nil))
 
 	case *ast.Block, *ast.BoolLiteral, *ast.Lecture, *ast.Listen, *ast.Say,
 		*ast.SourceFile, *ast.Storyworld, *ast.StringLiteral:
@@ -154,20 +154,20 @@ func (ch *CodeHasher) Leave(node ast.Node) {
 	}
 }
 
-func (ch *CodeHasher) Event(node ast.Node, event ast.EventType) {
+func (hasher *CodeHasher) Event(node ast.Node, event ast.EventType) {
 	switch event {
 	case ast.EventAfterIfCondition:
-		ch.writeToken("then")
+		hasher.writeToken("then")
 
 	case ast.EventBeforeElse:
-		ch.writeToken("else")
+		hasher.writeToken("else")
 
 	case ast.EventAfterBinaryLHS:
 		bop, ok := node.(*ast.Binary)
 		if !ok {
 			panic(fmt.Sprintf("Expected a Binary AST node, got a %T", node))
 		}
-		ch.writeToken(bop.Operator)
+		hasher.writeToken(bop.Operator)
 	}
 }
 
@@ -179,13 +179,13 @@ func (ch *CodeHasher) Event(node ast.Node, event ast.EventType) {
 // sequence of tokens "else" and "if" to have the same hash as the single token
 // "elseif". (The codeHasher doesn't generate "elseif" tokens, only separate
 // "else" and "if" ones that's why this case can't happen in practice.)
-func (ch *CodeHasher) writeToken(token string) {
-	_, err := ch.hash.Write([]byte(token))
+func (hasher *CodeHasher) writeToken(token string) {
+	_, err := hasher.hash.Write([]byte(token))
 	if err != nil {
 		panic(err)
 	}
 
-	_, err = ch.hash.Write([]byte{0})
+	_, err = hasher.hash.Write([]byte{0})
 	if err != nil {
 		panic(err)
 	}

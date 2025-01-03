@@ -214,12 +214,12 @@ func stepHash(srcPath, testCase string, expectedHashes map[string]string) errs.E
 	}
 
 	// Hash.
-	ch := romutil.NewCodeHasher()
-	swAST.Walk(ch)
+	hasher := romutil.NewCodeHasher()
+	swAST.Walk(hasher)
 
 	// Check.
 	for sym, expHash := range expectedHashes {
-		actualHash, found := ch.ProcedureHashes[sym]
+		actualHash, found := hasher.ProcedureHashes[sym]
 		actualHashHex := fmt.Sprintf("%x", actualHash)
 		if !found {
 			return errs.NewTestSuite(testCase, "Symbol %v not found", sym)
