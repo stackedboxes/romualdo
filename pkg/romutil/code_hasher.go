@@ -77,6 +77,7 @@ func (ch *CodeHasher) Enter(node ast.Node) {
 		// Entering a brand new procedure, so reset the hash object.
 		ch.hash.Reset()
 
+		// Start by writing the "function" or "passage" token.
 		switch n.Kind {
 		case ast.ProcKindFunction:
 			ch.writeToken("function")
@@ -85,6 +86,27 @@ func (ch *CodeHasher) Enter(node ast.Node) {
 		default:
 			panic("Unexpected procedure type")
 		}
+
+		// The procedure name.
+		ch.writeToken(n.Name)
+
+		// Then the parameters.
+		ch.writeToken("(")
+		for i, param := range n.Parameters {
+			if i > 0 {
+				ch.writeToken(",")
+			}
+
+			ch.writeToken(param.Name)
+			ch.writeToken(":")
+			ch.writeToken(typeStringFromTag(param.Type))
+		}
+
+		ch.writeToken(")")
+
+		// And finally, the return type.
+		ch.writeToken(":")
+		ch.writeToken(typeStringFromTag(n.ReturnType))
 
 	case *ast.Say:
 		ch.writeToken("say")
@@ -115,6 +137,7 @@ func (ch *CodeHasher) Leave(node ast.Node) {
 
 	case *ast.ProcedureDecl:
 		ch.writeToken("end")
+
 		fqn := n.Package + n.Name
 		if _, exists := ch.ProcedureHashes[fqn]; exists {
 			panic(fmt.Sprintf("Duplicate procedure: `%v`", fqn))
@@ -165,5 +188,31 @@ func (ch *CodeHasher) writeToken(token string) {
 	_, err = ch.hash.Write([]byte{0})
 	if err != nil {
 		panic(err)
+	}
+}
+
+// typeStringFromTag is a quick and dirty conversion function to obtain the
+// string representation of a type.
+//
+// TODO: This supports only built-in type (via the type tag), but eventually
+// we'll need to support user-defined types. On this day, we should move this
+// code to the ast package (or something like it), as we'll need to use it in
+// more places (like for naming types in error reporting).
+func typeStringFromTag(tag ast.TypeTag) string {
+	switch tag {
+	case ast.TypeVoid:
+		return "void"
+	case ast.TypeInt:
+		return "int"
+	case ast.TypeFloat:
+		return "float"
+	case ast.TypeBNum:
+		return "bnum"
+	case ast.TypeBool:
+		return "bool"
+	case ast.TypeString:
+		return "string"
+	default:
+		panic(fmt.Sprintf("Unexpected type tag: %T (%v)", tag, tag))
 	}
 }

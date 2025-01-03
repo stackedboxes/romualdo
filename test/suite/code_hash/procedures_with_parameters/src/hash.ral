@@ -1,0 +1,8 @@
+function main(): void
+end
+
+function foo(i: int): void
+end
+
+passage bar(f: float, s: string): void
+\end
