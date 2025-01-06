@@ -30,20 +30,15 @@ type CodeHasher struct {
 	// hash is the Hash object used to hash the code contents.
 	hash hash.Hash
 
-	// ProcedureHashes stores the code hashes for the procedures. Maps the
-	// fully-qualified procedure names to their hashes.
-	ProcedureHashes map[string]CodeHash
-
-	// GlobalHashes stores the code hashes for the globals. Maps the
-	// fully-qualified global names to their hashes.
-	GlobalHashes map[string]CodeHash
+	// Hashes stores the code hashes. Maps the fully-qualified symbol names to
+	// their hashes.
+	Hashes map[string]CodeHash
 }
 
 func NewCodeHasher() *CodeHasher {
 	return &CodeHasher{
-		hash:            sha256.New(),
-		ProcedureHashes: make(map[string]CodeHash),
-		GlobalHashes:    make(map[string]CodeHash),
+		hash:   sha256.New(),
+		Hashes: make(map[string]CodeHash),
 	}
 }
 
@@ -139,10 +134,10 @@ func (hasher *CodeHasher) Leave(node ast.Node) {
 		hasher.writeToken("end")
 
 		fqn := n.Package + n.Name
-		if _, exists := hasher.ProcedureHashes[fqn]; exists {
-			panic(fmt.Sprintf("Duplicate procedure: `%v`", fqn))
+		if _, exists := hasher.Hashes[fqn]; exists {
+			panic(fmt.Sprintf("Duplicate symbol: `%v`", fqn))
 		}
-		hasher.ProcedureHashes[fqn] = CodeHash(hasher.hash.Sum(nil))
+		hasher.Hashes[fqn] = CodeHash(hasher.hash.Sum(nil))
 
 	case *ast.Block, *ast.BoolLiteral, *ast.Lecture, *ast.Listen, *ast.Say,
 		*ast.SourceFile, *ast.Storyworld, *ast.StringLiteral:

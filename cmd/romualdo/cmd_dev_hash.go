@@ -35,11 +35,7 @@ the hash of all symbols.`,
 
 		// Did the user ask for a specific symbol?
 		if flagDevHashSymbol != "" {
-			if hash, ok := hasher.ProcedureHashes[flagDevHashSymbol]; ok {
-				fmt.Printf("%x  %v\n", hash, flagDevHashSymbol)
-				return
-			}
-			if hash, ok := hasher.GlobalHashes[flagDevHashSymbol]; ok {
+			if hash, ok := hasher.Hashes[flagDevHashSymbol]; ok {
 				fmt.Printf("%x  %v\n", hash, flagDevHashSymbol)
 				return
 			}
@@ -48,10 +44,7 @@ the hash of all symbols.`,
 		}
 
 		// Nope, print hashes for all symbols.
-		for sym, hash := range hasher.ProcedureHashes {
-			fmt.Printf("%x  %v\n", hash, sym)
-		}
-		for sym, hash := range hasher.GlobalHashes {
+		for sym, hash := range hasher.Hashes {
 			fmt.Printf("%x  %v\n", hash, sym)
 		}
 	},

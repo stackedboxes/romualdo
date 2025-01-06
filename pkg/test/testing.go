@@ -219,7 +219,7 @@ func stepHash(srcPath, testCase string, expectedHashes map[string]string) errs.E
 
 	// Check.
 	for sym, expHash := range expectedHashes {
-		actualHash, found := hasher.ProcedureHashes[sym]
+		actualHash, found := hasher.Hashes[sym]
 		actualHashHex := fmt.Sprintf("%x", actualHash)
 		if !found {
 			return errs.NewTestSuite(testCase, "Symbol %v not found", sym)
