@@ -463,9 +463,7 @@ Notes about expressions:
 
 ## Versioning
 
-**TODO**, but in summary:
-
-* The problem we are solving here is allowing to upgrade or patch a Storyworld
-* Things cannot be changed between releases of a Storyworld, only added.
-* So, it's OK to add a new version of a Procedure or a new global variable.
-* See `design.md` for details on the current (still evolving) design.
+Versioning allows players to use their old, saved ongoing stories with new
+versions of a Storyworld. Well, up to a certain extent, at least. Anyway, this
+isn't really a feature of the language, but rather a feature of the Romualdo
+tool and virtual machine, hence it's [described elsewhere](versioning.md).
