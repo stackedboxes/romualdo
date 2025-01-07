@@ -1,4 +1,4 @@
-# The Romualdo Language Specification
+# Versioning in Romualdo
 
 ***Warning:** This is all tentative, incomplete, and work-in-progress!*
 
@@ -16,19 +16,17 @@ extent.
 Versioning is a feature of the Romualdo tool, not of the Romualdo language. In
 other words, it's all about how you invoke the `romualdo` tool -- you don't need
 to change anything to the code you write. (Though, the way you write your code
-may affect how the user "perceives" versioning. TODO: Explore this, add
-examples! Like, a long main procedure with a hardcoded ending versus a short one
-calling and `end()` procedure; the first case will not see an updated ending;
-the second will.)
+may affect how the user "perceives" versioning. We discuss a bit about this
+[further down](#dark-corners).)
 
-#### Technical overview
+## Technical overview
 
 Under the hood, what we do is conceptually simple. We keep the code for all
 released versions of all procedures in the Storyworld. So, if a saved state
 refers to an old version, it can still run it because the code is there! But
 whenever a procedure is called, it's the latest version that gets executed.
 
-I think this is not too different from what Erlang does to support hot updates
+I'd guess this is not too different from what Erlang does to support hot updates
 (i.e., to deploy a new version while the old version is running). In the case of
 Erlang, they can dispose the old executable code once nobody is running it on
 the VM anymore, while Romualdo needs to keep the old code around forever,
@@ -36,27 +34,11 @@ because old saved states are eternal. (I never used Erlang seriously, and the
 one time I used it was some 20 years ago, so my recollection might be a bit
 off!)
 
-#### Open points
+## Tutorial-like description
 
-**TODO:** How to deal nicely with changing signatures? Probably just forbid for
-now. Old code may need to call new procedures, and for that to be possible they
-need to have the same signature. I guess it could be OK to add arguments with
-default values (if I ever support that). And (nasty trap!): completely changing
-the meaning of arguments in a new version of a procedure will break the semantic
-of saved states!
-
-**TODO:** Hey, can't globals and procedures be internally represented by their
-hash only? (With the debug info file providing a mapping to user-friendly
-names.) *Counterpoint:* I will want to have some way to filter/select Passages
-based on signature and meta/static variables; would it be interesting to filter
-also by name? *Stronger counterpoint:* What would I gain from this? Better to
-have them internally represented by an index into an array of
-procedures/globals, which is simpler and faster to access.
-
-#### Tutorial-like description
-
-[This is tutorial-like but I am adding some notes about the internals in square
-brackets.]
+*[This is mostly tutorial-like but I am adding some notes about the internals
+between square brackets. Eventually I want to write separate docs for the
+internals and end users, but this mishmash will do for now.]*
 
 The first time you
 
@@ -64,52 +46,52 @@ The first time you
 romualdo build PATH
 ```
 
-the compiler generates a (say) `red_hoodie.csw` file in which everything is
-internally marked as being unreleased. In other words, all this compiled code is
-considered a development version, not something players should put their hands
-on.
+the compiler generates a (say) `red_hoodie.ras` file in which everything is
+internally marked as being unreleased. In other words, all the compiled code is
+considered a development version, not something players (your "end users")
+should put their hands on.
 
-[Internally, things are marked as release `-1`; real releases index an array of
-releases, so a negative value means that these things aren't really part of a
-real release.]
+*[Internally, everything is marked as release `-1`; real releases index an array
+of releases, so a negative value means that these things aren't really part of a
+real release.]*
 
-[Also, internally, every procedure is hashed, and the hash is saved to the
-`.csw` file. This allows to check for compatibility when loading a saved state.
-As we'll soon see, this also allows us to check if we need to create a new
-version of something when creating new releases.]
+*[Also, internally, every procedure and global variable is hashed, and the hash
+is saved to the `.ras` file. This allows to check for compatibility when loading
+a saved state. As we'll soon see, this also allows us to check if we need to
+create a new version of something when creating new releases.]*
 
 So you keep working on your Storyworld, making changes, `build`ing it, and
 testing it. Everything will remain internally marked as unreleased. When you are
 happy and ready to release, you
 
 ```sh
-romualdo release PATH VERSION
+romualdo release PATH TAG
 ```
 
-which still generates a `red_hoodie.csw` file, but this one will be your first
+which still generates a `red_hoodie.ras` file, but this one will be your first
 release: everything in it is marked as being part of the version you passed as
 argument. And it will be a proper release that you can give to your players.
 
-The `VERSION` argument can be any string without spaces.
+The `TAG` argument can be any non-empty string without spaces.
 
-[At this point we create the first release internally: `0`. We create the
-association between this internal release number `0` and the passed `VERSION`,
-and mark everything as being on version `0`.]
+*[At this point we create the first release internally: `0`. We create the
+association between this internal release number `0` and the passed `TAG`,
+and mark everything as being on version `0`.]*
 
-[A release basically marks things in the `.csw` as immutable. Subsequent
+*[A release basically marks things in the `.ras` as immutable. Subsequent
 releases will not overwrite any binary code that has a non-negative release
 number. These need to be kept forever because some user may have a saved state
-referring to it.]
+referring to it.]*
 
-Now you should **commit your `red_hoodie.csw` to version control**: you'll need
-it to create future releases! This is actually the perfect moment to commit all
-your source code to your version control system and tag this repo state with the
-same `VERSION` you passed to `romualdo release`. Why? Because otherwise you'll
-not be able to check the source code that corresponds to this release. You may
-need to look into the code for an old release only rarely, but when you do need
-it, you need it! (And it also adds a layer of protection against Romualdo bugs.
-If the `romualdo` tool corrupts you `.csw` file, you can roll-back to a known
-good state.)
+Speaking of which, now you should **commit your `red_hoodie.ras` to version
+control**: you'll need it to create future releases! This is actually the
+perfect moment to commit all your source code to your version control system and
+tag this repo state with the same `TAG` you passed to `romualdo release`. Why?
+Because otherwise you'll not be able to check the source code that corresponds
+to this release. You may need to look into the code for an old release only
+rarely, but when you do need it, you need it! (And it also adds a layer of
+protection against Romualdo bugs. If the `romualdo` tool corrupts you `.ras`
+file, you can roll-back to a known good state.)
 
 Time passes, and you decide to change or add something. You update the code and
 run
@@ -118,21 +100,21 @@ run
 romualdo build PATH
 ```
 
-The `romualdo` tool will produce a new `red_hoodie.csw` file that you can use
+The `romualdo` tool will produce a new `red_hoodie.ras` file that you can use
 normally for testing, but which you shouldn't distribute to your players,
 because all the new stuff added to it is internally marked as unreleased.
 
-[Internally, things that have been released in release `0` remain unchanged and
+*[Internally, things that have been released in release `0` remain unchanged and
 marked as release `0`. But changed stuff will get a new copy internally, marked
-as version `-1`. Likewise, new stuff is added as version `-1`.]
+as version `-1`. Likewise, new stuff is added as version `-1`.]*
 
-Next time you `romualdo release`, you'll get an updated `red_hoodie.csw` with
+Next time you `romualdo release`, you'll get an updated `red_hoodie.ras` with
 nothing marked as unreleased. That will be a new release (with the version you
 passed in) that is ready to be shipped to players.
 
 The `romualdo` tool will bark if there are no changes from the last release. It
-will also bark if the previous `red_hoodie.csw` is not available (I said to
-version control it!). It can't really know if the `red_hoodie.csw` available is
+will also bark if the previous `red_hoodie.ras` is not available (I said to
+version control it!). It can't really know if the `red_hoodie.ras` available is
 the right one; it is your responsibility to guarantee that it contains
 everything from the last released version. (It can contain unreleased stuff in
 addition to that -- that's not a problem.)
@@ -140,17 +122,33 @@ addition to that -- that's not a problem.)
 And there you have it, your second release! Users can update to it, and their
 old save states will keep working normally. (Fine print: limitations may apply!)
 
-[As always, after a `romualdo release` everything on your `.csw` file will be
-associated with a released version. No `-1` versions there!]
+*[As always, after a `romualdo release` everything on your `.ras` file will be
+associated with a released version. No `-1` versions there!]*
 
-What about **globals and versioning**?
+One final thing I'd like to note here (and deserves more detailed docs --
+they'll come eventually!) is that if you change an existing Procedure and build
+or release your Storyworld, three different can happen:
+
+* *A new version is generated.* This is the normal case: you change the
+  Procedure, it gets a new version.
+* *Nothing.* Like, the same version is used. Yes, there are change changes that
+  will not cause a new version to be created. For example, it is fine to change
+  spacing and indentation, even in some cases to add or remove some redundant
+  parenthesis.
+* *You get an error.* There are changes you simply cannot make to a Procedure,
+  and the compiler will bark to let you know if you try any of these. The one
+  forbidden change that comes to mind is changing the Procedure's argument list
+  and/or return value.
+
+What about **versioning of global variables**?
 
 Well, because of versioning, the Romualdo tool will not allow you to make
 certain changes to globals between releases:
 
 1. Cannot remove global variables.
-2. Cannot rename global variables.
-3. Cannot change the type of global variables.
+2. Cannot change the type of global variables.
+3. Cannot rename global variables. (Well, renaming is interpreted as adding a
+   new global, which is fine, and removing a global, which is not.)
 
 That's because Procedures in old releases (that may be still used because of
 saved states) may depend on the old definitions.
@@ -158,14 +156,6 @@ saved states) may depend on the old definitions.
 Note that changing the initialization expression of a global variable is fine,
 because it is used only when starting a new Story, or initializing a global just
 added to a new release.
-
-**TODO:** This is bad for external libraries. The whole control of globals is
-made at the Storyworld level, so an external library cannot ever remove globals
-without this being a breaking change. Reusable libraries would need to release
-new major versions whenever they want to remove old globals that aren't used
-anymore. And old Storyworlds depending on that library would not be able to
-update without breaking compatibility with old saved states. Not great, but I
-think I can live with that for now.
 
 So, let's say the first release of the Storyworld had this on a certain package:
 
@@ -186,7 +176,7 @@ globals
 end
 ```
 
-And we try this on a third release:
+And on a third release we try this:
 
 ```romualdo
 globals
@@ -195,19 +185,20 @@ globals
 end
 ```
 
-[Internally, along with each global we store it's hash, which is based on its
-FQN and type. When releasing, every global hash in the CSW must still be present
-on the source.]
+*[Internally, along with each global we store it's hash, which is based on its
+fully-qualified name and type. When releasing, every global hash in the Compiled
+Storyworld must still be present on the source.]*
 
-#### Compatibility between saved states and compiled Storyworlds
+## Compatibility between saved states and compiled Storyworlds
 
-Finally, let's talk about the compatibility between a saved state and a given
-compiled Storyworld.
+Let's talk about the compatibility between a saved state and a given compiled
+Storyworld.
 
-First off the entries in the call stack (which ends up replicated in a saved
-state) must include (directly or indirectly) the hash of the version of each
-running procedure. This is what allow us to use an old version if that was what
-the user was running.
+First off, each entry in the call stack (which ends up in the saved state) must
+include the hash of the exact version of the Procedure that was running. This
+hash allows us to notice that the user was running an old version and, since the
+`.ras` file keeps the bytecode for old versions of all released procedures, we
+can just use it.
 
 When loading a saved state, the loader checks for compatibility between the
 saved state and the compiled Storyworld being used. The algorithm for that is
@@ -232,111 +223,91 @@ globals, this algorithm works both for:
    test different things, even with changes to the Storyworld -- as long as I
    don't change any of the unreleased procedures currently on the call stack.
 
-#### Hashing Procedures and global variables
+## Hashing Procedures and Global Variables
 
-The hash of a procedure is computed like this:
+We use SHA-256 as the underlying hashing algorithm. This is probably an
+overkill: MD5 should probably have been enough for this use case, but I was
+paranoid about possible collisions, so I went completely overboard and doubled
+the size of the hash.
 
-* Initialize an MD5 hash computation.
+### Hashing Procedures
+
+To give you a first approximation of how we compute a Procedure hash, take this
+algorithm:
+
+* Initialize a SHA-256 hash computation.
 * For each token of the procedure, from `function` or `passage` to `end`
   (inclusive at both ends):
-    * Add to the hash computation the token lexeme (that is exactly what we have
-      in `frontend.Token.Lexeme`, which may already include some cleaning,
-      especially for Lectures).
-        * NEW COMMENT, 2024-11-29. But a lexeme referring to a name
-          (`package.name`) may be ambiguous, because different packages can be
-          imported such that they are referred to by the same name! So, I guess
-          that for hashing purposes, all names should be the FQN.
-            * The scanner doesn't know about those, though! Looking like an
-              AST-based approach would be better here, too!
+    * Add the token to the hash computation.
     * Add a zero byte to the hash computation (this is a single byte with all
-      bits set to zero, not a string with an ASCII "0" character!).
-        * This zero byte is there to disambiguate between two consecutive tokens
-          that could be interpreted as a single different token. For example,
-          this makes sure tokens `else` and `if` are hashed to a different value
-          than the single token `elseif`. (My implementation of `codeHasher`
-          always generates separate "else" and "if" tokens, so this example is
-          more theoretical than practical!)
+      bits set to zero, not a string with an ASCII "0"
+      character!).[^zero-after-token]
+* Complete the SHA-256 computation. The result is the Procedure hash.
 
-**Notes from my `codeHasher` implementation:**
+[^zero-after-token]: The zero byte after each token is there just in case, to
+  disambiguate between two consecutive tokens that could be interpreted as a
+  single different token. For example, this makes sure tokens `else` and `if`
+  are hashed to a different value than the single token `elseif`. (Though this
+  is example is only theoretical; for reasons mentioned below, the `elseif`
+  token never shows up when computing code hashes.)
 
-* We always generate separate "else" and "if" tokens (with the corresponding
-  "end" tokens for each "if").
-* Binary operators always emit "(" before and ")" after them, so that the right
-  precedence is maintained. Notice that the parentheses in the source code are
-  not represented in the AST, so we need to do that when reconstructing the
-  source code for hashing. A side effect is that removing or adding redundant
-  parentheses to the source code does not change the hash (quite nice if works
-  as I hope; kinda scary, too).
+In practice, the way we really compute hashes departs a bit from this idealized
+algorithm. There are two reasons for this. First, simply looking at the tokens
+as they appear in the source code would not work in certain cases. And second,
+for simplicity, the code hashing implementation actually works on the AST
+(abstract syntax tree) and not on the raw token stream.
 
-Note that by taking into account only the tokens, we allow changes to formatting
-and comments (which do not affect the generated code).
+Here's the list of known differences between the idealized algorithm I showed
+first and the actual algorithm implemented:
 
-MD5 should be a good choice here. It should be fast enough and security is not a
-concern here. (**IDK**, probably going with SHA-256 just for ultra-paranoia
-about collisions).
+* The token lexeme we use is what we have in `frontend.Token.Lexeme`. This is
+  not exactly the same thing we see in the source code. Notably, Lectures will
+  have indentation removed.
+* All symbols appearing in the code are replaced with their fully-qualified
+  names. This is meant to avoid a corner-case-ish problem: imagine you import
+  package as `import /util/random as r`. Your Procedure code will refer to
+  things like `r.drawInt()`. But then you change your import to `import
+  /super_util/random as r`. This is a breaking change, but your Procedure code
+  didn't change. Using the fully-qualified name will detect the breaking change.
+* All `elseif`s are transformed into full-fledged `else if`s (including the
+  added `end` to close the new standalone `if`). This is so because in the AST
+  there are no `elseif`s: they are converted to chains of `if/else`s.
+* All expressions involving binary operators are transformed to the format we
+  see in the AST, with parentheses around each operation. For example, `a+b`
+  becomes `(a+b)`; and `a+b*c` becomes `((a+b)*c)`; and something stupid like
+  `((((a)))/((b)))` becomes `(a/b)`.
 
-For global variables, it's similar in concept, but with one tricky detail. We
-want to take into account the variable name and type and ignore the initializer
--- but the type can be syntactically omitted if there is an initializer, and in
-this case we need to "manually" include the inferred type, because we really
-need to have the type as part of the hash.
+Notice that this algorithm ignores spacing and comments. That's why you can make
+this kind of change to your Procedures without causing a new version to be
+created.
 
-Alternative: compute on the parser would be significantly more complex (with
-tokens getting asked for everywhere throughout the parser)
+### Hashing Global Variables
 
-Alternative: compute on the AST. Main issue here is that we'd lose the ability
-to change the grammar, as that would change the hash. Worth checking if the AST
-gives us enough info (and, more than that, in a convenient format) to compute
-what would be effectively the same thing as the scanner-based approach.
+For global variables, it's similar in concept: SHA-256 of the tokens used in the
+global variable declaration (with a zero byte after each token). But again,
+there are a few discrepancies from the idealized algorithm that operates
+directly on the source code tokens:
 
-**TODO:** We are ignoring the package imports, which is fine. But then, suppose
-someone changes a package import to rename the imported name. They need to
-change the code accordingly. But this also doesn't change the generated code,
-because it's all resolving to the FQN under the hood. So, we could consider this
-kind of change as non-breaking. This is not a terrible problem, really, but
-could be a pro for an approach based on hashing the AST (at an early stage,
-before transformations or lowerings.)
-
-Implementation-wise, for Procedures we'll let the scanner do the actual hash
-computation, with the parser telling the scanner when to reset the computation.
-The parser is also the one asking the scanner for the hash, whenever it needs
-it. For global variables it's probably much, much simpler to do at the AST level
-(at scanner level we don't know about inferred types).
-
-**TODO:** I hate the difference in handling of Procedures and globals.
-
-*Idea:* What if globals were also handled in the scanner. I would need to forbid
-any changes to globals, including adding or changing an initializer. Would this
-be OK? One can always have a custom initialization function to "re-initialize"
-the global at Story start. *Or,* make the type required in all global
-declarations (no inference for globals); a bit annoying, but then we'd always
-have access to the type at scanner level, so we could always get the hash right.
-
-**Except...** the hash must use the var FQN! Otherwise there may be clashes. In
-fact, same for procedures, right? If I move a procedure to a different Package,
-the hash must change! Or does it?
-
-**So...** maybe two stages? "Partial" hash in the scanner, then a second step
-triggered from the parser e concatenate this partial hash with the package name
-and re-hash -- and *this* is the final hash. Could work, but *so* convoluted!
-AST looking like the simpler way...
-
-
-
+* The type is always included in the hash, even if it is not explicitly present
+  in the source code. This makes sure the hash will change if the type changes.
+* The initializer is never taken into account. This allows changes to the
+  initializer while keeping the same hash.
+* Again, we use the fully-qualified name of the global variable.
 
 ## Dark Corners
 
 * TODO: Case study: long main procedure with a hardcoded ending versus a short
-one calling and `end()` procedure; the first case will not see an updated
-ending; the second will.
+  one calling and `end()` procedure; the first case will not see an updated
+  ending; the second will.
 
+* TODO: Case study: Changing the meaning of arguments between versions (even
+  though the signature is unchanged) will (semantically) break the versioning.
 
-
-
-
-**TODO**, but in summary:
-
-* The problem we are solving here is allowing to upgrade or patch a Storyworld
-* Things cannot be changed between releases of a Storyworld, only added.
-* So, it's OK to add a new version of a Procedure or a new global variable.
-* See `design.md` for details on the current (still evolving) design.
+* TODO: One big downside of this whole versioning design is that it adds a good
+  deal of friction for the development of reusable libraries. The whole control
+  of globals is made at the Storyworld level, so an external library cannot ever
+  remove globals without this being a breaking change. Reusable libraries would
+  need to release new major versions whenever they want to remove old globals
+  that aren't used anymore. And old Storyworlds depending on that library would
+  not be able to update without breaking compatibility with old saved states.
+  Not great, but I think I can live with that for now.

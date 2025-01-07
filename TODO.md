@@ -25,6 +25,7 @@ them):
     * ~~IDEA: Try to create a visitor that reconstructs the token stream from the
       AST. Bonus points: replace all names with their FQN. This would be the
       ideal tool to hash procs and globals.~~
+    * Serialize/deserialize the releases table.
 
 Might make sense to work on these other features before (or along with) that:
 
@@ -50,6 +51,9 @@ To consider:
 * Rename "space prefix" to "indentation"? Do I really need to roll my own term
   here? At least, something like "lecture indentation" if I want to be more
   specific.
+* Rename "saved state" to "saved story" or something like that. Be consistent
+  throughout the docs and code about this. Currently this is a bit messy, with
+  different terms being used.
 
 Optimizations:
 
