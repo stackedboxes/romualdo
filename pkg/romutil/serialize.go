@@ -9,10 +9,44 @@ package romutil
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 
+	"github.com/stackedboxes/romualdo/pkg/ast"
 	"github.com/stackedboxes/romualdo/pkg/errs"
 )
+
+// SerializeBool writes a Boolean value to the given io.Writer. The Boolean is
+// encoded as a single byte, with the value 0 (false) or 1 (true).
+func SerializeBool(w io.Writer, b bool) errs.Error {
+	bb := []byte{0}
+	if b {
+		bb[0] = 1
+	}
+	_, err := w.Write(bb)
+	if err != nil {
+		return errs.NewRomualdoTool("serializing bool: %v", err)
+	}
+	return nil
+}
+
+// DeserializeBool reads a Boolean from the given io.Reader. It is read as a
+// single byte, with value 0 (false) or 1 (true).
+func DeserializeBool(r io.Reader) (bool, errs.Error) {
+	var bb [1]byte
+	_, err := io.ReadFull(r, bb[:])
+	if err != nil {
+		return false, errs.NewRomualdoTool("deserializing bool: %v", err)
+	}
+	switch bb[0] {
+	case 0:
+		return false, nil
+	case 1:
+		return true, nil
+	default:
+		return false, errs.NewRomualdoTool("deserializing bool: unexpected value %v", bb[0])
+	}
+}
 
 // SerializeU32 writes a uint32 to the given io.Writer, in little endian format.
 func SerializeU32(w io.Writer, v uint32) errs.Error {
@@ -92,6 +126,44 @@ func DeserializeString(r io.Reader) (string, errs.Error) {
 	return string(buf), nil
 }
 
+// SerializeStringSlice writes a []string to a given io.Writer. It first writes
+// the slice length (uint32, little endian). Then for each string it writes
+// first the length of the string (as in uint32, little endian), then the string
+// data itself (UTF-8).
+func SerializeStringSlice(w io.Writer, ss []string) errs.Error {
+	err := SerializeU32(w, uint32(len(ss)))
+	if err != nil {
+		return err
+	}
+
+	for _, s := range ss {
+		err := SerializeString(w, s)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DeserializeStringSlice reads a []string from the given io.Reader. It reads
+// the number of elements before reading the strings themselves.
+func DeserializeStringSlice(r io.Reader) ([]string, errs.Error) {
+	length, err := DeserializeU32(r)
+	if err != nil {
+		return nil, err
+	}
+
+	ss := make([]string, length)
+	for i := 0; i < int(length); i++ {
+		s, err := DeserializeString(r)
+		if err != nil {
+			return nil, err
+		}
+		ss[i] = s
+	}
+	return ss, nil
+}
+
 // SerializeStringSliceNoLength writes a []string to a given io.Writer. For each
 // string it writes first the length of the string (as in uint32, little
 // endian), then the string data itself (UTF-8). The length of the slice is not
@@ -158,4 +230,81 @@ func DeserializeIntSliceAsU32(r io.Reader) ([]int, errs.Error) {
 		ii[i] = int(u32)
 	}
 	return ii, nil
+}
+
+// SerializeType serializes the given type.
+func SerializeType(w io.Writer, tag ast.TypeTag) errs.Error {
+	b := []byte{0}
+	switch tag {
+	case ast.TypeVoid:
+		b[0] = 0
+	case ast.TypeBool:
+		b[0] = 1
+	case ast.TypeInt:
+		b[0] = 2
+	case ast.TypeFloat:
+		b[0] = 3
+	case ast.TypeBNum:
+		b[0] = 4
+	case ast.TypeString:
+		b[0] = 5
+	default:
+		// An invalid in-computer state means a bug, so we can jus panic here.
+		panic(fmt.Sprintf("serializing type: unknown type tag: %v", int(tag)))
+	}
+
+	_, err := w.Write(b[:])
+	if err != nil {
+		return errs.NewRomualdoTool("serializing type: %v", err)
+	}
+	return nil
+}
+
+// DeserializeType deserializes a type from the given io.Reader.
+func DeserializeType(r io.Reader) (ast.TypeTag, errs.Error) {
+	var b [1]byte
+	_, err := io.ReadFull(r, b[:])
+	if err != nil {
+		return ast.TypeInvalid, errs.NewRomualdoTool("deserializing code hash: %v", err)
+	}
+	switch b[0] {
+	case 0:
+		return ast.TypeVoid, nil
+	case 1:
+		return ast.TypeBool, nil
+	case 2:
+		return ast.TypeInt, nil
+	case 3:
+		return ast.TypeFloat, nil
+	case 4:
+		return ast.TypeBNum, nil
+	case 5:
+		return ast.TypeString, nil
+	default:
+		// When deserializing, an invalid value doesn't necessarily means a bug,
+		// so we better report it properly.
+		return ast.TypeInvalid, errs.NewRomualdoTool("deserializing code hash: invalid type tag: %v", b[0])
+	}
+}
+
+// SerializeCodeHash serializes the given code hash. This is pretty
+// straightforward, it just outputs the 32 bytes sequentially.
+func SerializeCodeHash(w io.Writer, hash CodeHash) errs.Error {
+	_, err := w.Write(hash[:])
+	if err != nil {
+		return errs.NewRomualdoTool("serializing code hash: %v", err)
+	}
+	return nil
+}
+
+// DeserializeCodeHash deserializes a code hash from the given io.Reader. The
+// expected format is pretty straightforward: a sequence of 32 bytes.
+func DeserializeCodeHash(r io.Reader) (CodeHash, errs.Error) {
+	var hash CodeHash
+	_, err := io.ReadFull(r, hash[:])
+	if err != nil {
+		return hash, errs.NewRomualdoTool("deserializing code hash: %v", err)
+	}
+
+	return hash, nil
 }

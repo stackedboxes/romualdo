@@ -467,3 +467,12 @@ Versioning allows players to use their old, saved ongoing stories with new
 versions of a Storyworld. Well, up to a certain extent, at least. Anyway, this
 isn't really a feature of the language, but rather a feature of the Romualdo
 tool and virtual machine, hence it's [described elsewhere](versioning.md).
+
+## File extensions
+
+For the lack of better place to document this, here are the official extensions
+used by Romualdo:
+
+* `.ral`: Source code.
+* `.ras`: Compiled Storyworld.
+* `.rad`: Debug info, always associated with a `.ras`.

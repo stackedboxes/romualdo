@@ -13,6 +13,7 @@ import (
 	"hash/crc32"
 	"io"
 
+	"github.com/stackedboxes/romualdo/pkg/ast"
 	"github.com/stackedboxes/romualdo/pkg/errs"
 	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
@@ -33,24 +34,54 @@ const (
 // times long gone used to represent a "soft end-of-file").
 var CSWMagic = []byte{0x52, 0x6D, 0x6C, 0x64, 0x43, 0x53, 0x57, 0x1A}
 
+// ProcedureData collects a bunch of information about a Procedure in a Compiled
+// Storyworld.
+//
+// TODO: The day we support user-defined types, we'll need to change the way we
+// represent types here.
+type ProcedureData struct {
+	// Name is the Procedure's fully-qualified name.
+	Name string
+
+	// ReturnType is the return type of the Procedure.
+	ReturnType ast.TypeTag
+
+	// Arguments contains the types of all Procedure arguments, in order.
+	Arguments []ast.TypeTag
+
+	// ChunkIndexByVersion is a slice with an entry for each version of this Procedure.
+	ChunkIndexByVersion []int
+}
+
 // CompiledStoryworld is a compiled, binary version of a Romualdo Language
 // Storyworld.
 //
 // TODO: Use a string interner to avoid having duplicate strings in memory.
 // Make some measurements to ensure it's really beneficial.
 type CompiledStoryworld struct {
+	// Releases has an entry for each release this Storyworld ever had.
+	//
+	// The entries are in order, with release *n* at index *n*. Each entry
+	// contains the tag passed to the corresponding `romualdo release`.
+	Releases []string
+
 	// The constant values used in all Chunks.
 	Constants []Value
 
 	// Chunks is a slice with all Chunks of bytecode containing the compiled
-	// data. There is one Chunk for each procedure in the Storyworld.
-	//
-	// TODO: And in the future, one Chunk for every version of every procedure.
+	// data. There is one Chunk for each released version of each procedure in
+	// the Storyworld. Plus, if this is an unreleased Storyworld, there is one
+	// additional Chunk for each Procedure with an in-development, unreleased
+	// version.
 	Chunks []*Chunk
+
+	// Procedures is a slice with information about all the Procedures in this
+	// CompiledStoryworld.
+	Procedures []ProcedureData
 
 	// InitialChunk indexes the element in Chunks from where the Storyworld
 	// execution starts. In other words, it points to the latest version of the
-	// "/main" chunk.
+	// "/main" Procedure.
 	InitialChunk int
 }
 
@@ -113,8 +144,14 @@ func (csw *CompiledStoryworld) serializePayload(w io.Writer) (uint32, errs.Error
 	crc := crc32.NewIEEE()
 	mw := io.MultiWriter(w, crc)
 
+	// Releases
+	err := romutil.SerializeStringSlice(w, csw.Releases)
+	if err != nil {
+		return 0, err
+	}
+
 	// Constants
-	err := romutil.SerializeU32(mw, uint32(len(csw.Constants)))
+	err = romutil.SerializeU32(mw, uint32(len(csw.Constants)))
 	if err != nil {
 		return 0, err
 	}
@@ -133,6 +170,7 @@ func (csw *CompiledStoryworld) serializePayload(w io.Writer) (uint32, errs.Error
 	}
 
 	for _, chunk := range csw.Chunks {
+		// Code
 		err = romutil.SerializeU32(mw, uint32(len(chunk.Code)))
 		if err != nil {
 			return 0, err
@@ -140,6 +178,55 @@ func (csw *CompiledStoryworld) serializePayload(w io.Writer) (uint32, errs.Error
 		_, plainErr := mw.Write(chunk.Code)
 		if plainErr != nil {
 			return 0, errs.NewRomualdoTool("serializing chunk code: %v", plainErr)
+		}
+
+		// Released
+		err = romutil.SerializeBool(w, chunk.Released)
+		if err != nil {
+			return 0, err
+		}
+
+		// Hash
+		err = romutil.SerializeCodeHash(w, chunk.Hash)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	// Procedures
+	err = romutil.SerializeU32(w, uint32(len(csw.Procedures)))
+	if err != nil {
+		return 0, err
+	}
+	for _, proc := range csw.Procedures {
+		// Name
+		err = romutil.SerializeString(w, proc.Name)
+		if err != nil {
+			return 0, err
+		}
+
+		// Return type
+		err = romutil.SerializeType(w, proc.ReturnType)
+		if err != nil {
+			return 0, err
+		}
+
+		// Arguments
+		err = romutil.SerializeU32(w, uint32(len(proc.Arguments)))
+		if err != nil {
+			return 0, err
+		}
+		for _, argType := range proc.Arguments {
+			err = romutil.SerializeType(w, argType)
+			if err != nil {
+				return 0, err
+			}
+		}
+
+		// Chunk Index by Version
+		err = romutil.SerializeIntSliceAsU32(w, proc.ChunkIndexByVersion)
+		if err != nil {
+			return 0, err
 		}
 	}
 
@@ -216,6 +303,14 @@ func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, errs.Err
 	crcSummer := crc32.NewIEEE()
 	tr := io.TeeReader(r, crcSummer)
 
+	var err errs.Error
+
+	// Releases
+	csw.Releases, err = romutil.DeserializeStringSlice(r)
+	if err != nil {
+		return 0, err
+	}
+
 	// Constants
 	lenConstants, err := romutil.DeserializeU32(tr)
 	if err != nil {
@@ -238,6 +333,7 @@ func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, errs.Err
 	}
 	csw.Chunks = make([]*Chunk, lenChunks)
 	for i := range csw.Chunks {
+		// Code
 		lenChunkCode, err := romutil.DeserializeU32(tr)
 		if err != nil {
 			return 0, err
@@ -248,6 +344,59 @@ func (csw *CompiledStoryworld) deserializePayload(r io.Reader) (uint32, errs.Err
 		_, plainErr := io.ReadFull(tr, csw.Chunks[i].Code)
 		if plainErr != nil {
 			return 0, errs.NewRomualdoTool("deserializing chunk code: %v", plainErr)
+		}
+
+		// Released
+		csw.Chunks[i].Released, err = romutil.DeserializeBool(r)
+		if err != nil {
+			return 0, err
+		}
+
+		// Hash
+		csw.Chunks[i].Hash, err = romutil.DeserializeCodeHash(r)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	// Procedures
+	procedureCount, err := romutil.DeserializeU32(r)
+	if err != nil {
+		return 0, err
+	}
+
+	csw.Procedures = make([]ProcedureData, procedureCount)
+	for i := 0; i < int(procedureCount); i++ {
+		// Name
+		csw.Procedures[i].Name, err = romutil.DeserializeString(r)
+		if err != nil {
+			return 0, err
+		}
+
+		// Return type
+		csw.Procedures[i].ReturnType, err = romutil.DeserializeType(r)
+		if err != nil {
+			return 0, err
+		}
+
+		// Arguments
+		argCount, err := romutil.DeserializeU32(r)
+		if err != nil {
+			return 0, err
+		}
+
+		csw.Procedures[i].Arguments = make([]ast.TypeTag, argCount)
+		for i := 0; i < int(argCount); i++ {
+			csw.Procedures[i].Arguments[i], err = romutil.DeserializeType(r)
+			if err != nil {
+				return 0, err
+			}
+		}
+
+		// Chunk Index by Version
+		csw.Procedures[i].ChunkIndexByVersion, err = romutil.DeserializeIntSliceAsU32(r)
+		if err != nil {
+			return 0, err
 		}
 	}
 

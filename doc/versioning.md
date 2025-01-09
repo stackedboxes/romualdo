@@ -51,14 +51,11 @@ internally marked as being unreleased. In other words, all the compiled code is
 considered a development version, not something players (your "end users")
 should put their hands on.
 
-*[Internally, everything is marked as release `-1`; real releases index an array
-of releases, so a negative value means that these things aren't really part of a
-real release.]*
-
-*[Also, internally, every procedure and global variable is hashed, and the hash
-is saved to the `.ras` file. This allows to check for compatibility when loading
-a saved state. As we'll soon see, this also allows us to check if we need to
-create a new version of something when creating new releases.]*
+*[Everything in the Compiled Storyworld is marked as unreleased. Also,
+internally, every procedure and global variable is hashed, and the hash is saved
+to the `.ras` file. This allows to check for compatibility when loading a saved
+state. As we'll soon see, this also allows us to check if we need to create a
+new version of something when creating new releases.]*
 
 So you keep working on your Storyworld, making changes, `build`ing it, and
 testing it. Everything will remain internally marked as unreleased. When you are
@@ -105,8 +102,8 @@ normally for testing, but which you shouldn't distribute to your players,
 because all the new stuff added to it is internally marked as unreleased.
 
 *[Internally, things that have been released in release `0` remain unchanged and
-marked as release `0`. But changed stuff will get a new copy internally, marked
-as version `-1`. Likewise, new stuff is added as version `-1`.]*
+marked as released. But changed stuff will get a new copy internally, marked as
+unreleased. Likewise, new stuff is added as unreleased.]*
 
 Next time you `romualdo release`, you'll get an updated `red_hoodie.ras` with
 nothing marked as unreleased. That will be a new release (with the version you
@@ -123,7 +120,7 @@ And there you have it, your second release! Users can update to it, and their
 old save states will keep working normally. (Fine print: limitations may apply!)
 
 *[As always, after a `romualdo release` everything on your `.ras` file will be
-associated with a released version. No `-1` versions there!]*
+marked as released.]*
 
 One final thing I'd like to note here (and deserves more detailed docs --
 they'll come eventually!) is that if you change an existing Procedure and build

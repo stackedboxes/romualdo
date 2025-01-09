@@ -21,11 +21,6 @@ import (
 // information that is not strictly necessary to run a Storyworld but is useful
 // for debugging, producing better error reporting, etc, belongs here.
 type DebugInfo struct {
-	// ChunksNames contains the names of the procedures on a CompiledStoryworld.
-	// There is one entry for each entry in the corresponding
-	// CompiledStoryworld.Chunks.
-	ChunksNames []string
-
 	// ChunksSourceFiles contains the source files every Chunk was compiled
 	// from. The indices here match those in CompiledStoryworld.Chunks. The file
 	// names here contain the path from the root of the Storyworld.
@@ -95,13 +90,7 @@ func (di *DebugInfo) serializePayload(w io.Writer) (uint32, errs.Error) {
 	mw := io.MultiWriter(w, crc)
 
 	// Number of chunks
-	err := romutil.SerializeU32(mw, uint32(len(di.ChunksNames)))
-	if err != nil {
-		return 0, err
-	}
-
-	// Chunks Names
-	err = romutil.SerializeStringSliceNoLength(mw, di.ChunksNames)
+	err := romutil.SerializeU32(mw, uint32(len(di.ChunksSourceFiles)))
 	if err != nil {
 		return 0, err
 	}
@@ -184,12 +173,6 @@ func (di *DebugInfo) deserializePayload(r io.Reader) (uint32, error) {
 
 	// Number of chunks
 	chunksCount, err := romutil.DeserializeU32(tr)
-	if err != nil {
-		return 0, err
-	}
-
-	// Chunks Names
-	di.ChunksNames, err = romutil.DeserializeStringSliceNoLength(tr, int(chunksCount))
 	if err != nil {
 		return 0, err
 	}

@@ -387,6 +387,29 @@ TODO: How to read a `meta`? Maybe `package.Func.metaName`. Int his case, need to
 allow the "third segment" in assignments and reads: `qualifiedIdentifier` alone
 won't do.
 
+## How to avoid infinite loops?
+
+A big, big TODO!
+
+Each amd every Procedure call can potentially recurse infinitely and cause a
+crash. It's easy to add a size limit to the call stack and thus replace the
+crash with a runtime error... but I want to avoid runtime errors!
+
+How can I?
+
+Maybe every procedure needs a default return value?
+
+And configurable max stack size? (Configurable in stack frames.)
+
+Interesting corner case: what if I implement tail call elimination? For tail
+calls we'd never reach the stack limit, but I'd still like to avoid the infinite
+loop! Maybe tail call elimination is bad for Romualdo?
+
+On the other hand, infinite loops in iterative code are equally bad, and have
+nothing to do with recursion or tail calls. Can I avoid infinite recursion by
+allowing only "very well-behaved" loops? Like iterating over the elements of an
+immutable collection? Sounds too restrictive!
+
 ## Ink-like Variable text?
 
 One thing I have a kind of [Ink](https://www.inklestudios.com/ink/)-envy is

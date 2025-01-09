@@ -10,19 +10,34 @@ package bytecode
 import (
 	"encoding/binary"
 	"math"
+
+	"github.com/stackedboxes/romualdo/pkg/romutil"
 )
 
-// A Chunk is a chunk of bytecode. We'll have one Chunk for each procedure in a
-// Storyworld.
+// A Chunk is a chunk of bytecode. We have one Chunk for each version of each
+// Procedure in a Storyworld.
 //
-// TODO: In the future, one chunk for each version of each procedure.
-//
-// TODO: In the future, probably, chunks for implicitly-defined procedures that
-// initialize globals and stuff.
+// TODO: In the future, maybe, chunks for implicitly-defined procedures that
+// initialize globals and stuff. (Doesn't feel like the simplest way to
+// initialize globals, but it's a possibility.)
 type Chunk struct {
-	// The bytecode itself. Includes both OpCodes and immediate arguments needed
-	// by the opcodes.
+	// Code contains the bytecode itself. Includes both OpCodes and immediate
+	// arguments needed by the opcodes.
 	Code []uint8
+
+	// Released tells whether this Chunk belongs to a released version or not. A
+	// value of true means this Chunk is the result of a `romualdo release`;
+	// false means it came form a `romualdo build`.
+	//
+	// Released Chunks must remain in the Compiled Storyworld forever to ensure
+	// compatibility with saved story progress from old releases of the
+	// Storyworld.
+	Released bool
+
+	// Hash is the code hash of the source code that generated this Chunk. It is
+	// used by the compiler at build time to check if a given Procedure has
+	// changed since the last release.
+	Hash romutil.CodeHash
 }
 
 // Encodes a signed 32-bit integer into the four first bytes of bytecode.

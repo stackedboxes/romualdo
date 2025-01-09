@@ -12,6 +12,12 @@
       function that don't alter the hash. Like, spacing, indentation, parens
       (possibly redundant) around binary expressions, comments, escaped
       keywords. (Need more language features to make a nice one!)
+    * Remove a Procedure in version *n*, add it again in version *n+1*. Make
+      sure the right version is called in every case.
+    * Change a Procedure in version *n*, revert the change in version *n+1*.
+      Make sure the right version is called in every case. This is case is
+      interesting because the same old Chunk can (and should) be used (it's
+      still there, marked as released); we could check for that, too.
 
 Then, the remaining "unique" Romualdo features (but see also the topics after
 them):
