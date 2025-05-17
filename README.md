@@ -59,6 +59,14 @@ Here I used just plain text to communicate between the Romualdo storyworld and
 the host program. We should be able to use some structured format like JSON or
 XML for easier integration with your game or engine.
 
+Probably as much as the language itself, I am interested in an *implementation*
+that provides some features I'd very much like to have in a tool like this.
+Notably, I want to be able to *save and resume* the execution state at any time,
+and a *saved state from an old version of your program/story should keep working
+with an updated version.* These requirements are key to allow user to play
+through long stories, and let developers/authors improve and update their work
+without breaking ongoing saved stories their players might have.
+
 ## Credits
 
 * The Romualdo Language syntax is in no small extent inspired by
